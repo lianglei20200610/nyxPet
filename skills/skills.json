@@ -1,0 +1,9 @@
+[
+  {
+    "id": "test",
+    "name": "测试脚本",
+    "icon": "✨",
+    "command": "/usr/bin/python3",
+    "args": ["skills/test_skill.py"]
+  }
+]

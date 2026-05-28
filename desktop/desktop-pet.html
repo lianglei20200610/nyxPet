@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #382b18;
+        --paper: rgba(255, 250, 241, 0.97);
+        --accent: #f16b9d;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+        font-family: Arial, sans-serif;
+      }
+
+      .pet-shell {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .drag-zone {
+        position: absolute;
+        inset: 0;
+        cursor: grab;
+      }
+
+      .shadow {
+        position: absolute;
+        left: 43%;
+        bottom: 5.5%;
+        width: 33%;
+        height: 4.5%;
+        border-radius: 999px;
+        background: rgba(20, 58, 82, 0.2);
+        transform: translateX(-50%);
+        animation: shadow 1.8s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      .pet {
+        position: absolute;
+        left: 8%;
+        bottom: 7%;
+        width: 58%;
+        aspect-ratio: 545 / 886;
+        overflow: hidden;
+        transform-origin: 50% 88%;
+        animation: bob 1.8s ease-in-out infinite;
+        cursor: pointer;
+      }
+
+      .pet img {
+        width: 133.4%;
+        height: 100%;
+        object-fit: cover;
+        object-position: left top;
+        display: block;
+        pointer-events: none;
+        transform-origin: 50% 88%;
+        animation: breathe 1.8s ease-in-out infinite;
+      }
+
+      .blink {
+        position: absolute;
+        width: 13.5%;
+        height: 4.8%;
+        top: 39.3%;
+        border-radius: 0 0 999px 999px;
+        background: #f8cbae;
+        border-bottom: 3px solid var(--ink);
+        opacity: 0;
+        animation: blink 4.6s infinite;
+        pointer-events: none;
+      }
+
+      .blink.left {
+        left: 18.6%;
+        transform: rotate(3deg) scaleY(0.1);
+      }
+
+      .blink.right {
+        left: 56.2%;
+        transform: rotate(-2deg) scaleY(0.1);
+      }
+
+      .bubble {
+        position: absolute;
+        top: 10%;
+        right: 4%;
+        width: 48%;
+        min-height: 104px;
+        padding: 16px 18px;
+        border: 4px solid var(--ink);
+        border-radius: 24px;
+        background: var(--paper);
+        color: #33261b;
+        box-shadow: 0 10px 0 rgba(45, 38, 27, 0.12);
+        opacity: 0;
+        transform: translateY(12px) scale(0.92);
+        transform-origin: 16% 100%;
+        transition: opacity 160ms ease, transform 160ms ease;
+        pointer-events: none;
+      }
+
+      .bubble.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      .bubble::before {
+        content: "";
+        position: absolute;
+        left: 28px;
+        bottom: -23px;
+        width: 32px;
+        height: 32px;
+        background: var(--paper);
+        border-right: 4px solid var(--ink);
+        border-bottom: 4px solid var(--ink);
+        transform: rotate(45deg);
+      }
+
+      .bubble-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #7c6754;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .bubble-text {
+        display: block;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.35;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+      }
+
+      .menu {
+        position: absolute;
+        left: 50%;
+        bottom: 15%;
+        display: grid;
+        grid-template-columns: repeat(3, 48px);
+        gap: 8px;
+        opacity: 0;
+        transform: translate(-50%, 10px) scale(0.92);
+        transform-origin: 50% 100%;
+        transition: opacity 150ms ease, transform 150ms ease;
+        pointer-events: none;
+      }
+
+      .menu.open {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+        pointer-events: auto;
+      }
+
+      button {
+        width: 48px;
+        height: 48px;
+        border: 3px solid var(--ink);
+        border-radius: 16px;
+        background: var(--paper);
+        color: var(--ink);
+        box-shadow: 0 5px 0 rgba(45, 38, 27, 0.16);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      button:active {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 rgba(45, 38, 27, 0.16);
+      }
+
+      @keyframes bob {
+        0%, 100% { transform: translateY(0) rotate(-0.4deg); }
+        50% { transform: translateY(-12px) rotate(0.4deg); }
+      }
+
+      @keyframes breathe {
+        0%, 100% { transform: scaleX(1) scaleY(1); }
+        50% { transform: scaleX(1.012) scaleY(0.992); }
+      }
+
+      @keyframes shadow {
+        0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.2; }
+        50% { transform: translateX(-50%) scaleX(0.86); opacity: 0.12; }
+      }
+
+      @keyframes blink {
+        0%, 87%, 100% { opacity: 0; transform: scaleY(0.1); }
+        89%, 92% { opacity: 1; transform: scaleY(1); }
+        94% { opacity: 0; transform: scaleY(0.1); }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="pet-shell">
+      <div class="drag-zone" id="dragZone"></div>
+      <div class="shadow"></div>
+      <section class="pet" id="pet" aria-label="宠物">
+        <img src="../assets/character/main-character-reference.jpg" alt="宠物角色" />
+        <span class="blink left"></span>
+        <span class="blink right"></span>
+      </section>
+      <aside class="bubble" id="bubble" aria-live="polite">
+        <span class="bubble-label" id="bubbleLabel">小技能</span>
+        <span class="bubble-text" id="bubbleText">脚本运行完成
+加班 2.5 小时</span>
+      </aside>
+      <nav class="menu" id="menu" aria-label="互动菜单">
+        <button type="button" data-say="开工啦，今天也要赚金币。|工作">💼</button>
+        <button type="button" data-say="会议开始，我会努力保持清醒。|开会">📝</button>
+      </nav>
+    </main>
+    <script>
+      const pet = document.getElementById("pet");
+      const menu = document.getElementById("menu");
+      const bubble = document.getElementById("bubble");
+      const bubbleLabel = document.getElementById("bubbleLabel");
+      const bubbleText = document.getElementById("bubbleText");
+      const dragZone = document.getElementById("dragZone");
+      let hideTimer;
+
+      function say(text, label = "宠物") {
+        window.clearTimeout(hideTimer);
+        bubbleLabel.textContent = label;
+        bubbleText.textContent = text;
+        bubble.classList.add("show");
+        hideTimer = window.setTimeout(() => bubble.classList.remove("show"), 5200);
+      }
+
+      window.petSkillResult = (result) => {
+        say(result.text || "脚本运行完成", result.label || "小技能");
+      };
+
+      window.petLoadSkills = (skills) => {
+        menu.querySelectorAll("[data-action='skill']").forEach((button) => button.remove());
+        for (const skill of skills) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.dataset.action = "skill";
+          button.dataset.skillId = skill.id;
+          button.dataset.skillName = skill.name;
+          button.title = skill.name;
+          button.textContent = skill.icon || "✨";
+          menu.appendChild(button);
+        }
+      };
+
+      pet.addEventListener("click", (event) => {
+        event.stopPropagation();
+        menu.classList.toggle("open");
+      });
+
+      document.addEventListener("click", () => {
+        menu.classList.remove("open");
+      });
+
+      menu.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) return;
+        event.stopPropagation();
+        if (button.dataset.action === "skill") {
+          const skillName = button.dataset.skillName || "小技能";
+          say("正在运行脚本...", skillName);
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "runSkill",
+            skillId: button.dataset.skillId
+          });
+        } else {
+          const [text, label] = button.dataset.say.split("|");
+          say(text, label);
+        }
+        menu.classList.remove("open");
+      });
+
+      dragZone.addEventListener("pointerdown", () => {
+        window.webkit?.messageHandlers?.pet?.postMessage("drag");
+      });
+    </script>
+  </body>
+</html>

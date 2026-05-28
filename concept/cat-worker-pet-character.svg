@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="42%" r="68%">
+      <stop offset="0" stop-color="#77b8de"/>
+      <stop offset="1" stop-color="#3f8bbb"/>
+    </radialGradient>
+    <linearGradient id="fur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff2dd"/>
+      <stop offset="1" stop-color="#ffd4ad"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eee9cc"/>
+      <stop offset="1" stop-color="#cfc7a7"/>
+    </linearGradient>
+    <linearGradient id="eye" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#183b9d"/>
+      <stop offset=".52" stop-color="#2f7ed0"/>
+      <stop offset="1" stop-color="#9dd9ff"/>
+    </linearGradient>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      .outline { stroke:#382b18; stroke-width:8; stroke-linecap:round; stroke-linejoin:round; }
+      .line { stroke:#382b18; stroke-width:5; stroke-linecap:round; stroke-linejoin:round; fill:none; }
+      .thin { stroke:#6a5130; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; fill:none; opacity:.72; }
+      .fur { fill:url(#fur); }
+      .hair { fill:url(#hair); }
+      .white { fill:#fffaf1; opacity:.88; }
+      .cloth { fill:#ffffff; opacity:.55; }
+      .pink { fill:#ff9cc2; }
+      .bead1 { fill:#ffe36b; }
+      .bead2 { fill:#f44573; }
+      .shadow { fill:#246b96; opacity:.28; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="1200" fill="url(#bgGlow)"/>
+  <circle cx="850" cy="765" r="42" fill="#ff68d1" opacity=".55" filter="url(#softGlow)"/>
+  <circle cx="292" cy="790" r="30" fill="#ff68d1" opacity=".5" filter="url(#softGlow)"/>
+  <circle cx="928" cy="908" r="21" fill="#fff7bb" opacity=".7" filter="url(#softGlow)"/>
+  <ellipse class="shadow" cx="585" cy="1070" rx="245" ry="48"/>
+
+  <g transform="translate(180 40)">
+    <path class="outline fur" d="M246 568 C176 604 143 676 176 742 C205 800 284 798 315 739 C335 700 337 651 321 606 Z"/>
+    <path class="outline fur" d="M605 568 C677 603 708 677 675 742 C646 800 568 798 536 739 C516 699 515 651 531 606 Z"/>
+
+    <path class="outline fur" d="M331 795 L421 795 L411 1028 C398 1071 322 1071 309 1028 Z"/>
+    <path class="outline fur" d="M467 795 L556 795 L579 1028 C566 1071 490 1071 477 1028 Z"/>
+    <path class="outline fur" d="M292 1015 C325 990 388 991 414 1022 C426 1038 420 1063 401 1071 L283 1071 C264 1053 268 1032 292 1015 Z"/>
+    <path class="outline fur" d="M474 1023 C500 991 563 990 596 1015 C620 1032 624 1053 605 1071 L487 1071 C468 1063 462 1039 474 1023 Z"/>
+
+    <path class="outline white" d="M277 534 C325 496 524 496 575 534 C619 607 627 741 594 846 C532 884 318 884 255 846 C225 741 232 608 277 534 Z"/>
+    <path class="line" d="M310 561 C363 616 437 652 555 674"/>
+    <path class="line" d="M536 548 C504 608 452 678 342 745"/>
+    <path class="thin" d="M327 641 C375 604 432 578 511 560"/>
+    <path class="thin" d="M353 748 C424 762 502 748 574 720"/>
+
+    <g>
+      <circle class="outline bead1" cx="312" cy="823" r="10"/>
+      <circle class="outline bead2" cx="346" cy="824" r="10"/>
+      <circle class="outline bead1" cx="380" cy="825" r="10"/>
+      <circle class="outline bead2" cx="414" cy="824" r="10"/>
+      <circle class="outline bead1" cx="448" cy="822" r="10"/>
+      <circle class="outline bead2" cx="482" cy="819" r="10"/>
+      <circle class="outline bead1" cx="516" cy="814" r="10"/>
+      <circle class="outline bead2" cx="548" cy="806" r="10"/>
+      <path class="line" d="M448 829 C443 878 467 906 508 925"/>
+      <circle class="outline bead2" cx="456" cy="858" r="8"/>
+      <circle class="outline bead1" cx="470" cy="886" r="8"/>
+      <circle class="outline bead2" cx="498" cy="918" r="8"/>
+    </g>
+
+    <path class="outline fur" d="M233 187 C244 70 343 10 437 17 C534 25 621 94 634 201 C709 249 732 348 703 439 C665 559 538 620 428 620 C317 620 190 559 153 439 C124 348 149 249 233 187 Z"/>
+    <path class="outline fur" d="M230 194 L126 126 L206 263 Z"/>
+    <path class="outline fur" d="M630 199 L739 129 L659 268 Z"/>
+    <path class="outline pink" d="M219 213 L162 164 L205 249 Z" opacity=".56"/>
+    <path class="outline pink" d="M641 216 L701 167 L656 251 Z" opacity=".56"/>
+
+    <path class="outline hair" d="M207 193 C257 66 366 7 488 29 C571 44 637 101 669 193 C620 163 562 151 499 160 C418 171 339 207 274 283 C238 285 213 257 207 193 Z"/>
+    <path class="outline hair" d="M129 233 C185 206 235 207 273 236 C225 257 186 290 151 334 C128 323 121 282 129 233 Z"/>
+    <path class="outline hair" d="M274 182 C310 134 352 103 401 88 C376 150 357 211 344 274 C311 259 290 229 274 182 Z"/>
+    <path class="outline hair" d="M416 86 C455 104 486 139 510 190 C482 247 449 291 408 321 C399 249 401 172 416 86 Z"/>
+    <path class="outline hair" d="M529 125 C582 145 621 183 647 238 C617 279 585 309 548 326 C553 257 546 191 529 125 Z"/>
+    <path class="line" d="M204 214 C253 185 297 176 337 190"/>
+    <path class="line" d="M463 88 C509 102 550 132 586 178"/>
+    <path class="thin" d="M237 300 C278 263 313 228 342 194"/>
+    <path class="thin" d="M414 304 C455 256 485 216 504 178"/>
+
+    <ellipse class="outline" cx="331" cy="401" rx="69" ry="62" fill="url(#eye)"/>
+    <ellipse class="outline" cx="535" cy="401" rx="69" ry="62" fill="url(#eye)"/>
+    <circle cx="355" cy="375" r="15" fill="#fff"/>
+    <circle cx="554" cy="375" r="15" fill="#fff"/>
+    <circle cx="378" cy="420" r="9" fill="#c7eeff"/>
+    <circle cx="575" cy="420" r="9" fill="#c7eeff"/>
+    <path class="line" d="M246 357 C286 320 354 319 408 349"/>
+    <path class="line" d="M469 349 C523 319 591 320 631 357"/>
+    <path class="thin" d="M423 437 C415 462 419 480 438 487"/>
+    <path class="line" d="M386 526 C416 550 464 550 494 526"/>
+    <circle cx="247" cy="480" r="33" fill="#ffa792" opacity=".32"/>
+    <circle cx="632" cy="480" r="33" fill="#ffa792" opacity=".32"/>
+    <path class="thin" d="M193 399 C172 408 162 430 169 454"/>
+    <path class="thin" d="M685 399 C706 408 716 430 709 454"/>
+
+    <path class="outline fur" d="M612 769 C716 782 784 723 772 641 C764 586 711 559 671 590 C706 609 719 656 697 691 C678 722 644 733 607 727 Z"/>
+    <path class="line" d="M678 615 C720 639 721 699 675 723"/>
+
+    <g filter="url(#softGlow)" opacity=".9">
+      <circle cx="279" cy="996" r="8" fill="#fff"/>
+      <circle cx="248" cy="1032" r="6" fill="#fff"/>
+      <circle cx="619" cy="1003" r="8" fill="#fff"/>
+      <circle cx="650" cy="1035" r="6" fill="#fff"/>
+      <path d="M226 1010 L279 1032 M253 981 L252 1045 M214 1038 L292 997" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+      <path d="M605 1012 L657 1031 M631 982 L632 1045 M592 1038 L671 998" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

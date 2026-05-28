@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <style>
+      .bg { fill: #f7f1e7; }
+      .ink { stroke: #2c2a28; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+      .thin { stroke: #2c2a28; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .label { font-family: Arial, sans-serif; font-size: 34px; font-weight: 700; fill: #2c2a28; }
+      .small { font-family: Arial, sans-serif; font-size: 22px; fill: #4b4743; }
+      .tiny { font-family: Arial, sans-serif; font-size: 18px; fill: #4b4743; }
+      .skin { fill: #ffd6ad; }
+      .skin2 { fill: #ffc693; }
+      .hair { fill: #3a302b; }
+      .shirt { fill: #78b9b0; }
+      .tie { fill: #e85d4f; }
+      .pants { fill: #4d5a65; }
+      .shoe { fill: #303030; }
+      .paper { fill: #fffaf1; }
+      .coffee { fill: #8c5a35; }
+      .coin { fill: #f2be45; }
+      .green { fill: #88c96f; }
+      .blue { fill: #7db7e8; }
+      .pink { fill: #f08ea3; }
+      .shadow { fill: #dccfbd; opacity: 0.65; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1400" height="900"/>
+  <circle cx="1180" cy="130" r="92" fill="#cfe8df"/>
+  <circle cx="1230" cy="725" r="130" fill="#f4c7b6"/>
+  <circle cx="150" cy="760" r="110" fill="#d8e3f4"/>
+
+  <text x="72" y="82" class="label">Round Worker Pet - Style A</text>
+  <text x="73" y="120" class="small">cute desktop human pet, soft office humor, readable at small size</text>
+
+  <g transform="translate(138 178)">
+    <text x="0" y="0" class="small">Default idle</text>
+    <ellipse class="shadow" cx="170" cy="535" rx="126" ry="28"/>
+    <g transform="translate(0 30)">
+      <path class="ink shirt" d="M93 318 Q170 285 247 318 L270 455 Q170 505 70 455 Z"/>
+      <path class="ink pants" d="M106 454 L148 454 L142 548 L92 548 Z"/>
+      <path class="ink pants" d="M194 454 L236 454 L248 548 L198 548 Z"/>
+      <path class="ink shoe" d="M82 546 Q115 528 148 548 L144 574 L74 574 Z"/>
+      <path class="ink shoe" d="M193 548 Q226 528 259 548 L270 574 L200 574 Z"/>
+      <path class="thin skin2" d="M76 346 Q27 382 56 431"/>
+      <path class="thin skin2" d="M264 346 Q313 382 284 431"/>
+      <path class="ink tie" d="M169 333 L193 389 L171 455 L148 389 Z"/>
+      <rect class="thin paper" x="215" y="365" width="56" height="70" rx="9"/>
+      <path class="thin" d="M228 386 L259 386 M228 405 L252 405"/>
+      <path class="ink skin" d="M62 78 Q170 -7 278 78 Q339 151 300 245 Q262 330 170 330 Q78 330 40 245 Q1 151 62 78 Z"/>
+      <path class="ink hair" d="M75 81 Q126 23 190 39 Q246 45 283 102 Q230 75 182 86 Q123 100 77 143 Z"/>
+      <path class="thin hair" d="M168 29 Q173 5 193 20 M199 36 Q211 12 230 32"/>
+      <circle cx="126" cy="176" r="11" fill="#2c2a28"/>
+      <circle cx="213" cy="176" r="11" fill="#2c2a28"/>
+      <path class="thin" d="M136 226 Q170 250 204 226"/>
+      <path class="thin" d="M95 151 Q120 134 143 146"/>
+      <path class="thin" d="M197 146 Q221 134 245 151"/>
+      <circle cx="91" cy="214" r="17" fill="#ffad99" opacity="0.6"/>
+      <circle cx="247" cy="214" r="17" fill="#ffad99" opacity="0.6"/>
+      <rect class="thin paper" x="116" y="288" width="108" height="44" rx="14"/>
+      <text x="134" y="317" class="tiny">Lv.1</text>
+    </g>
+  </g>
+
+  <g transform="translate(522 178)">
+    <text x="0" y="0" class="small">Happy / fed</text>
+    <ellipse class="shadow" cx="156" cy="535" rx="110" ry="28"/>
+    <g transform="translate(0 45)">
+      <path class="ink green" d="M82 324 Q156 291 230 324 L250 453 Q156 493 62 453 Z"/>
+      <path class="ink pants" d="M96 452 L139 452 L132 548 L82 548 Z"/>
+      <path class="ink pants" d="M178 452 L220 452 L234 548 L184 548 Z"/>
+      <path class="ink shoe" d="M73 547 Q106 531 137 548 L132 573 L65 573 Z"/>
+      <path class="ink shoe" d="M181 548 Q214 531 246 548 L257 573 L188 573 Z"/>
+      <path class="thin skin2" d="M70 354 Q31 404 77 432"/>
+      <path class="thin skin2" d="M238 354 Q279 404 233 432"/>
+      <path class="ink skin" d="M57 82 Q156 2 255 82 Q312 148 278 238 Q244 318 156 318 Q68 318 34 238 Q0 148 57 82 Z"/>
+      <path class="ink hair" d="M67 84 Q111 35 170 39 Q222 42 258 96 Q210 76 162 83 Q105 91 66 134 Z"/>
+      <path class="thin hair" d="M148 33 Q151 11 170 23 M180 35 Q190 15 207 32 M113 54 Q105 33 127 33"/>
+      <path class="thin" d="M104 170 Q123 154 141 170"/>
+      <path class="thin" d="M174 170 Q193 154 211 170"/>
+      <path class="thin" d="M116 222 Q156 266 197 222"/>
+      <circle cx="82" cy="210" r="19" fill="#ff9d8a" opacity="0.7"/>
+      <circle cx="230" cy="210" r="19" fill="#ff9d8a" opacity="0.7"/>
+      <g transform="translate(238 100)">
+        <path class="thin paper" d="M0 20 Q35 -12 70 20 L60 76 Q35 95 10 76 Z"/>
+        <path class="thin coffee" d="M16 30 L55 30 L50 72 Q35 84 21 72 Z"/>
+      </g>
+    </g>
+  </g>
+
+  <g transform="translate(848 178)">
+    <text x="0" y="0" class="small">Overtime / meeting</text>
+    <ellipse class="shadow" cx="170" cy="535" rx="126" ry="28"/>
+    <g transform="translate(0 35)">
+      <path class="ink blue" d="M93 326 Q170 293 247 326 L270 455 Q170 505 70 455 Z"/>
+      <path class="ink pants" d="M106 454 L148 454 L142 548 L92 548 Z"/>
+      <path class="ink pants" d="M194 454 L236 454 L248 548 L198 548 Z"/>
+      <path class="ink shoe" d="M82 546 Q115 528 148 548 L144 574 L74 574 Z"/>
+      <path class="ink shoe" d="M193 548 Q226 528 259 548 L270 574 L200 574 Z"/>
+      <path class="thin skin2" d="M80 361 Q38 405 70 446"/>
+      <path class="thin skin2" d="M260 361 Q302 405 270 446"/>
+      <path class="ink tie" d="M169 340 L191 393 L171 455 L149 393 Z"/>
+      <path class="ink skin" d="M62 87 Q170 2 278 87 Q339 159 300 250 Q262 335 170 335 Q78 335 40 250 Q1 159 62 87 Z"/>
+      <path class="ink hair" d="M82 86 Q122 38 180 45 Q226 49 265 101 Q214 82 170 93 Q118 103 82 150 Z"/>
+      <path class="thin hair" d="M156 37 Q156 14 173 28"/>
+      <path class="thin" d="M100 166 L145 166 M195 166 L240 166"/>
+      <path class="thin" d="M137 230 Q170 214 203 230"/>
+      <path class="thin" d="M116 190 Q130 204 144 190 M196 190 Q210 204 224 190"/>
+      <path class="thin" d="M288 92 L320 62 M306 123 L348 114 M291 154 L329 178"/>
+      <g transform="translate(225 288)">
+        <rect class="thin paper" x="0" y="0" width="118" height="78" rx="14"/>
+        <circle cx="29" cy="38" r="15" fill="#f08ea3"/>
+        <path class="thin" d="M59 29 L98 29 M59 49 L88 49"/>
+      </g>
+      <text x="112" y="319" class="tiny">hair -1</text>
+    </g>
+  </g>
+
+  <g transform="translate(80 735)">
+    <text x="0" y="0" class="small">Customizable parts</text>
+    <g transform="translate(0 35)">
+      <circle class="ink skin" cx="42" cy="42" r="33"/>
+      <path class="thin hair" d="M15 35 Q42 5 69 35"/>
+      <text x="95" y="50" class="tiny">hair amount / style</text>
+    </g>
+    <g transform="translate(300 35)">
+      <rect class="ink shirt" x="0" y="8" width="72" height="58" rx="16"/>
+      <rect class="ink green" x="92" y="8" width="72" height="58" rx="16"/>
+      <rect class="ink blue" x="184" y="8" width="72" height="58" rx="16"/>
+      <text x="285" y="50" class="tiny">outfit colors</text>
+    </g>
+    <g transform="translate(740 35)">
+      <circle class="ink coin" cx="38" cy="38" r="30"/>
+      <path class="thin" d="M38 18 L38 58 M24 28 Q38 16 52 28 M24 48 Q38 60 52 48"/>
+      <text x="88" y="47" class="tiny">money buys props</text>
+    </g>
+  </g>
+</svg>
