@@ -329,8 +329,10 @@
         food: { label: "饮食", icon: "🍱" },
         exercise: { label: "运动", icon: "🏃" },
         entertainment: { label: "娱乐", icon: "🎲" },
-        skill: { label: "技能", icon: "✨" }
+        skill: { label: "技能", icon: "✨" },
+        settings: { label: "设置", icon: "⚙️" }
       };
+      let petSettings = { alwaysOnTop: true };
 
       function say(text, label = "宠物") {
         window.clearTimeout(hideTimer);
@@ -349,6 +351,13 @@
         statEls.weight.textContent = state.weight;
         statEls.hair.textContent = state.hair;
         statEls.money.textContent = state.money;
+      };
+
+      window.petSettingsUpdated = (settings) => {
+        petSettings = settings;
+        if (menu.classList.contains("open") && menuMode === "settings") {
+          renderCategoryMenu("settings");
+        }
       };
 
       window.petLoadActions = (actions) => {
@@ -398,6 +407,12 @@
             dataset: { action: "openCategory", category: "skill" }
           }));
         }
+
+        menu.appendChild(createMenuButton({
+          icon: categoryMeta.settings.icon,
+          title: categoryMeta.settings.label,
+          dataset: { action: "openCategory", category: "settings" }
+        }));
       }
 
       function renderCategoryMenu(category) {
@@ -423,6 +438,20 @@
               }
             }));
           }
+          return;
+        }
+
+        if (category === "settings") {
+          menu.appendChild(createMenuButton({
+            icon: petSettings.alwaysOnTop ? "📌" : "📍",
+            title: petSettings.alwaysOnTop ? "关闭置顶" : "开启置顶",
+            dataset: { action: "toggleAlwaysOnTop" }
+          }));
+          menu.appendChild(createMenuButton({
+            icon: "⏻",
+            title: "退出",
+            dataset: { action: "quit" }
+          }));
           return;
         }
 
@@ -490,6 +519,18 @@
         }
         if (button.dataset.action === "back") {
           renderRootMenu();
+          return;
+        }
+        if (button.dataset.action === "toggleAlwaysOnTop") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "toggleAlwaysOnTop"
+          });
+          return;
+        }
+        if (button.dataset.action === "quit") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "quit"
+          });
           return;
         }
         if (button.dataset.action === "skill") {

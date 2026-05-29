@@ -41,9 +41,9 @@
 ## Desktop App Polish
 
 1. Implemented: remember window position.
-2. Add right-click menu.
-3. Add hide / quit controls.
-4. Add always-on-top toggle.
+2. Implemented: settings menu with quit control.
+3. Implemented: always-on-top toggle.
+4. Add right-click menu.
 5. Add optional launch-at-login.
 6. Package as a normal `.app`.
 

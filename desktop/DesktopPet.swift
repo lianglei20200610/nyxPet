@@ -40,8 +40,9 @@ struct PetSettings: Codable {
     var windowY: Double
     var windowWidth: Double
     var windowHeight: Double
+    var alwaysOnTop: Bool
 
-    static let initial = PetSettings(windowX: 120, windowY: 180, windowWidth: 520, windowHeight: 620)
+    static let initial = PetSettings(windowX: 120, windowY: 180, windowWidth: 520, windowHeight: 620, alwaysOnTop: true)
 
     var frame: NSRect {
         NSRect(x: windowX, y: windowY, width: windowWidth, height: windowHeight)
@@ -62,9 +63,18 @@ final class PetSettingsStore {
             windowX: windowFrame.origin.x,
             windowY: windowFrame.origin.y,
             windowWidth: windowFrame.size.width,
-            windowHeight: windowFrame.size.height
+            windowHeight: windowFrame.size.height,
+            alwaysOnTop: settings.alwaysOnTop
         )
+        save()
+    }
 
+    func setAlwaysOnTop(_ enabled: Bool) {
+        settings.alwaysOnTop = enabled
+        save()
+    }
+
+    private func save() {
         do {
             try FileManager.default.createDirectory(
                 at: settingsURL.deletingLastPathComponent(),
@@ -175,15 +185,17 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
     let skills: [SkillConfig]
     let actions: [PetActionConfig]
     let stateStore: PetStateStore
+    let settingsStore: PetSettingsStore
     private var activeAction: PetActionConfig?
 
-    init(window: NSWindow?, webView: WKWebView?, root: URL, skills: [SkillConfig], actions: [PetActionConfig], stateStore: PetStateStore) {
+    init(window: NSWindow?, webView: WKWebView?, root: URL, skills: [SkillConfig], actions: [PetActionConfig], stateStore: PetStateStore, settingsStore: PetSettingsStore) {
         self.window = window
         self.webView = webView
         self.root = root
         self.skills = skills
         self.actions = actions
         self.stateStore = stateStore
+        self.settingsStore = settingsStore
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -216,6 +228,10 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
                 return
             }
             applyPetAction(actionId)
+        case "toggleAlwaysOnTop":
+            toggleAlwaysOnTop()
+        case "quit":
+            quit()
         default:
             break
         }
@@ -358,6 +374,25 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
         sendActivityEnded()
     }
 
+    private func toggleAlwaysOnTop() {
+        guard let window else {
+            return
+        }
+
+        let nextValue = window.level != .floating
+        window.level = nextValue ? .floating : .normal
+        settingsStore.setAlwaysOnTop(nextValue)
+        sendSettings()
+        sendSpeech(nextValue ? "已开启置顶" : "已关闭置顶", label: "设置")
+    }
+
+    private func quit() {
+        if let window {
+            settingsStore.save(windowFrame: window.frame)
+        }
+        NSApp.terminate(nil)
+    }
+
     private func resolvedURL(for command: String) -> URL {
         if command.hasPrefix("/") {
             return URL(fileURLWithPath: command)
@@ -404,6 +439,15 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
 
     func sendActivityEnded() {
         webView?.evaluateJavaScript("window.petActivityEnded();")
+    }
+
+    func sendSettings() {
+        guard let payload = try? JSONEncoder().encode(settingsStore.settings),
+              let json = String(data: payload, encoding: .utf8) else {
+            return
+        }
+
+        webView?.evaluateJavaScript("window.petSettingsUpdated(\(json));")
     }
 
     private func sendSpeech(_ text: String, label: String) {
@@ -454,7 +498,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.level = .floating
+        window.level = settingsStore.settings.alwaysOnTop ? .floating : .normal
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.hasShadow = false
         window.isMovableByWindowBackground = true
@@ -462,7 +506,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.delegate = self
         window.makeKeyAndOrderFront(nil)
 
-        messageHandler = PetMessageHandler(window: window, webView: webView, root: root, skills: skills, actions: actions, stateStore: stateStore)
+        messageHandler = PetMessageHandler(window: window, webView: webView, root: root, skills: skills, actions: actions, stateStore: stateStore, settingsStore: settingsStore)
         contentController.add(messageHandler, name: "pet")
 
         NSApp.activate(ignoringOtherApps: true)
@@ -525,6 +569,7 @@ extension AppDelegate: WKNavigationDelegate {
         webView.evaluateJavaScript("window.petLoadSkills(\(json));")
         sendActions()
         messageHandler.sendState()
+        messageHandler.sendSettings()
     }
 
     private func sendActions() {
