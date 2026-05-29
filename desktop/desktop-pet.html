@@ -509,6 +509,12 @@
         renderRootMenu();
       });
 
+      document.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        menu.classList.remove("open");
+        renderRootMenu();
+      });
+
       menu.addEventListener("click", (event) => {
         const button = event.target.closest("button");
         if (!button) return;

@@ -41,6 +41,7 @@ Build a macOS desktop pet / lightweight companion game. The pet lives in a float
 - The interaction menu is grouped by category, with a compact second-level submenu for actions and skills.
 - The desktop window position is saved in `data/pet-settings.json` and restored on next launch.
 - Settings menu supports always-on-top toggle and quit.
+- Native right-click menu supports always-on-top toggle and quit.
 
 ## How To Run
 
@@ -153,7 +154,7 @@ swiftc -module-cache-path build/ModuleCache desktop/DesktopPet.swift -o build/De
 
 1. Add support for the real overtime script.
 2. Improve desktop UX:
-   - right-click menu
+   - hide/minimize behavior
 3. Later, consider packaging into a normal `.app`.
 
 More planning details live in `GAME_ROADMAP.md`.

@@ -178,6 +178,18 @@ extension JSONEncoder {
     }
 }
 
+protocol PetWebViewDelegate: AnyObject {
+    func showContextMenu(at point: NSPoint)
+}
+
+final class PetWebView: WKWebView {
+    weak var petDelegate: PetWebViewDelegate?
+
+    override func rightMouseDown(with event: NSEvent) {
+        petDelegate?.showContextMenu(at: event.locationInWindow)
+    }
+}
+
 final class PetMessageHandler: NSObject, WKScriptMessageHandler {
     weak var window: NSWindow?
     weak var webView: WKWebView?
@@ -467,7 +479,7 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var window: NSWindow!
     private var messageHandler: PetMessageHandler!
-    private var webView: WKWebView!
+    private var webView: PetWebView!
     private var skills: [SkillConfig] = []
     private var actions: [PetActionConfig] = []
     private var stateStore: PetStateStore!
@@ -485,7 +497,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let config = WKWebViewConfiguration()
         config.userContentController = contentController
 
-        webView = WKWebView(frame: .zero, configuration: config)
+        webView = PetWebView(frame: .zero, configuration: config)
+        webView.petDelegate = self
         webView.navigationDelegate = self
         webView.setValue(false, forKey: "drawsBackground")
         webView.loadFileURL(htmlURL, allowingReadAccessTo: root)
@@ -542,6 +555,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             print("Failed to load actions.json: \(error)")
             return []
         }
+    }
+}
+
+extension AppDelegate: PetWebViewDelegate {
+    func showContextMenu(at point: NSPoint) {
+        let menu = NSMenu()
+        let pinTitle = settingsStore.settings.alwaysOnTop ? "关闭置顶" : "开启置顶"
+        menu.addItem(NSMenuItem(title: pinTitle, action: #selector(toggleAlwaysOnTopFromMenu), keyEquivalent: ""))
+        menu.addItem(.separator())
+        menu.addItem(NSMenuItem(title: "退出", action: #selector(quitFromMenu), keyEquivalent: "q"))
+        NSMenu.popUpContextMenu(menu, with: NSApp.currentEvent ?? NSEvent(), for: webView)
+    }
+
+    @objc private func toggleAlwaysOnTopFromMenu() {
+        let nextValue = window.level != .floating
+        window.level = nextValue ? .floating : .normal
+        settingsStore.setAlwaysOnTop(nextValue)
+        messageHandler.sendSettings()
+    }
+
+    @objc private func quitFromMenu() {
+        settingsStore.save(windowFrame: window.frame)
+        NSApp.terminate(nil)
     }
 }
 

@@ -43,7 +43,7 @@
 1. Implemented: remember window position.
 2. Implemented: settings menu with quit control.
 3. Implemented: always-on-top toggle.
-4. Add right-click menu.
+4. Implemented: native right-click menu with always-on-top and quit.
 5. Add optional launch-at-login.
 6. Package as a normal `.app`.
 
