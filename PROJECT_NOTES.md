@@ -35,6 +35,9 @@ Build a macOS desktop pet / lightweight companion game. The pet lives in a float
   - long output is trimmed
 - Pet stats are saved in `data/pet-state.json`.
 - Work and meeting update mood, hair, and money.
+- Gameplay actions are loaded from `actions/actions.json`.
+- Actions support duration, start message, finish message, and stat deltas.
+- The pet shows a small activity progress panel while actions are running.
 
 ## How To Run
 
@@ -84,6 +87,36 @@ Expected flow:
 Launch pet -> read skills/skills.json -> generate skill menu buttons -> click skill -> run command -> show stdout in bubble
 ```
 
+## Action System
+
+Action config lives in:
+
+```text
+actions/actions.json
+```
+
+Each action includes:
+
+- `id`
+- `name`
+- `icon`
+- `category`
+- `durationSeconds`
+- `moodDelta`
+- `weightDelta`
+- `hairDelta`
+- `moneyDelta`
+- `startMessage`
+- `finishMessage`
+
+Current actions:
+
+- work
+- meeting
+- meal
+- drink
+- exercise
+
 To add the real overtime script, copy it into `skills/`, for example:
 
 ```text
@@ -111,16 +144,18 @@ swiftc -module-cache-path build/ModuleCache desktop/DesktopPet.swift -o build/De
 ## Next Steps
 
 1. Add support for the real overtime script.
-2. Add more action settlement:
-   - work earns money
-   - meeting earns less and lowers mood
-   - eating changes mood and weight
-   - exercise reduces weight
-3. Improve desktop UX:
+2. Add action categories and a cleaner menu layout.
+3. Add more actions:
+   - badminton
+   - cycling
+   - card game
+   - alcohol
+   - buffet
+4. Improve desktop UX:
    - close / settings menu
    - remember window position
    - optional always-on-top toggle
-4. Later, consider packaging into a normal `.app`.
+5. Later, consider packaging into a normal `.app`.
 
 More planning details live in `GAME_ROADMAP.md`.
 

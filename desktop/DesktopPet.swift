@@ -11,6 +11,20 @@ struct SkillConfig: Decodable {
     let outputLimit: Int?
 }
 
+struct PetActionConfig: Decodable {
+    let id: String
+    let name: String
+    let icon: String
+    let category: String
+    let durationSeconds: Double
+    let moodDelta: Int
+    let weightDelta: Int
+    let hairDelta: Int
+    let moneyDelta: Int
+    let startMessage: String
+    let finishMessage: String
+}
+
 struct PetState: Codable {
     var mood: Int
     var weight: Int
@@ -30,25 +44,19 @@ final class PetStateStore {
         state = Self.load(from: stateURL)
     }
 
-    func apply(action: String) -> String {
-        switch action {
-        case "work":
-            state.money += 50
-            state.mood = clamp(state.mood - 4)
-            state.hair = clamp(state.hair - 1)
-            state.currentActivity = "工作"
-            save()
-            return "工作完成\n金币 +50\n心情 -4"
-        case "meeting":
-            state.money += 20
-            state.mood = clamp(state.mood - 8)
-            state.hair = clamp(state.hair - 2)
-            state.currentActivity = "开会"
-            save()
-            return "会议结束\n金币 +20\n心情 -8，发量 -2"
-        default:
-            return "未知行动\n\(action)"
-        }
+    func start(action: PetActionConfig) {
+        state.currentActivity = action.name
+        save()
+    }
+
+    func finish(action: PetActionConfig) -> String {
+        state.money = max(0, state.money + action.moneyDelta)
+        state.mood = clamp(state.mood + action.moodDelta)
+        state.weight = clamp(state.weight + action.weightDelta)
+        state.hair = clamp(state.hair + action.hairDelta)
+        state.currentActivity = "待机"
+        save()
+        return action.finishMessage + "\n" + effectSummary(for: action)
     }
 
     func save() {
@@ -76,6 +84,28 @@ final class PetStateStore {
     private func clamp(_ value: Int) -> Int {
         min(100, max(0, value))
     }
+
+    private func effectSummary(for action: PetActionConfig) -> String {
+        var parts: [String] = []
+        if action.moneyDelta != 0 {
+            parts.append("金钱 \(signed(action.moneyDelta))")
+        }
+        if action.moodDelta != 0 {
+            parts.append("心情 \(signed(action.moodDelta))")
+        }
+        if action.weightDelta != 0 {
+            parts.append("体重 \(signed(action.weightDelta))")
+        }
+        if action.hairDelta != 0 {
+            parts.append("发量 \(signed(action.hairDelta))")
+        }
+
+        return parts.isEmpty ? "属性没有变化" : parts.joined(separator: "\n")
+    }
+
+    private func signed(_ value: Int) -> String {
+        value > 0 ? "+\(value)" : "\(value)"
+    }
 }
 
 extension JSONEncoder {
@@ -91,13 +121,16 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
     weak var webView: WKWebView?
     let root: URL
     let skills: [SkillConfig]
+    let actions: [PetActionConfig]
     let stateStore: PetStateStore
+    private var activeAction: PetActionConfig?
 
-    init(window: NSWindow?, webView: WKWebView?, root: URL, skills: [SkillConfig], stateStore: PetStateStore) {
+    init(window: NSWindow?, webView: WKWebView?, root: URL, skills: [SkillConfig], actions: [PetActionConfig], stateStore: PetStateStore) {
         self.window = window
         self.webView = webView
         self.root = root
         self.skills = skills
+        self.actions = actions
         self.stateStore = stateStore
     }
 
@@ -240,9 +273,37 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
     }
 
     private func applyPetAction(_ actionId: String) {
-        let message = stateStore.apply(action: actionId)
-        sendSpeech(message, label: stateStore.state.currentActivity)
+        guard activeAction == nil else {
+            sendSpeech("现在正在忙\n等当前行动结束再来吧", label: stateStore.state.currentActivity)
+            return
+        }
+
+        guard let action = actions.first(where: { $0.id == actionId }) else {
+            sendSpeech("找不到这个行动\n\(actionId)", label: "行动")
+            return
+        }
+
+        activeAction = action
+        stateStore.start(action: action)
+        sendSpeech(action.startMessage, label: action.name)
         sendState()
+        sendActivityStarted(action)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + action.durationSeconds) { [weak self] in
+            self?.finishPetAction(action)
+        }
+    }
+
+    private func finishPetAction(_ action: PetActionConfig) {
+        guard activeAction?.id == action.id else {
+            return
+        }
+
+        activeAction = nil
+        let message = stateStore.finish(action: action)
+        sendSpeech(message, label: action.name)
+        sendState()
+        sendActivityEnded()
     }
 
     private func resolvedURL(for command: String) -> URL {
@@ -274,6 +335,25 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
         webView?.evaluateJavaScript("window.petStateUpdated(\(json));")
     }
 
+    func sendActivityStarted(_ action: PetActionConfig) {
+        let item: [String: Any] = [
+            "id": action.id,
+            "name": action.name,
+            "durationSeconds": action.durationSeconds
+        ]
+
+        guard let payload = try? JSONSerialization.data(withJSONObject: item),
+              let json = String(data: payload, encoding: .utf8) else {
+            return
+        }
+
+        webView?.evaluateJavaScript("window.petActivityStarted(\(json));")
+    }
+
+    func sendActivityEnded() {
+        webView?.evaluateJavaScript("window.petActivityEnded();")
+    }
+
     private func sendSpeech(_ text: String, label: String) {
         sendSkillResult(text, label: label)
     }
@@ -293,12 +373,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var messageHandler: PetMessageHandler!
     private var webView: WKWebView!
     private var skills: [SkillConfig] = []
+    private var actions: [PetActionConfig] = []
     private var stateStore: PetStateStore!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let htmlURL = root.appendingPathComponent("desktop/desktop-pet.html")
         skills = loadSkills(root: root)
+        actions = loadActions(root: root)
         stateStore = PetStateStore(root: root)
 
         let contentController = WKUserContentController()
@@ -325,7 +407,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentView = webView
         window.makeKeyAndOrderFront(nil)
 
-        messageHandler = PetMessageHandler(window: window, webView: webView, root: root, skills: skills, stateStore: stateStore)
+        messageHandler = PetMessageHandler(window: window, webView: webView, root: root, skills: skills, actions: actions, stateStore: stateStore)
         contentController.add(messageHandler, name: "pet")
 
         NSApp.activate(ignoringOtherApps: true)
@@ -343,6 +425,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return try JSONDecoder().decode([SkillConfig].self, from: data)
         } catch {
             print("Failed to load skills.json: \(error)")
+            return []
+        }
+    }
+
+    private func loadActions(root: URL) -> [PetActionConfig] {
+        let actionsURL = root.appendingPathComponent("actions/actions.json")
+
+        do {
+            let data = try Data(contentsOf: actionsURL)
+            return try JSONDecoder().decode([PetActionConfig].self, from: data)
+        } catch {
+            print("Failed to load actions.json: \(error)")
             return []
         }
     }
@@ -364,7 +458,27 @@ extension AppDelegate: WKNavigationDelegate {
         }
 
         webView.evaluateJavaScript("window.petLoadSkills(\(json));")
+        sendActions()
         messageHandler.sendState()
+    }
+
+    private func sendActions() {
+        let items = actions.map { action in
+            [
+                "id": action.id,
+                "name": action.name,
+                "icon": action.icon,
+                "category": action.category,
+                "durationSeconds": action.durationSeconds
+            ] as [String: Any]
+        }
+
+        guard let payload = try? JSONSerialization.data(withJSONObject: items),
+              let json = String(data: payload, encoding: .utf8) else {
+            return
+        }
+
+        webView.evaluateJavaScript("window.petLoadActions(\(json));")
     }
 }
 

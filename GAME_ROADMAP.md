@@ -21,13 +21,13 @@
 ## Near-Term Gameplay
 
 1. Action settlement
-   - Add eating, drinks, exercise, badminton, cycling, card game, alcohol, buffet, and meeting.
+   - Current implemented actions: work, meeting, meal, drink, exercise.
+   - Add badminton, cycling, card game, alcohol, buffet.
    - Each action should have duration, cost or reward, and stat effects.
 
 2. Timed activities
-   - Actions enter a running state.
-   - The pet says what it is doing.
-   - Effects settle when the timer finishes.
+   - Implemented: actions enter a running state and settle after a timer.
+   - Next: persist in-progress activities across app restarts.
 
 3. Menu structure
    - Split actions into work, food, exercise, entertainment, and skills.
