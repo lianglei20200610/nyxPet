@@ -152,6 +152,27 @@
         overflow-wrap: anywhere;
       }
 
+      .stats {
+        position: absolute;
+        left: 4%;
+        top: 5%;
+        display: grid;
+        grid-template-columns: repeat(2, auto);
+        gap: 6px 10px;
+        padding: 10px 12px;
+        border: 3px solid var(--ink);
+        border-radius: 18px;
+        background: rgba(255, 250, 241, 0.92);
+        color: #33261b;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: 0 6px 0 rgba(45, 38, 27, 0.1);
+      }
+
+      .stats span:nth-child(odd) {
+        color: #7c6754;
+      }
+
       .menu {
         position: absolute;
         left: 50%;
@@ -226,9 +247,15 @@
         <span class="bubble-text" id="bubbleText">脚本运行完成
 加班 2.5 小时</span>
       </aside>
+      <section class="stats" aria-label="宠物属性">
+        <span>心情</span><strong id="mood">--</strong>
+        <span>体重</span><strong id="weight">--</strong>
+        <span>发量</span><strong id="hair">--</strong>
+        <span>金钱</span><strong id="money">--</strong>
+      </section>
       <nav class="menu" id="menu" aria-label="互动菜单">
-        <button type="button" data-say="开工啦，今天也要赚金币。|工作">💼</button>
-        <button type="button" data-say="会议开始，我会努力保持清醒。|开会">📝</button>
+        <button type="button" data-action="petAction" data-action-id="work" title="工作">💼</button>
+        <button type="button" data-action="petAction" data-action-id="meeting" title="开会">📝</button>
       </nav>
     </main>
     <script>
@@ -238,6 +265,12 @@
       const bubbleLabel = document.getElementById("bubbleLabel");
       const bubbleText = document.getElementById("bubbleText");
       const dragZone = document.getElementById("dragZone");
+      const statEls = {
+        mood: document.getElementById("mood"),
+        weight: document.getElementById("weight"),
+        hair: document.getElementById("hair"),
+        money: document.getElementById("money")
+      };
       let hideTimer;
 
       function say(text, label = "宠物") {
@@ -250,6 +283,13 @@
 
       window.petSkillResult = (result) => {
         say(result.text || "脚本运行完成", result.label || "小技能");
+      };
+
+      window.petStateUpdated = (state) => {
+        statEls.mood.textContent = state.mood;
+        statEls.weight.textContent = state.weight;
+        statEls.hair.textContent = state.hair;
+        statEls.money.textContent = state.money;
       };
 
       window.petLoadSkills = (skills) => {
@@ -285,6 +325,12 @@
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: "runSkill",
             skillId: button.dataset.skillId
+          });
+        } else if (button.dataset.action === "petAction") {
+          say("正在执行...", button.title || "行动");
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "petAction",
+            actionId: button.dataset.actionId
           });
         } else {
           const [text, label] = button.dataset.say.split("|");

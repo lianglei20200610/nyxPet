@@ -14,8 +14,8 @@ build/
 *.log
 tmp/
 *.tmp
+data/
 
 # Python cache
 __pycache__/
 *.py[cod]
-

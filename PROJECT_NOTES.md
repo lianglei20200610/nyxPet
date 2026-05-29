@@ -28,6 +28,13 @@ Build a macOS desktop pet / lightweight companion game. The pet lives in a float
   - meeting
 - Config-driven skill buttons loaded from `skills/skills.json`.
 - Clicking a skill runs a configured command and shows stdout in the speech bubble.
+- Skill execution has basic stability controls:
+  - only local `python3` skills are allowed
+  - scripts must live under `skills/`
+  - timed-out scripts are stopped
+  - long output is trimmed
+- Pet stats are saved in `data/pet-state.json`.
+- Work and meeting update mood, hair, and money.
 
 ## How To Run
 
@@ -58,7 +65,9 @@ Current example:
     "name": "测试脚本",
     "icon": "✨",
     "command": "/usr/bin/python3",
-    "args": ["skills/test_skill.py"]
+    "args": ["skills/test_skill.py"],
+    "timeoutSeconds": 10,
+    "outputLimit": 500
   }
 ]
 ```
@@ -74,6 +83,14 @@ Expected flow:
 ```text
 Launch pet -> read skills/skills.json -> generate skill menu buttons -> click skill -> run command -> show stdout in bubble
 ```
+
+To add the real overtime script, copy it into `skills/`, for example:
+
+```text
+skills/overtime.py
+```
+
+Then add another entry to `skills/skills.json`.
 
 ## Verified So Far
 
@@ -93,26 +110,19 @@ swiftc -module-cache-path build/ModuleCache desktop/DesktopPet.swift -o build/De
 
 ## Next Steps
 
-1. Add safety limits for skill execution:
-   - only allow scripts inside `skills/`
-   - timeout long-running scripts
-   - show stderr cleanly
-2. Add support for the real overtime script.
-3. Add persistent pet stats:
-   - mood
-   - weight
-   - hair
-   - money
-4. Add action settlement:
+1. Add support for the real overtime script.
+2. Add more action settlement:
    - work earns money
    - meeting earns less and lowers mood
    - eating changes mood and weight
    - exercise reduces weight
-5. Improve desktop UX:
+3. Improve desktop UX:
    - close / settings menu
    - remember window position
    - optional always-on-top toggle
-6. Later, consider packaging into a normal `.app`.
+4. Later, consider packaging into a normal `.app`.
+
+More planning details live in `GAME_ROADMAP.md`.
 
 ## Sync Plan
 
@@ -129,4 +139,3 @@ git push
 ```
 
 Keep generated build outputs ignored. Commit source files, character assets, skill configs, and notes.
-
