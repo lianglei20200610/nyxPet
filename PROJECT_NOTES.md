@@ -38,6 +38,7 @@ Build a macOS desktop pet / lightweight companion game. The pet lives in a float
 - Gameplay actions are loaded from `actions/actions.json`.
 - Actions support duration, start message, finish message, and stat deltas.
 - The pet shows a small activity progress panel while actions are running.
+- The interaction menu is grouped by category, with a compact second-level submenu for actions and skills.
 
 ## How To Run
 
@@ -144,18 +145,17 @@ swiftc -module-cache-path build/ModuleCache desktop/DesktopPet.swift -o build/De
 ## Next Steps
 
 1. Add support for the real overtime script.
-2. Add action categories and a cleaner menu layout.
-3. Add more actions:
+2. Add more actions:
    - badminton
    - cycling
    - card game
    - alcohol
    - buffet
-4. Improve desktop UX:
+3. Improve desktop UX:
    - close / settings menu
    - remember window position
    - optional always-on-top toggle
-5. Later, consider packaging into a normal `.app`.
+4. Later, consider packaging into a normal `.app`.
 
 More planning details live in `GAME_ROADMAP.md`.
 

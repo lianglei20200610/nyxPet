@@ -30,8 +30,9 @@
    - Next: persist in-progress activities across app restarts.
 
 3. Menu structure
-   - Split actions into work, food, exercise, entertainment, and skills.
-   - Keep the first-level menu small enough for a desktop pet window.
+   - Implemented: root menu groups work, food, exercise, and skills.
+   - Implemented: second-level submenu shows concrete actions or skills.
+   - Next: improve labels/tooltips and add categories as actions grow.
 
 4. Better state UI
    - Add a compact panel for current activity, remaining time, mood, weight, hair, and money.

@@ -231,6 +231,10 @@
         pointer-events: auto;
       }
 
+      .menu.submenu {
+        grid-template-columns: repeat(4, 48px);
+      }
+
       button {
         width: 48px;
         height: 48px;
@@ -316,6 +320,17 @@
       let hideTimer;
       let activityTimer;
       let busy = false;
+      let loadedActions = [];
+      let loadedSkills = [];
+      let menuMode = "root";
+
+      const categoryMeta = {
+        work: { label: "工作", icon: "💼" },
+        food: { label: "饮食", icon: "🍱" },
+        exercise: { label: "运动", icon: "🏃" },
+        entertainment: { label: "娱乐", icon: "🎲" },
+        skill: { label: "技能", icon: "✨" }
+      };
 
       function say(text, label = "宠物") {
         window.clearTimeout(hideTimer);
@@ -337,32 +352,92 @@
       };
 
       window.petLoadActions = (actions) => {
-        menu.querySelectorAll("[data-action='petAction']").forEach((button) => button.remove());
-        for (const action of actions) {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.dataset.action = "petAction";
-          button.dataset.actionId = action.id;
-          button.dataset.actionName = action.name;
-          button.title = `${action.name} · ${Math.round(action.durationSeconds)}秒`;
-          button.textContent = action.icon || "•";
-          menu.appendChild(button);
-        }
+        loadedActions = actions;
+        renderRootMenu();
       };
 
       window.petLoadSkills = (skills) => {
-        menu.querySelectorAll("[data-action='skill']").forEach((button) => button.remove());
-        for (const skill of skills) {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.dataset.action = "skill";
-          button.dataset.skillId = skill.id;
-          button.dataset.skillName = skill.name;
-          button.title = skill.name;
-          button.textContent = skill.icon || "✨";
-          menu.appendChild(button);
-        }
+        loadedSkills = skills;
+        renderRootMenu();
       };
+
+      function clearMenu() {
+        menu.replaceChildren();
+      }
+
+      function createMenuButton({ icon, title, dataset }) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.title = title;
+        button.textContent = icon;
+        for (const [key, value] of Object.entries(dataset)) {
+          button.dataset[key] = value;
+        }
+        return button;
+      }
+
+      function renderRootMenu() {
+        menuMode = "root";
+        menu.classList.remove("submenu");
+        clearMenu();
+
+        const categories = [...new Set(loadedActions.map((action) => action.category))];
+        for (const category of categories) {
+          const meta = categoryMeta[category] || { label: category, icon: "•" };
+          menu.appendChild(createMenuButton({
+            icon: meta.icon,
+            title: meta.label,
+            dataset: { action: "openCategory", category }
+          }));
+        }
+
+        if (loadedSkills.length > 0) {
+          menu.appendChild(createMenuButton({
+            icon: categoryMeta.skill.icon,
+            title: categoryMeta.skill.label,
+            dataset: { action: "openCategory", category: "skill" }
+          }));
+        }
+      }
+
+      function renderCategoryMenu(category) {
+        menuMode = category;
+        menu.classList.add("submenu");
+        clearMenu();
+
+        menu.appendChild(createMenuButton({
+          icon: "←",
+          title: "返回",
+          dataset: { action: "back" }
+        }));
+
+        if (category === "skill") {
+          for (const skill of loadedSkills) {
+            menu.appendChild(createMenuButton({
+              icon: skill.icon || "✨",
+              title: skill.name,
+              dataset: {
+                action: "skill",
+                skillId: skill.id,
+                skillName: skill.name
+              }
+            }));
+          }
+          return;
+        }
+
+        for (const action of loadedActions.filter((item) => item.category === category)) {
+          menu.appendChild(createMenuButton({
+            icon: action.icon || "•",
+            title: `${action.name} · ${Math.round(action.durationSeconds)}秒`,
+            dataset: {
+              action: "petAction",
+              actionId: action.id,
+              actionName: action.name
+            }
+          }));
+        }
+      }
 
       window.petActivityStarted = (action) => {
         busy = true;
@@ -394,21 +469,34 @@
 
       pet.addEventListener("click", (event) => {
         event.stopPropagation();
+        if (!menu.classList.contains("open")) {
+          renderRootMenu();
+        }
         menu.classList.toggle("open");
       });
 
       document.addEventListener("click", () => {
         menu.classList.remove("open");
+        renderRootMenu();
       });
 
       menu.addEventListener("click", (event) => {
         const button = event.target.closest("button");
         if (!button) return;
         event.stopPropagation();
+        if (button.dataset.action === "openCategory") {
+          renderCategoryMenu(button.dataset.category);
+          return;
+        }
+        if (button.dataset.action === "back") {
+          renderRootMenu();
+          return;
+        }
         if (button.dataset.action === "skill") {
           if (busy) {
             say("现在正在忙\n等当前行动结束再用小技能吧", "宠物");
             menu.classList.remove("open");
+            renderRootMenu();
             return;
           }
           const skillName = button.dataset.skillName || "小技能";
@@ -421,6 +509,7 @@
           if (busy) {
             say("现在正在忙\n等当前行动结束再来吧", "宠物");
             menu.classList.remove("open");
+            renderRootMenu();
             return;
           }
           say("准备开始...", button.dataset.actionName || "行动");
@@ -433,6 +522,7 @@
           say(text, label);
         }
         menu.classList.remove("open");
+        renderRootMenu();
       });
 
       dragZone.addEventListener("pointerdown", () => {
