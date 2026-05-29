@@ -21,8 +21,8 @@
 ## Near-Term Gameplay
 
 1. Action settlement
-   - Current implemented actions: work, meeting, meal, drink, exercise.
-   - Add badminton, cycling, card game, alcohol, buffet.
+   - Current implemented actions: work, meeting, meal, drink, exercise, badminton, cycling, guandan, alcohol, buffet.
+   - Next: tune action costs and rewards after playtesting.
    - Each action should have duration, cost or reward, and stat effects.
 
 2. Timed activities

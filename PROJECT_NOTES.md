@@ -117,6 +117,11 @@ Current actions:
 - meal
 - drink
 - exercise
+- badminton
+- cycling
+- guandan
+- alcohol
+- buffet
 
 To add the real overtime script, copy it into `skills/`, for example:
 
@@ -145,17 +150,11 @@ swiftc -module-cache-path build/ModuleCache desktop/DesktopPet.swift -o build/De
 ## Next Steps
 
 1. Add support for the real overtime script.
-2. Add more actions:
-   - badminton
-   - cycling
-   - card game
-   - alcohol
-   - buffet
-3. Improve desktop UX:
+2. Improve desktop UX:
    - close / settings menu
    - remember window position
    - optional always-on-top toggle
-4. Later, consider packaging into a normal `.app`.
+3. Later, consider packaging into a normal `.app`.
 
 More planning details live in `GAME_ROADMAP.md`.
 

@@ -63,5 +63,70 @@
     "moneyDelta": 0,
     "startMessage": "开始锻炼\n动起来",
     "finishMessage": "锻炼完成"
+  },
+  {
+    "id": "badminton",
+    "name": "羽毛球",
+    "icon": "🏸",
+    "category": "exercise",
+    "durationSeconds": 6,
+    "moodDelta": 7,
+    "weightDelta": -2,
+    "hairDelta": 0,
+    "moneyDelta": -12,
+    "startMessage": "去打羽毛球\n今天也要扣杀",
+    "finishMessage": "羽毛球打完了"
+  },
+  {
+    "id": "cycling",
+    "name": "骑车",
+    "icon": "🚲",
+    "category": "exercise",
+    "durationSeconds": 7,
+    "moodDelta": 6,
+    "weightDelta": -3,
+    "hairDelta": 0,
+    "moneyDelta": -5,
+    "startMessage": "骑车出发\n吹吹风",
+    "finishMessage": "骑行结束"
+  },
+  {
+    "id": "guandan",
+    "name": "掼蛋",
+    "icon": "🃏",
+    "category": "entertainment",
+    "durationSeconds": 6,
+    "moodDelta": 8,
+    "weightDelta": 0,
+    "hairDelta": -1,
+    "moneyDelta": -10,
+    "startMessage": "掼蛋开局\n这把要稳",
+    "finishMessage": "牌局结束"
+  },
+  {
+    "id": "alcohol",
+    "name": "喝酒",
+    "icon": "🍺",
+    "category": "entertainment",
+    "durationSeconds": 4,
+    "moodDelta": 6,
+    "weightDelta": 2,
+    "hairDelta": -1,
+    "moneyDelta": -25,
+    "startMessage": "小酌一下\n放松但别上头",
+    "finishMessage": "喝完了"
+  },
+  {
+    "id": "buffet",
+    "name": "自助餐",
+    "icon": "🍽️",
+    "category": "food",
+    "durationSeconds": 8,
+    "moodDelta": 12,
+    "weightDelta": 5,
+    "hairDelta": 0,
+    "moneyDelta": -68,
+    "startMessage": "冲向自助餐\n先拿贵的",
+    "finishMessage": "自助餐结束"
   }
 ]
