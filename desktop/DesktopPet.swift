@@ -35,6 +35,58 @@ struct PetState: Codable {
     static let initial = PetState(mood: 70, weight: 50, hair: 100, money: 0, currentActivity: "待机")
 }
 
+struct PetSettings: Codable {
+    var windowX: Double
+    var windowY: Double
+    var windowWidth: Double
+    var windowHeight: Double
+
+    static let initial = PetSettings(windowX: 120, windowY: 180, windowWidth: 520, windowHeight: 620)
+
+    var frame: NSRect {
+        NSRect(x: windowX, y: windowY, width: windowWidth, height: windowHeight)
+    }
+}
+
+final class PetSettingsStore {
+    private let settingsURL: URL
+    private(set) var settings: PetSettings
+
+    init(root: URL) {
+        settingsURL = root.appendingPathComponent("data/pet-settings.json")
+        settings = Self.load(from: settingsURL)
+    }
+
+    func save(windowFrame: NSRect) {
+        settings = PetSettings(
+            windowX: windowFrame.origin.x,
+            windowY: windowFrame.origin.y,
+            windowWidth: windowFrame.size.width,
+            windowHeight: windowFrame.size.height
+        )
+
+        do {
+            try FileManager.default.createDirectory(
+                at: settingsURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            let data = try JSONEncoder.prettyPrinted.encode(settings)
+            try data.write(to: settingsURL, options: .atomic)
+        } catch {
+            print("Failed to save pet settings: \(error)")
+        }
+    }
+
+    private static func load(from url: URL) -> PetSettings {
+        do {
+            let data = try Data(contentsOf: url)
+            return try JSONDecoder().decode(PetSettings.self, from: data)
+        } catch {
+            return .initial
+        }
+    }
+}
+
 final class PetStateStore {
     private let stateURL: URL
     private(set) var state: PetState
@@ -375,6 +427,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var skills: [SkillConfig] = []
     private var actions: [PetActionConfig] = []
     private var stateStore: PetStateStore!
+    private var settingsStore: PetSettingsStore!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
@@ -382,6 +435,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         skills = loadSkills(root: root)
         actions = loadActions(root: root)
         stateStore = PetStateStore(root: root)
+        settingsStore = PetSettingsStore(root: root)
 
         let contentController = WKUserContentController()
         let config = WKWebViewConfiguration()
@@ -393,7 +447,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         webView.loadFileURL(htmlURL, allowingReadAccessTo: root)
 
         window = NSWindow(
-            contentRect: NSRect(x: 120, y: 180, width: 520, height: 620),
+            contentRect: settingsStore.settings.frame,
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -405,6 +459,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.hasShadow = false
         window.isMovableByWindowBackground = true
         window.contentView = webView
+        window.delegate = self
         window.makeKeyAndOrderFront(nil)
 
         messageHandler = PetMessageHandler(window: window, webView: webView, root: root, skills: skills, actions: actions, stateStore: stateStore)
@@ -415,6 +470,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        settingsStore.save(windowFrame: window.frame)
     }
 
     private func loadSkills(root: URL) -> [SkillConfig] {
@@ -439,6 +498,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             print("Failed to load actions.json: \(error)")
             return []
         }
+    }
+}
+
+extension AppDelegate: NSWindowDelegate {
+    func windowDidMove(_ notification: Notification) {
+        settingsStore.save(windowFrame: window.frame)
     }
 }
 

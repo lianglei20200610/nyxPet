@@ -40,7 +40,7 @@
 
 ## Desktop App Polish
 
-1. Remember window position.
+1. Implemented: remember window position.
 2. Add right-click menu.
 3. Add hide / quit controls.
 4. Add always-on-top toggle.
