@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Idle Animation Preview</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #2f86b7;
+        --panel: #f7f4ec;
+        --ink: #2d261b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 62% 40%, rgba(255, 119, 210, 0.24), transparent 18%),
+          radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.24), transparent 20%),
+          var(--bg);
+        font-family: Arial, sans-serif;
+      }
+
+      .stage {
+        width: min(92vw, 760px);
+        aspect-ratio: 1 / 1;
+        display: grid;
+        place-items: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .shadow {
+        position: absolute;
+        left: 50%;
+        bottom: 7%;
+        width: 34%;
+        height: 4.5%;
+        border-radius: 999px;
+        background: rgba(23, 62, 88, 0.28);
+        transform: translateX(-50%);
+        animation: shadow 1.8s ease-in-out infinite;
+      }
+
+      .pet {
+        position: relative;
+        width: 68%;
+        max-width: 520px;
+        aspect-ratio: 545 / 886;
+        overflow: hidden;
+        transform-origin: 50% 88%;
+        animation: bob 1.8s ease-in-out infinite;
+      }
+
+      .body {
+        width: 133.4%;
+        height: 100%;
+        object-fit: cover;
+        object-position: left top;
+        transform-origin: 50% 88%;
+        animation: breathe 1.8s ease-in-out infinite;
+        user-select: none;
+        pointer-events: none;
+        display: block;
+      }
+
+      .speech {
+        position: absolute;
+        top: 14%;
+        right: 4%;
+        width: min(42%, 300px);
+        min-height: 104px;
+        padding: 18px 20px 18px 22px;
+        border: 4px solid #3b2517;
+        border-radius: 26px;
+        background: rgba(255, 250, 241, 0.96);
+        color: #33261b;
+        box-shadow: 0 10px 0 rgba(45, 38, 27, 0.12);
+        transform-origin: 16% 100%;
+        animation: bubblePop 5.6s ease-in-out infinite;
+      }
+
+      .speech::before {
+        content: "";
+        position: absolute;
+        left: 28px;
+        bottom: -24px;
+        width: 34px;
+        height: 34px;
+        background: rgba(255, 250, 241, 0.96);
+        border-right: 4px solid #3b2517;
+        border-bottom: 4px solid #3b2517;
+        transform: rotate(45deg);
+      }
+
+      .speech .label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #7c6754;
+      }
+
+      .speech .line {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        width: 0;
+        font-size: clamp(16px, 2.6vw, 22px);
+        font-weight: 700;
+        line-height: 1.35;
+        animation: typeLine 5.6s steps(13, end) infinite;
+      }
+
+      .speech .line.second {
+        margin-top: 5px;
+        animation-name: typeLineSecond;
+        animation-timing-function: steps(9, end);
+      }
+
+      .blink {
+        position: absolute;
+        width: 13.5%;
+        height: 4.8%;
+        top: 39.3%;
+        border-radius: 0 0 999px 999px;
+        background: #f8cbae;
+        border-bottom: 3px solid #3b2517;
+        opacity: 0;
+        transform: scaleY(0.1);
+        transform-origin: 50% 0;
+        animation: blink 4.6s infinite;
+      }
+
+      .blink.left {
+        left: 18.6%;
+        transform: rotate(3deg) scaleY(0.1);
+      }
+
+      .blink.right {
+        left: 56.2%;
+        transform: rotate(-2deg) scaleY(0.1);
+      }
+
+      .sparkle {
+        position: absolute;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
+        filter: blur(0.2px);
+        animation: sparkle 2.2s ease-in-out infinite;
+      }
+
+      .sparkle.a {
+        left: 31%;
+        bottom: 15%;
+      }
+
+      .sparkle.b {
+        right: 26%;
+        bottom: 13%;
+        animation-delay: 0.6s;
+      }
+
+      .sparkle.c {
+        right: 12%;
+        top: 54%;
+        background: rgba(255, 116, 221, 0.9);
+        animation-delay: 1.1s;
+      }
+
+      @keyframes bob {
+        0%, 100% { transform: translateY(0) rotate(-0.4deg); }
+        50% { transform: translateY(-13px) rotate(0.4deg); }
+      }
+
+      @keyframes breathe {
+        0%, 100% { transform: scaleX(1) scaleY(1); }
+        50% { transform: scaleX(1.012) scaleY(0.992); }
+      }
+
+      @keyframes shadow {
+        0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.28; }
+        50% { transform: translateX(-50%) scaleX(0.88); opacity: 0.18; }
+      }
+
+      @keyframes blink {
+        0%, 87%, 100% { opacity: 0; transform: scaleY(0.1); }
+        89%, 92% { opacity: 1; transform: scaleY(1); }
+        94% { opacity: 0; transform: scaleY(0.1); }
+      }
+
+      @keyframes sparkle {
+        0%, 100% { transform: scale(0.5); opacity: 0.2; }
+        50% { transform: scale(1.25); opacity: 1; }
+      }
+
+      @keyframes bubblePop {
+        0%, 8% {
+          opacity: 0;
+          transform: translateY(12px) scale(0.86);
+        }
+        14%, 82% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        92%, 100% {
+          opacity: 0;
+          transform: translateY(-8px) scale(0.96);
+        }
+      }
+
+      @keyframes typeLine {
+        0%, 18% { width: 0; }
+        45%, 86% { width: 13em; }
+        100% { width: 13em; }
+      }
+
+      @keyframes typeLineSecond {
+        0%, 46% { width: 0; }
+        66%, 86% { width: 9em; }
+        100% { width: 9em; }
+      }
+
+      @media (max-width: 560px) {
+        .speech {
+          top: 6%;
+          right: 0;
+          width: 58%;
+          min-height: 92px;
+          padding: 14px 16px;
+        }
+
+        .speech .label {
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage" aria-label="角色待机动画预览">
+      <div class="shadow"></div>
+      <div class="pet">
+        <img class="body" src="../assets/character/main-character-reference.jpg" alt="主角" />
+        <span class="blink left"></span>
+        <span class="blink right"></span>
+      </div>
+      <aside class="speech" aria-label="宠物说话气泡">
+        <span class="label">小技能</span>
+        <span class="line">脚本运行完成</span>
+        <span class="line second">加班 2.5 小时</span>
+      </aside>
+      <span class="sparkle a"></span>
+      <span class="sparkle b"></span>
+      <span class="sparkle c"></span>
+    </main>
+  </body>
+</html>

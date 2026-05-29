@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #382b18;
+        --paper: rgba(255, 250, 241, 0.97);
+        --accent: #f16b9d;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+        font-family: Arial, sans-serif;
+      }
+
+      .pet-shell {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .drag-zone {
+        position: absolute;
+        inset: 0;
+        cursor: grab;
+      }
+
+      .shadow {
+        position: absolute;
+        left: 43%;
+        bottom: 5.5%;
+        width: 33%;
+        height: 4.5%;
+        border-radius: 999px;
+        background: rgba(20, 58, 82, 0.2);
+        transform: translateX(-50%);
+        animation: shadow 1.8s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      .pet {
+        position: absolute;
+        left: 8%;
+        bottom: 7%;
+        width: 58%;
+        aspect-ratio: 545 / 886;
+        overflow: hidden;
+        transform-origin: 50% 88%;
+        animation: bob 1.8s ease-in-out infinite;
+        cursor: pointer;
+      }
+
+      .pet img {
+        width: 133.4%;
+        height: 100%;
+        object-fit: cover;
+        object-position: left top;
+        display: block;
+        pointer-events: none;
+        transform-origin: 50% 88%;
+        animation: breathe 1.8s ease-in-out infinite;
+      }
+
+      .blink {
+        position: absolute;
+        width: 13.5%;
+        height: 4.8%;
+        top: 39.3%;
+        border-radius: 0 0 999px 999px;
+        background: #f8cbae;
+        border-bottom: 3px solid var(--ink);
+        opacity: 0;
+        animation: blink 4.6s infinite;
+        pointer-events: none;
+      }
+
+      .blink.left {
+        left: 18.6%;
+        transform: rotate(3deg) scaleY(0.1);
+      }
+
+      .blink.right {
+        left: 56.2%;
+        transform: rotate(-2deg) scaleY(0.1);
+      }
+
+      .bubble {
+        position: absolute;
+        top: 10%;
+        right: 4%;
+        width: 48%;
+        min-height: 104px;
+        padding: 16px 18px;
+        border: 4px solid var(--ink);
+        border-radius: 24px;
+        background: var(--paper);
+        color: #33261b;
+        box-shadow: 0 10px 0 rgba(45, 38, 27, 0.12);
+        opacity: 0;
+        transform: translateY(12px) scale(0.92);
+        transform-origin: 16% 100%;
+        transition: opacity 160ms ease, transform 160ms ease;
+        pointer-events: none;
+      }
+
+      .bubble.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      .bubble::before {
+        content: "";
+        position: absolute;
+        left: 28px;
+        bottom: -23px;
+        width: 32px;
+        height: 32px;
+        background: var(--paper);
+        border-right: 4px solid var(--ink);
+        border-bottom: 4px solid var(--ink);
+        transform: rotate(45deg);
+      }
+
+      .bubble-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #7c6754;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .bubble-text {
+        display: block;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.35;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+      }
+
+      .stats {
+        position: absolute;
+        left: 4%;
+        top: 5%;
+        display: grid;
+        grid-template-columns: repeat(2, auto);
+        gap: 6px 10px;
+        padding: 10px 12px;
+        border: 3px solid var(--ink);
+        border-radius: 18px;
+        background: rgba(255, 250, 241, 0.92);
+        color: #33261b;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: 0 6px 0 rgba(45, 38, 27, 0.1);
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 150ms ease, transform 150ms ease;
+      }
+
+      .stats.hidden {
+        opacity: 0;
+        transform: translateY(-8px);
+        pointer-events: none;
+      }
+
+      .stats span:nth-child(odd) {
+        color: #7c6754;
+      }
+
+      .activity {
+        position: absolute;
+        left: 4%;
+        top: 24%;
+        width: 38%;
+        padding: 9px 11px;
+        border: 3px solid var(--ink);
+        border-radius: 16px;
+        background: rgba(255, 250, 241, 0.92);
+        color: #33261b;
+        font-size: 13px;
+        font-weight: 700;
+        opacity: 0;
+        transform: translateY(-6px);
+        transition: opacity 150ms ease, transform 150ms ease;
+      }
+
+      .activity.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .activity-bar {
+        width: 100%;
+        height: 7px;
+        margin-top: 7px;
+        border-radius: 999px;
+        background: rgba(56, 43, 24, 0.16);
+        overflow: hidden;
+      }
+
+      .activity-fill {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--accent);
+      }
+
+      .menu {
+        position: absolute;
+        left: 50%;
+        bottom: 15%;
+        display: grid;
+        grid-template-columns: repeat(3, 48px);
+        gap: 8px;
+        opacity: 0;
+        transform: translate(-50%, 10px) scale(0.92);
+        transform-origin: 50% 100%;
+        transition: opacity 150ms ease, transform 150ms ease;
+        pointer-events: none;
+      }
+
+      .menu.open {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+        pointer-events: auto;
+      }
+
+      .menu.submenu {
+        grid-template-columns: repeat(4, 48px);
+      }
+
+      button {
+        width: 48px;
+        height: 48px;
+        border: 3px solid var(--ink);
+        border-radius: 16px;
+        background: var(--paper);
+        color: var(--ink);
+        box-shadow: 0 5px 0 rgba(45, 38, 27, 0.16);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      button:active {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 rgba(45, 38, 27, 0.16);
+      }
+
+      @keyframes bob {
+        0%, 100% { transform: translateY(0) rotate(-0.4deg); }
+        50% { transform: translateY(-12px) rotate(0.4deg); }
+      }
+
+      @keyframes breathe {
+        0%, 100% { transform: scaleX(1) scaleY(1); }
+        50% { transform: scaleX(1.012) scaleY(0.992); }
+      }
+
+      @keyframes shadow {
+        0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.2; }
+        50% { transform: translateX(-50%) scaleX(0.86); opacity: 0.12; }
+      }
+
+      @keyframes blink {
+        0%, 87%, 100% { opacity: 0; transform: scaleY(0.1); }
+        89%, 92% { opacity: 1; transform: scaleY(1); }
+        94% { opacity: 0; transform: scaleY(0.1); }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="pet-shell">
+      <div class="drag-zone" id="dragZone"></div>
+      <div class="shadow"></div>
+      <section class="pet" id="pet" aria-label="宠物">
+        <img src="../assets/character/main-character-reference.jpg" alt="宠物角色" />
+        <span class="blink left"></span>
+        <span class="blink right"></span>
+      </section>
+      <aside class="bubble" id="bubble" aria-live="polite">
+        <span class="bubble-label" id="bubbleLabel">小技能</span>
+        <span class="bubble-text" id="bubbleText">脚本运行完成
+加班 2.5 小时</span>
+      </aside>
+      <section class="stats" id="stats" aria-label="宠物属性">
+        <span>心情</span><strong id="mood">--</strong>
+        <span>体重</span><strong id="weight">--</strong>
+        <span>发量</span><strong id="hair">--</strong>
+        <span>金钱</span><strong id="money">--</strong>
+      </section>
+      <section class="activity" id="activity" aria-label="当前行动">
+        <span id="activityText">待机</span>
+        <div class="activity-bar"><div class="activity-fill" id="activityFill"></div></div>
+      </section>
+      <nav class="menu" id="menu" aria-label="互动菜单"></nav>
+    </main>
+    <script>
+      const pet = document.getElementById("pet");
+      const menu = document.getElementById("menu");
+      const bubble = document.getElementById("bubble");
+      const bubbleLabel = document.getElementById("bubbleLabel");
+      const bubbleText = document.getElementById("bubbleText");
+      const dragZone = document.getElementById("dragZone");
+      const statEls = {
+        mood: document.getElementById("mood"),
+        weight: document.getElementById("weight"),
+        hair: document.getElementById("hair"),
+        money: document.getElementById("money")
+      };
+      const activity = document.getElementById("activity");
+      const activityText = document.getElementById("activityText");
+      const activityFill = document.getElementById("activityFill");
+      let hideTimer;
+      let activityTimer;
+      let busy = false;
+      let loadedActions = [];
+      let loadedSkills = [];
+      let menuMode = "root";
+
+      const categoryMeta = {
+        work: { label: "工作", icon: "💼" },
+        food: { label: "饮食", icon: "🍱" },
+        exercise: { label: "运动", icon: "🏃" },
+        entertainment: { label: "娱乐", icon: "🎲" },
+        skill: { label: "技能", icon: "✨" },
+        settings: { label: "设置", icon: "⚙️" }
+      };
+      let petSettings = { alwaysOnTop: true };
+
+      function say(text, label = "宠物") {
+        window.clearTimeout(hideTimer);
+        bubbleLabel.textContent = label;
+        bubbleText.textContent = text;
+        bubble.classList.add("show");
+        hideTimer = window.setTimeout(() => bubble.classList.remove("show"), 5200);
+      }
+
+      window.petSkillResult = (result) => {
+        say(result.text || "脚本运行完成", result.label || "小技能");
+      };
+
+      window.petStateUpdated = (state) => {
+        statEls.mood.textContent = state.mood;
+        statEls.weight.textContent = state.weight;
+        statEls.hair.textContent = state.hair;
+        statEls.money.textContent = state.money;
+      };
+
+      window.petSettingsUpdated = (settings) => {
+        petSettings = settings;
+        document.getElementById("stats").classList.toggle("hidden", !settings.showStats);
+        if (menu.classList.contains("open") && menuMode === "settings") {
+          renderCategoryMenu("settings");
+        }
+      };
+
+      window.petLoadActions = (actions) => {
+        loadedActions = actions;
+        renderRootMenu();
+      };
+
+      window.petLoadSkills = (skills) => {
+        loadedSkills = skills;
+        renderRootMenu();
+      };
+
+      function clearMenu() {
+        menu.replaceChildren();
+      }
+
+      function createMenuButton({ icon, title, dataset }) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.title = title;
+        button.textContent = icon;
+        for (const [key, value] of Object.entries(dataset)) {
+          button.dataset[key] = value;
+        }
+        return button;
+      }
+
+      function renderRootMenu() {
+        menuMode = "root";
+        menu.classList.remove("submenu");
+        clearMenu();
+
+        const categories = [...new Set(loadedActions.map((action) => action.category))];
+        for (const category of categories) {
+          const meta = categoryMeta[category] || { label: category, icon: "•" };
+          menu.appendChild(createMenuButton({
+            icon: meta.icon,
+            title: meta.label,
+            dataset: { action: "openCategory", category }
+          }));
+        }
+
+        if (loadedSkills.length > 0) {
+          menu.appendChild(createMenuButton({
+            icon: categoryMeta.skill.icon,
+            title: categoryMeta.skill.label,
+            dataset: { action: "openCategory", category: "skill" }
+          }));
+        }
+
+        menu.appendChild(createMenuButton({
+          icon: categoryMeta.settings.icon,
+          title: categoryMeta.settings.label,
+          dataset: { action: "openCategory", category: "settings" }
+        }));
+      }
+
+      function renderCategoryMenu(category) {
+        menuMode = category;
+        menu.classList.add("submenu");
+        clearMenu();
+
+        menu.appendChild(createMenuButton({
+          icon: "←",
+          title: "返回",
+          dataset: { action: "back" }
+        }));
+
+        if (category === "skill") {
+          for (const skill of loadedSkills) {
+            menu.appendChild(createMenuButton({
+              icon: skill.icon || "✨",
+              title: skill.name,
+              dataset: {
+                action: "skill",
+                skillId: skill.id,
+                skillName: skill.name
+              }
+            }));
+          }
+          return;
+        }
+
+        if (category === "settings") {
+          menu.appendChild(createMenuButton({
+            icon: petSettings.alwaysOnTop ? "📌" : "📍",
+            title: petSettings.alwaysOnTop ? "关闭置顶" : "开启置顶",
+            dataset: { action: "toggleAlwaysOnTop" }
+          }));
+          menu.appendChild(createMenuButton({
+            icon: petSettings.showStats ? "📊" : "▣",
+            title: petSettings.showStats ? "隐藏状态面板" : "显示状态面板",
+            dataset: { action: "toggleStats" }
+          }));
+          menu.appendChild(createMenuButton({
+            icon: "⏻",
+            title: "退出",
+            dataset: { action: "quit" }
+          }));
+          return;
+        }
+
+        for (const action of loadedActions.filter((item) => item.category === category)) {
+          menu.appendChild(createMenuButton({
+            icon: action.icon || "•",
+            title: `${action.name} · ${Math.round(action.durationSeconds)}秒`,
+            dataset: {
+              action: "petAction",
+              actionId: action.id,
+              actionName: action.name
+            }
+          }));
+        }
+      }
+
+      window.petActivityStarted = (action) => {
+        busy = true;
+        window.clearInterval(activityTimer);
+        const duration = Math.max(1, Number(action.durationSeconds) || 1);
+        const startedAt = Date.now();
+        activityText.textContent = `${action.name}中 · ${duration}秒`;
+        activity.classList.add("show");
+        activityFill.style.width = "0%";
+        activityTimer = window.setInterval(() => {
+          const elapsed = (Date.now() - startedAt) / 1000;
+          const progress = Math.min(1, elapsed / duration);
+          activityFill.style.width = `${Math.round(progress * 100)}%`;
+          const left = Math.max(0, Math.ceil(duration - elapsed));
+          activityText.textContent = `${action.name}中 · ${left}秒`;
+        }, 200);
+      };
+
+      window.petActivityEnded = () => {
+        busy = false;
+        window.clearInterval(activityTimer);
+        activityFill.style.width = "100%";
+        window.setTimeout(() => {
+          activity.classList.remove("show");
+          activityText.textContent = "待机";
+          activityFill.style.width = "0%";
+        }, 700);
+      };
+
+      pet.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (!menu.classList.contains("open")) {
+          renderRootMenu();
+        }
+        menu.classList.toggle("open");
+      });
+
+      document.addEventListener("click", () => {
+        menu.classList.remove("open");
+        renderRootMenu();
+      });
+
+      document.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        menu.classList.remove("open");
+        renderRootMenu();
+      });
+
+      menu.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) return;
+        event.stopPropagation();
+        if (button.dataset.action === "openCategory") {
+          renderCategoryMenu(button.dataset.category);
+          return;
+        }
+        if (button.dataset.action === "back") {
+          renderRootMenu();
+          return;
+        }
+        if (button.dataset.action === "toggleAlwaysOnTop") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "toggleAlwaysOnTop"
+          });
+          return;
+        }
+        if (button.dataset.action === "toggleStats") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "toggleStats"
+          });
+          return;
+        }
+        if (button.dataset.action === "quit") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "quit"
+          });
+          return;
+        }
+        if (button.dataset.action === "skill") {
+          if (busy) {
+            say("现在正在忙\n等当前行动结束再用小技能吧", "宠物");
+            menu.classList.remove("open");
+            renderRootMenu();
+            return;
+          }
+          const skillName = button.dataset.skillName || "小技能";
+          say("正在运行脚本...", skillName);
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "runSkill",
+            skillId: button.dataset.skillId
+          });
+        } else if (button.dataset.action === "petAction") {
+          if (busy) {
+            say("现在正在忙\n等当前行动结束再来吧", "宠物");
+            menu.classList.remove("open");
+            renderRootMenu();
+            return;
+          }
+          say("准备开始...", button.dataset.actionName || "行动");
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "petAction",
+            actionId: button.dataset.actionId
+          });
+        } else {
+          const [text, label] = button.dataset.say.split("|");
+          say(text, label);
+        }
+        menu.classList.remove("open");
+        renderRootMenu();
+      });
+
+      dragZone.addEventListener("pointerdown", () => {
+        window.webkit?.messageHandlers?.pet?.postMessage("drag");
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf4e9"/>
+      <stop offset="1" stop-color="#e9f4f1"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe1bd"/>
+      <stop offset="1" stop-color="#ffc28c"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#79c7bd"/>
+      <stop offset="1" stop-color="#4b9eaa"/>
+    </linearGradient>
+    <linearGradient id="vest" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#364a59"/>
+      <stop offset="1" stop-color="#25313d"/>
+    </linearGradient>
+    <style>
+      .outline { stroke:#282421; stroke-width:7; stroke-linecap:round; stroke-linejoin:round; }
+      .line { stroke:#282421; stroke-width:4.5; stroke-linecap:round; stroke-linejoin:round; fill:none; }
+      .thin { stroke:#282421; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; fill:none; }
+      .title { font-family: Arial, sans-serif; font-size:38px; font-weight:800; fill:#282421; }
+      .h2 { font-family: Arial, sans-serif; font-size:25px; font-weight:700; fill:#282421; }
+      .txt { font-family: Arial, sans-serif; font-size:20px; fill:#514b45; }
+      .tiny { font-family: Arial, sans-serif; font-size:17px; fill:#514b45; }
+      .skin { fill:url(#skin); }
+      .hair { fill:#332823; }
+      .hair2 { fill:#594139; }
+      .shirt { fill:url(#shirt); }
+      .vest { fill:url(#vest); }
+      .pants { fill:#4e5e6d; }
+      .shoe { fill:#2f2d2a; }
+      .tie { fill:#e35e52; }
+      .paper { fill:#fff8e9; }
+      .blush { fill:#f69a88; opacity:.62; }
+      .shadow { fill:#cbbda7; opacity:.45; }
+      .coin { fill:#f5c54a; }
+      .warn { fill:#f07a5f; }
+      .blue { fill:#80b7df; }
+      .green { fill:#81c784; }
+      .cream { fill:#fff2cf; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <circle cx="1400" cy="170" r="130" fill="#d6e9ff" opacity=".65"/>
+  <circle cx="140" cy="820" r="150" fill="#f4d2c4" opacity=".55"/>
+  <circle cx="1310" cy="850" r="115" fill="#d8ead2" opacity=".65"/>
+
+  <text x="70" y="78" class="title">Round Worker Pet V2</text>
+  <text x="72" y="112" class="txt">more detailed 2D cartoon human, designed for visible mood, body, hair and outfit changes</text>
+
+  <g transform="translate(160 145)">
+    <text x="80" y="0" class="h2">Default character</text>
+    <ellipse class="shadow" cx="320" cy="740" rx="185" ry="38"/>
+
+    <g transform="translate(110 30)">
+      <path class="outline skin" d="M105 380 C55 421 43 485 76 520 C101 547 145 532 153 493 C161 452 155 412 135 390 Z"/>
+      <path class="outline skin" d="M315 380 C365 421 377 485 344 520 C319 547 275 532 267 493 C259 452 265 412 285 390 Z"/>
+      <path class="outline pants" d="M132 612 L194 612 L184 755 C172 774 125 774 113 754 Z"/>
+      <path class="outline pants" d="M226 612 L288 612 L307 754 C295 774 247 774 236 755 Z"/>
+      <path class="outline shoe" d="M101 744 C132 727 171 729 190 752 L186 783 L89 783 C85 770 88 757 101 744 Z"/>
+      <path class="outline shoe" d="M233 752 C252 729 291 727 322 744 C335 757 338 770 334 783 L237 783 Z"/>
+
+      <path class="outline shirt" d="M110 350 C158 320 262 320 310 350 L336 612 C282 658 138 658 84 612 Z"/>
+      <path class="outline vest" d="M116 357 C147 334 182 326 210 326 C238 326 273 334 304 357 L279 615 C236 640 184 640 141 615 Z"/>
+      <path class="outline tie" d="M209 354 L238 423 L213 535 L184 423 Z"/>
+      <path class="line" d="M145 380 C166 426 175 515 158 604"/>
+      <path class="line" d="M274 380 C253 426 244 515 261 604"/>
+      <rect class="outline paper" x="252" y="402" width="86" height="114" rx="14"/>
+      <path class="thin" d="M271 430 L319 430 M271 455 L310 455 M271 480 L326 480"/>
+      <circle cx="267" cy="358" r="8" fill="#fff8e9"/>
+      <circle cx="286" cy="373" r="7" fill="#fff8e9"/>
+      <path class="line" d="M210 330 L210 642"/>
+
+      <path class="outline skin" d="M75 122 C130 32 285 32 345 122 C402 205 373 328 294 370 C244 397 176 397 126 370 C47 328 18 205 75 122 Z"/>
+      <path class="outline hair" d="M76 130 C99 64 163 23 235 33 C302 42 345 88 361 151 C319 118 266 104 215 112 C154 122 109 154 74 200 C68 173 68 149 76 130 Z"/>
+      <path class="outline hair2" d="M98 109 C126 58 184 42 226 51 C181 68 141 99 114 151 Z"/>
+      <path class="line" d="M188 43 C188 12 215 8 222 36"/>
+      <path class="line" d="M235 50 C247 20 278 25 274 58"/>
+      <path class="line" d="M145 66 C128 38 98 54 109 86"/>
+
+      <path class="line" d="M122 189 C142 172 169 171 188 187"/>
+      <path class="line" d="M238 187 C257 171 284 172 304 189"/>
+      <ellipse cx="155" cy="215" rx="13" ry="18" fill="#282421"/>
+      <ellipse cx="271" cy="215" rx="13" ry="18" fill="#282421"/>
+      <circle cx="160" cy="209" r="4" fill="#fff"/>
+      <circle cx="276" cy="209" r="4" fill="#fff"/>
+      <path class="thin" d="M212 221 C205 244 206 257 218 264"/>
+      <path class="line" d="M165 298 C193 322 237 322 265 298"/>
+      <circle class="blush" cx="109" cy="268" r="25"/>
+      <circle class="blush" cx="316" cy="268" r="25"/>
+      <path class="thin" d="M88 228 C74 233 67 248 72 263"/>
+      <path class="thin" d="M340 228 C354 233 361 248 356 263"/>
+
+      <rect class="outline cream" x="139" y="329" width="145" height="54" rx="20"/>
+      <text x="166" y="364" class="tiny">Lv.1 Analyst</text>
+    </g>
+  </g>
+
+  <g transform="translate(730 170)">
+    <text x="0" y="0" class="h2">Readable state changes</text>
+
+    <g transform="translate(0 42)">
+      <rect x="0" y="0" width="720" height="184" rx="26" fill="#fffaf0" stroke="#d6c7b7" stroke-width="4"/>
+      <text x="24" y="44" class="txt">Mood</text>
+      <g transform="translate(145 30)">
+        <circle class="outline skin" cx="55" cy="55" r="45"/>
+        <path class="line" d="M33 50 C42 40 53 40 62 50 M82 50 C91 40 102 40 111 50"/>
+        <path class="line" d="M42 80 C58 101 88 101 104 80"/>
+        <circle class="blush" cx="24" cy="68" r="12"/>
+        <circle class="blush" cx="116" cy="68" r="12"/>
+      </g>
+      <g transform="translate(305 30)">
+        <circle class="outline skin" cx="55" cy="55" r="45"/>
+        <ellipse cx="37" cy="53" rx="7" ry="11" fill="#282421"/>
+        <ellipse cx="92" cy="53" rx="7" ry="11" fill="#282421"/>
+        <path class="line" d="M42 84 C58 76 85 76 101 84"/>
+      </g>
+      <g transform="translate(465 30)">
+        <circle class="outline skin" cx="55" cy="55" r="45"/>
+        <path class="line" d="M30 48 L55 59 M80 59 L106 48"/>
+        <path class="line" d="M42 84 C60 66 83 66 101 84"/>
+        <path class="thin" d="M113 29 L134 12 M122 54 L149 51"/>
+      </g>
+      <text x="24" y="142" class="tiny">happy, neutral, exhausted are face-layer swaps</text>
+    </g>
+
+    <g transform="translate(0 252)">
+      <rect x="0" y="0" width="720" height="184" rx="26" fill="#fffaf0" stroke="#d6c7b7" stroke-width="4"/>
+      <text x="24" y="44" class="txt">Body / weight</text>
+      <g transform="translate(170 32)">
+        <path class="outline shirt" d="M20 35 C54 12 116 12 150 35 L165 115 C133 142 37 142 5 115 Z"/>
+        <text x="38" y="166" class="tiny">fit</text>
+      </g>
+      <g transform="translate(355 22)">
+        <path class="outline shirt" d="M12 45 C58 6 142 6 188 45 L210 124 C170 170 30 170 -10 124 Z"/>
+        <path class="line" d="M45 51 C68 72 72 108 62 139"/>
+        <path class="line" d="M154 51 C131 72 127 108 137 139"/>
+        <text x="66" y="176" class="tiny">full</text>
+      </g>
+      <text x="24" y="142" class="tiny">torso silhouette changes after buffet, drinks, exercise</text>
+    </g>
+
+    <g transform="translate(0 462)">
+      <rect x="0" y="0" width="720" height="184" rx="26" fill="#fffaf0" stroke="#d6c7b7" stroke-width="4"/>
+      <text x="24" y="44" class="txt">Hair</text>
+      <g transform="translate(160 34)">
+        <circle class="outline skin" cx="60" cy="60" r="48"/>
+        <path class="outline hair" d="M20 48 C34 15 70 4 103 22 C121 32 132 50 134 72 C99 47 57 45 20 77 Z"/>
+        <text x="26" y="142" class="tiny">normal</text>
+      </g>
+      <g transform="translate(350 34)">
+        <circle class="outline skin" cx="60" cy="60" r="48"/>
+        <path class="line" d="M42 24 C45 8 62 10 61 28 M75 24 C85 7 102 16 96 33"/>
+        <path class="line" d="M25 60 C48 45 75 42 100 53"/>
+        <text x="16" y="142" class="tiny">stress -1</text>
+      </g>
+      <text x="24" y="142" class="tiny">hairline and loose strands make overtime visible</text>
+    </g>
+  </g>
+
+  <g transform="translate(80 860)">
+    <text x="0" y="0" class="h2">First animation set</text>
+    <g transform="translate(240 -28)">
+      <circle class="outline blue" cx="35" cy="35" r="30"/><text x="82" y="42" class="tiny">idle / walk</text>
+    </g>
+    <g transform="translate(410 -28)">
+      <circle class="outline green" cx="35" cy="35" r="30"/><text x="82" y="42" class="tiny">work / meeting</text>
+    </g>
+    <g transform="translate(610 -28)">
+      <circle class="outline coin" cx="35" cy="35" r="30"/><text x="82" y="42" class="tiny">eat / drink / exercise</text>
+    </g>
+    <g transform="translate(880 -28)">
+      <circle class="outline warn" cx="35" cy="35" r="30"/><text x="82" y="42" class="tiny">talk bubble / script result</text>
+    </g>
+  </g>
+</svg>

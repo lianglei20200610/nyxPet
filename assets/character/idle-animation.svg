@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="545" height="886" viewBox="0 0 545 886">
+  <defs>
+    <clipPath id="characterCrop">
+      <rect x="0" y="0" width="545" height="886" rx="0"/>
+    </clipPath>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <rect width="545" height="886" fill="#3f8bbb"/>
+  <ellipse cx="282" cy="842" rx="130" ry="24" fill="#1c5f88" opacity=".25">
+    <animate attributeName="rx" values="130;112;130" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values=".25;.16;.25" dur="1.8s" repeatCount="indefinite"/>
+  </ellipse>
+
+  <g clip-path="url(#characterCrop)">
+    <g transform-origin="270 790">
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -13;0 0" dur="1.8s" repeatCount="indefinite"/>
+      <image href="main-character-reference.jpg" x="0" y="0" width="727" height="886" preserveAspectRatio="none"/>
+      <g opacity="0">
+        <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.87;.89;.92;.94;1" dur="4.6s" repeatCount="indefinite"/>
+        <path d="M98 349 C126 366 168 366 196 349 L196 377 C162 390 124 389 98 377 Z" fill="#f8cbae" stroke="#3b2517" stroke-width="3"/>
+        <path d="M304 349 C332 366 374 366 402 349 L402 377 C368 390 330 389 304 377 Z" fill="#f8cbae" stroke="#3b2517" stroke-width="3"/>
+      </g>
+    </g>
+  </g>
+
+  <g transform="translate(300 118)" opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.08;.14;.82;.92;1" dur="5.6s" repeatCount="indefinite"/>
+    <animateTransform attributeName="transform" type="translate" values="300 130;300 118;300 118;300 110" keyTimes="0;.14;.82;1" dur="5.6s" repeatCount="indefinite"/>
+    <path d="M0 0 H218 Q242 0 242 24 V112 Q242 136 218 136 H58 L30 166 L32 136 H0 Q-24 136 -24 112 V24 Q-24 0 0 0 Z" fill="#fffaf1" stroke="#3b2517" stroke-width="5" stroke-linejoin="round"/>
+    <text x="6" y="35" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#7c6754">小技能</text>
+    <text x="6" y="74" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#33261b">脚本运行完成</text>
+    <text x="6" y="111" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#33261b">加班 2.5 小时</text>
+  </g>
+
+  <g filter="url(#soft)">
+    <circle cx="230" cy="805" r="4" fill="#fff" opacity=".9">
+      <animate attributeName="r" values="3;8;3" dur="2.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values=".15;.95;.15" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="421" cy="823" r="4" fill="#fff" opacity=".9">
+      <animate attributeName="r" values="3;7;3" dur="2.2s" begin=".6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values=".15;.95;.15" dur="2.2s" begin=".6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="507" cy="514" r="7" fill="#ff73da" opacity=".8">
+      <animate attributeName="r" values="5;13;5" dur="2.2s" begin="1.1s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values=".2;.85;.2" dur="2.2s" begin="1.1s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

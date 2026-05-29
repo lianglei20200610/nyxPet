@@ -1,0 +1,21 @@
+# Build outputs
+build/
+
+# macOS
+.DS_Store
+
+# Editor and local environment files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and temporary files
+*.log
+tmp/
+*.tmp
+data/
+
+# Python cache
+__pycache__/
+*.py[cod]
