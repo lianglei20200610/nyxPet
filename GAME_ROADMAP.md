@@ -44,7 +44,8 @@
 2. Implemented: settings menu with quit control.
 3. Implemented: always-on-top toggle.
 4. Implemented: native right-click menu with always-on-top and quit.
-5. Add optional launch-at-login.
+5. Implemented: show/hide stats panel.
+6. Add optional launch-at-login.
 6. Package as a normal `.app`.
 
 ## Content And Assets

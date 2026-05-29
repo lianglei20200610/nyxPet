@@ -42,6 +42,7 @@ Build a macOS desktop pet / lightweight companion game. The pet lives in a float
 - The desktop window position is saved in `data/pet-settings.json` and restored on next launch.
 - Settings menu supports always-on-top toggle and quit.
 - Native right-click menu supports always-on-top toggle and quit.
+- Settings can show or hide the stats panel, stored in `data/pet-settings.json`.
 
 ## How To Run
 

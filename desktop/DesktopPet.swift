@@ -41,8 +41,9 @@ struct PetSettings: Codable {
     var windowWidth: Double
     var windowHeight: Double
     var alwaysOnTop: Bool
+    var showStats: Bool
 
-    static let initial = PetSettings(windowX: 120, windowY: 180, windowWidth: 520, windowHeight: 620, alwaysOnTop: true)
+    static let initial = PetSettings(windowX: 120, windowY: 180, windowWidth: 520, windowHeight: 620, alwaysOnTop: true, showStats: true)
 
     var frame: NSRect {
         NSRect(x: windowX, y: windowY, width: windowWidth, height: windowHeight)
@@ -64,13 +65,19 @@ final class PetSettingsStore {
             windowY: windowFrame.origin.y,
             windowWidth: windowFrame.size.width,
             windowHeight: windowFrame.size.height,
-            alwaysOnTop: settings.alwaysOnTop
+            alwaysOnTop: settings.alwaysOnTop,
+            showStats: settings.showStats
         )
         save()
     }
 
     func setAlwaysOnTop(_ enabled: Bool) {
         settings.alwaysOnTop = enabled
+        save()
+    }
+
+    func setShowStats(_ enabled: Bool) {
+        settings.showStats = enabled
         save()
     }
 
@@ -242,6 +249,8 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
             applyPetAction(actionId)
         case "toggleAlwaysOnTop":
             toggleAlwaysOnTop()
+        case "toggleStats":
+            toggleStats()
         case "quit":
             quit()
         default:
@@ -396,6 +405,13 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
         settingsStore.setAlwaysOnTop(nextValue)
         sendSettings()
         sendSpeech(nextValue ? "已开启置顶" : "已关闭置顶", label: "设置")
+    }
+
+    private func toggleStats() {
+        let nextValue = !settingsStore.settings.showStats
+        settingsStore.setShowStats(nextValue)
+        sendSettings()
+        sendSpeech(nextValue ? "已显示状态面板" : "已隐藏状态面板", label: "设置")
     }
 
     private func quit() {
@@ -563,6 +579,8 @@ extension AppDelegate: PetWebViewDelegate {
         let menu = NSMenu()
         let pinTitle = settingsStore.settings.alwaysOnTop ? "关闭置顶" : "开启置顶"
         menu.addItem(NSMenuItem(title: pinTitle, action: #selector(toggleAlwaysOnTopFromMenu), keyEquivalent: ""))
+        let statsTitle = settingsStore.settings.showStats ? "隐藏状态面板" : "显示状态面板"
+        menu.addItem(NSMenuItem(title: statsTitle, action: #selector(toggleStatsFromMenu), keyEquivalent: ""))
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "退出", action: #selector(quitFromMenu), keyEquivalent: "q"))
         NSMenu.popUpContextMenu(menu, with: NSApp.currentEvent ?? NSEvent(), for: webView)
@@ -572,6 +590,11 @@ extension AppDelegate: PetWebViewDelegate {
         let nextValue = window.level != .floating
         window.level = nextValue ? .floating : .normal
         settingsStore.setAlwaysOnTop(nextValue)
+        messageHandler.sendSettings()
+    }
+
+    @objc private func toggleStatsFromMenu() {
+        settingsStore.setShowStats(!settingsStore.settings.showStats)
         messageHandler.sendSettings()
     }
 

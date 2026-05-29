@@ -167,6 +167,15 @@
         font-size: 13px;
         font-weight: 700;
         box-shadow: 0 6px 0 rgba(45, 38, 27, 0.1);
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 150ms ease, transform 150ms ease;
+      }
+
+      .stats.hidden {
+        opacity: 0;
+        transform: translateY(-8px);
+        pointer-events: none;
       }
 
       .stats span:nth-child(odd) {
@@ -289,7 +298,7 @@
         <span class="bubble-text" id="bubbleText">脚本运行完成
 加班 2.5 小时</span>
       </aside>
-      <section class="stats" aria-label="宠物属性">
+      <section class="stats" id="stats" aria-label="宠物属性">
         <span>心情</span><strong id="mood">--</strong>
         <span>体重</span><strong id="weight">--</strong>
         <span>发量</span><strong id="hair">--</strong>
@@ -355,6 +364,7 @@
 
       window.petSettingsUpdated = (settings) => {
         petSettings = settings;
+        document.getElementById("stats").classList.toggle("hidden", !settings.showStats);
         if (menu.classList.contains("open") && menuMode === "settings") {
           renderCategoryMenu("settings");
         }
@@ -448,6 +458,11 @@
             dataset: { action: "toggleAlwaysOnTop" }
           }));
           menu.appendChild(createMenuButton({
+            icon: petSettings.showStats ? "📊" : "▣",
+            title: petSettings.showStats ? "隐藏状态面板" : "显示状态面板",
+            dataset: { action: "toggleStats" }
+          }));
+          menu.appendChild(createMenuButton({
             icon: "⏻",
             title: "退出",
             dataset: { action: "quit" }
@@ -530,6 +545,12 @@
         if (button.dataset.action === "toggleAlwaysOnTop") {
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: "toggleAlwaysOnTop"
+          });
+          return;
+        }
+        if (button.dataset.action === "toggleStats") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "toggleStats"
           });
           return;
         }
