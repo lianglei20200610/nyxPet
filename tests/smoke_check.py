@@ -98,10 +98,48 @@ def check_html_contract():
     for message in required_messages:
         require(message in html, f"missing WebKit message path: {message}")
 
-    asset_refs = re.findall(r'<img[^>]+src="([^"]+)"', html)
-    require(asset_refs, "desktop HTML must reference at least one image")
+    required_pet_contract = [
+        "sprite-pet",
+        "spritesheet.webp",
+        "spriteStates",
+        "playSpriteState",
+        "--sprite-col",
+        "--sprite-row",
+        "setPetMode",
+        "is-working",
+        "is-food",
+        "is-exercise",
+        "is-entertainment",
+        "is-skill",
+    ]
+    for item in required_pet_contract:
+        require(item in html, f"missing Codex pet display contract: {item}")
+
+    forbidden_sprite_contract = [
+        "@keyframes sprite-idle",
+        "@keyframes sprite-work",
+        "@keyframes sprite-exercise",
+        "@keyframes sprite-food",
+        "@keyframes sprite-entertainment",
+        "@keyframes sprite-skill",
+    ]
+    for item in forbidden_sprite_contract:
+        require(item not in html, f"spritesheet frames must be discrete JS frame switches, not CSS scrolling: {item}")
+
+    asset_refs = re.findall(r'(?:url\([\"\']?([^\"\')]+)[\"\']?\)|<img[^>]+src="([^"]+)")', html)
+    asset_refs = [css_ref or img_ref for css_ref, img_ref in asset_refs]
+    require(asset_refs, "desktop HTML must reference at least one image asset")
     for ref in asset_refs:
-        require((ROOT / "desktop" / ref).resolve().is_file(), f"missing HTML image asset: {ref}")
+        require((ROOT / "desktop" / ref).resolve().is_file(), f"missing CSS image asset: {ref}")
+
+    pet_manifest = ROOT / "assets" / "codex-pets" / "goku-forms" / "pet.json"
+    pet_spritesheet = ROOT / "assets" / "codex-pets" / "goku-forms" / "spritesheet.webp"
+    require(pet_manifest.is_file(), "missing goku-forms pet.json")
+    require(pet_spritesheet.is_file(), "missing goku-forms spritesheet.webp")
+
+    manifest = read_json(pet_manifest)
+    require(manifest.get("id") == "goku-forms", "goku-forms pet.json has wrong id")
+    require(manifest.get("spritesheetPath") == "spritesheet.webp", "goku-forms pet.json has wrong spritesheetPath")
 
 
 def check_swift_build():

@@ -1,0 +1,6 @@
+{
+    "id":  "goku-forms",
+    "displayName":  "Goku Forms",
+    "description":  "A compact chibi Goku pet that transforms between Dragon Ball-inspired forms for different Codex states.",
+    "spritesheetPath":  "spritesheet.webp"
+}

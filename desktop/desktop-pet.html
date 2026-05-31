@@ -41,9 +41,9 @@
 
       .shadow {
         position: absolute;
-        left: 43%;
+        left: 34%;
         bottom: 5.5%;
-        width: 33%;
+        width: 22%;
         height: 4.5%;
         border-radius: 999px;
         background: rgba(20, 58, 82, 0.2);
@@ -54,57 +54,49 @@
 
       .pet {
         position: absolute;
-        left: 8%;
-        bottom: 7%;
-        width: 58%;
-        aspect-ratio: 545 / 886;
-        overflow: hidden;
+        left: 12%;
+        bottom: 8%;
+        width: 34%;
+        min-width: 176px;
+        max-width: 260px;
+        aspect-ratio: 192 / 208;
         transform-origin: 50% 88%;
-        animation: bob 1.8s ease-in-out infinite;
         cursor: pointer;
       }
 
-      .pet img {
-        width: 133.4%;
-        height: 100%;
-        object-fit: cover;
-        object-position: left top;
+      .sprite-pet {
+        --sprite-col: 0;
+        --sprite-row: 0;
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
         display: block;
         pointer-events: none;
         transform-origin: 50% 88%;
-        animation: breathe 1.8s ease-in-out infinite;
+        animation: sprite-bob 4s ease-in-out infinite;
       }
 
-      .blink {
+      .sprite-sheet {
         position: absolute;
-        width: 13.5%;
-        height: 4.8%;
-        top: 39.3%;
-        border-radius: 0 0 999px 999px;
-        background: #f8cbae;
-        border-bottom: 3px solid var(--ink);
-        opacity: 0;
-        animation: blink 4.6s infinite;
-        pointer-events: none;
-      }
-
-      .blink.left {
-        left: 18.6%;
-        transform: rotate(3deg) scaleY(0.1);
-      }
-
-      .blink.right {
-        left: 56.2%;
-        transform: rotate(-2deg) scaleY(0.1);
+        left: 0;
+        top: 0;
+        width: 800%;
+        height: 900%;
+        max-width: none;
+        object-fit: fill;
+        image-rendering: auto;
+        transform:
+          translateX(calc(var(--sprite-col) * -12.5%))
+          translateY(calc(var(--sprite-row) * -11.111111%));
       }
 
       .bubble {
         position: absolute;
-        top: 10%;
-        right: 4%;
-        width: 48%;
-        min-height: 104px;
-        padding: 16px 18px;
+        left: 42%;
+        bottom: 39%;
+        width: min(44%, 260px);
+        min-height: 86px;
+        padding: 13px 15px;
         border: 4px solid var(--ink);
         border-radius: 24px;
         background: var(--paper);
@@ -112,7 +104,7 @@
         box-shadow: 0 10px 0 rgba(45, 38, 27, 0.12);
         opacity: 0;
         transform: translateY(12px) scale(0.92);
-        transform-origin: 16% 100%;
+        transform-origin: 0 100%;
         transition: opacity 160ms ease, transform 160ms ease;
         pointer-events: none;
       }
@@ -125,12 +117,12 @@
       .bubble::before {
         content: "";
         position: absolute;
-        left: 28px;
-        bottom: -23px;
-        width: 32px;
-        height: 32px;
+        left: -10px;
+        bottom: 18px;
+        width: 24px;
+        height: 24px;
         background: var(--paper);
-        border-right: 4px solid var(--ink);
+        border-left: 4px solid var(--ink);
         border-bottom: 4px solid var(--ink);
         transform: rotate(45deg);
       }
@@ -145,7 +137,7 @@
 
       .bubble-text {
         display: block;
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 700;
         line-height: 1.35;
         white-space: pre-line;
@@ -154,8 +146,8 @@
 
       .stats {
         position: absolute;
-        left: 4%;
-        top: 5%;
+        left: 6%;
+        bottom: 56%;
         display: grid;
         grid-template-columns: repeat(2, auto);
         gap: 6px 10px;
@@ -184,9 +176,9 @@
 
       .activity {
         position: absolute;
-        left: 4%;
-        top: 24%;
-        width: 38%;
+        left: 39%;
+        bottom: 28%;
+        width: min(42%, 250px);
         padding: 9px 11px;
         border: 3px solid var(--ink);
         border-radius: 16px;
@@ -262,14 +254,29 @@
         box-shadow: 0 2px 0 rgba(45, 38, 27, 0.16);
       }
 
-      @keyframes bob {
+      @keyframes sprite-bob {
         0%, 100% { transform: translateY(0) rotate(-0.4deg); }
-        50% { transform: translateY(-12px) rotate(0.4deg); }
+        50% { transform: translateY(-8px) rotate(0.4deg); }
       }
 
-      @keyframes breathe {
-        0%, 100% { transform: scaleX(1) scaleY(1); }
-        50% { transform: scaleX(1.012) scaleY(0.992); }
+      .pet.is-working .sprite-pet {
+        animation: sprite-bob 2.2s ease-in-out infinite;
+      }
+
+      .pet.is-exercise .sprite-pet {
+        animation: sprite-bob 1.8s ease-in-out infinite;
+      }
+
+      .pet.is-food .sprite-pet {
+        animation: sprite-bob 2.2s ease-in-out infinite;
+      }
+
+      .pet.is-entertainment .sprite-pet {
+        animation: sprite-bob 2s ease-in-out infinite;
+      }
+
+      .pet.is-skill .sprite-pet {
+        animation: sprite-bob 2s ease-in-out infinite;
       }
 
       @keyframes shadow {
@@ -277,11 +284,6 @@
         50% { transform: translateX(-50%) scaleX(0.86); opacity: 0.12; }
       }
 
-      @keyframes blink {
-        0%, 87%, 100% { opacity: 0; transform: scaleY(0.1); }
-        89%, 92% { opacity: 1; transform: scaleY(1); }
-        94% { opacity: 0; transform: scaleY(0.1); }
-      }
     </style>
   </head>
   <body>
@@ -289,9 +291,9 @@
       <div class="drag-zone" id="dragZone"></div>
       <div class="shadow"></div>
       <section class="pet" id="pet" aria-label="宠物">
-        <img src="../assets/character/main-character-reference.jpg" alt="宠物角色" />
-        <span class="blink left"></span>
-        <span class="blink right"></span>
+        <span class="sprite-pet" role="img" aria-label="Goku Forms Codex 宠物">
+          <img class="sprite-sheet" src="../assets/codex-pets/goku-forms/spritesheet.webp" alt="" />
+        </span>
       </section>
       <aside class="bubble" id="bubble" aria-live="polite">
         <span class="bubble-label" id="bubbleLabel">小技能</span>
@@ -312,6 +314,7 @@
     </main>
     <script>
       const pet = document.getElementById("pet");
+      const spritePet = document.querySelector(".sprite-pet");
       const menu = document.getElementById("menu");
       const bubble = document.getElementById("bubble");
       const bubbleLabel = document.getElementById("bubbleLabel");
@@ -332,6 +335,21 @@
       let loadedActions = [];
       let loadedSkills = [];
       let menuMode = "root";
+      let activePetClass = "";
+      let spriteTimer;
+      let spriteFrame = 0;
+
+      const spriteStates = {
+        idle: { row: 0, frames: 6, intervalMs: 460 },
+        runningRight: { row: 1, frames: 8, intervalMs: 150 },
+        runningLeft: { row: 2, frames: 8, intervalMs: 150 },
+        waving: { row: 3, frames: 4, intervalMs: 240 },
+        jumping: { row: 4, frames: 5, intervalMs: 200 },
+        failed: { row: 5, frames: 7, intervalMs: 230 },
+        waiting: { row: 6, frames: 6, intervalMs: 260 },
+        running: { row: 7, frames: 6, intervalMs: 190 },
+        review: { row: 8, frames: 6, intervalMs: 230 }
+      };
 
       const categoryMeta = {
         work: { label: "工作", icon: "💼" },
@@ -351,7 +369,56 @@
         hideTimer = window.setTimeout(() => bubble.classList.remove("show"), 5200);
       }
 
+      function setSpriteFrame(row, col) {
+        spritePet.style.setProperty("--sprite-row", row);
+        spritePet.style.setProperty("--sprite-col", col);
+      }
+
+      function playSpriteState(stateName) {
+        const state = spriteStates[stateName] || spriteStates.idle;
+        window.clearInterval(spriteTimer);
+        spriteFrame = 0;
+        setSpriteFrame(state.row, 0);
+        spriteTimer = window.setInterval(() => {
+          spriteFrame = (spriteFrame + 1) % state.frames;
+          setSpriteFrame(state.row, spriteFrame);
+        }, state.intervalMs);
+      }
+
+      function setPetMode(mode) {
+        const modeClass = {
+          work: "working",
+          food: "food",
+          exercise: "exercise",
+          entertainment: "entertainment",
+          skill: "skill"
+        }[mode] || mode;
+
+        if (activePetClass) {
+          pet.classList.remove(activePetClass);
+        }
+
+        activePetClass = modeClass ? `is-${modeClass}` : "";
+        if (activePetClass) {
+          pet.classList.add(activePetClass);
+        }
+
+        const stateName = {
+          working: "running",
+          food: "waving",
+          exercise: "jumping",
+          entertainment: "waiting",
+          skill: "review"
+        }[modeClass] || "idle";
+        playSpriteState(stateName);
+      }
+
+      playSpriteState("idle");
+
       window.petSkillResult = (result) => {
+        if (activePetClass === "is-skill") {
+          setPetMode("");
+        }
         say(result.text || "脚本运行完成", result.label || "小技能");
       };
 
@@ -488,6 +555,8 @@
         window.clearInterval(activityTimer);
         const duration = Math.max(1, Number(action.durationSeconds) || 1);
         const startedAt = Date.now();
+        const activeAction = loadedActions.find((item) => item.id === action.id);
+        setPetMode(activeAction?.category || "working");
         activityText.textContent = `${action.name}中 · ${duration}秒`;
         activity.classList.add("show");
         activityFill.style.width = "0%";
@@ -502,6 +571,7 @@
 
       window.petActivityEnded = () => {
         busy = false;
+        setPetMode("");
         window.clearInterval(activityTimer);
         activityFill.style.width = "100%";
         window.setTimeout(() => {
@@ -568,6 +638,7 @@
             return;
           }
           const skillName = button.dataset.skillName || "小技能";
+          setPetMode("skill");
           say("正在运行脚本...", skillName);
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: "runSkill",
