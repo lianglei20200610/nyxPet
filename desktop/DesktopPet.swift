@@ -20,19 +20,118 @@ struct PetActionConfig: Decodable {
     let moodDelta: Int
     let weightDelta: Int
     let hairDelta: Int
+    let healthDelta: Int?
     let moneyDelta: Int
     let startMessage: String
     let finishMessage: String
+}
+
+struct EconomyConfig: Decodable {
+    let dailyIncome: Int
+    let fixedExpenses: [EconomyFixedExpense]
+    let randomExpenses: [EconomyRandomExpense]
+}
+
+struct EconomyFixedExpense: Decodable {
+    let id: String
+    let name: String
+    let category: String?
+    let amount: Int
+}
+
+struct EconomyRandomExpense: Decodable {
+    let id: String
+    let name: String
+    let category: String?
+    let minAmount: Int
+    let maxAmount: Int
+    let chance: Double
+}
+
+struct LedgerEntry: Codable {
+    let id: String
+    let date: String
+    let type: String
+    let category: String
+    let name: String
+    let amount: Int
+    let balanceAfter: Int
+    let source: String
+}
+
+struct LifeEventConfig: Decodable {
+    let id: String
+    let name: String
+    let category: String
+    let message: String
+    let chance: Double
+    let minMoneyDelta: Int
+    let maxMoneyDelta: Int
+    let moodDelta: Int
+    let healthDelta: Int
+    let weightDelta: Int?
+    let hairDelta: Int?
+    let healthSensitive: Bool?
+}
+
+struct LifeEventLogEntry: Codable {
+    let id: String
+    let date: String
+    let category: String
+    let name: String
+    let message: String
+    let moneyDelta: Int
+    let moodDelta: Int
+    let healthDelta: Int
+    let source: String
+}
+
+struct EventBubbleMessage: Codable {
+    let label: String
+    let text: String
 }
 
 struct PetState: Codable {
     var mood: Int
     var weight: Int
     var hair: Int
+    var health: Int
     var money: Int
     var currentActivity: String
+    var lastSettlementDate: String?
 
-    static let initial = PetState(mood: 70, weight: 50, hair: 100, money: 0, currentActivity: "待机")
+    static let initial = PetState(mood: 70, weight: 50, hair: 100, health: 75, money: 500000, currentActivity: "待机", lastSettlementDate: nil)
+
+    enum CodingKeys: String, CodingKey {
+        case mood
+        case weight
+        case hair
+        case health
+        case money
+        case currentActivity
+        case lastSettlementDate
+    }
+
+    init(mood: Int, weight: Int, hair: Int, health: Int, money: Int, currentActivity: String, lastSettlementDate: String?) {
+        self.mood = mood
+        self.weight = weight
+        self.hair = hair
+        self.health = health
+        self.money = money
+        self.currentActivity = currentActivity
+        self.lastSettlementDate = lastSettlementDate
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        mood = try container.decodeIfPresent(Int.self, forKey: .mood) ?? Self.initial.mood
+        weight = try container.decodeIfPresent(Int.self, forKey: .weight) ?? Self.initial.weight
+        hair = try container.decodeIfPresent(Int.self, forKey: .hair) ?? Self.initial.hair
+        health = try container.decodeIfPresent(Int.self, forKey: .health) ?? Self.initial.health
+        money = try container.decodeIfPresent(Int.self, forKey: .money) ?? Self.initial.money
+        currentActivity = try container.decodeIfPresent(String.self, forKey: .currentActivity) ?? Self.initial.currentActivity
+        lastSettlementDate = try container.decodeIfPresent(String.self, forKey: .lastSettlementDate)
+    }
 }
 
 struct PetSettings: Codable {
@@ -106,11 +205,132 @@ final class PetSettingsStore {
 
 final class PetStateStore {
     private let stateURL: URL
+    private let ledgerURL: URL
+    private let eventURL: URL
     private(set) var state: PetState
+    private var ledger: [LedgerEntry]
+    private var eventLog: [LifeEventLogEntry]
+    private(set) var eventMessages: [EventBubbleMessage] = []
 
     init(root: URL) {
         stateURL = root.appendingPathComponent("data/pet-state.json")
+        ledgerURL = root.appendingPathComponent("data/ledger.json")
+        eventURL = root.appendingPathComponent("data/events.json")
         state = Self.load(from: stateURL)
+        ledger = Self.loadLedger(from: ledgerURL)
+        eventLog = Self.loadEventLog(from: eventURL)
+    }
+
+    func settleDailyBudget(config: EconomyConfig, lifeEvents: [LifeEventConfig]) -> String? {
+        let today = Self.dayString(Date())
+
+        guard let lastSettlementDate = state.lastSettlementDate else {
+            state.lastSettlementDate = today
+            save()
+            return nil
+        }
+
+        guard let lastDate = Self.date(from: lastSettlementDate),
+              let todayDate = Self.date(from: today),
+              lastDate < todayDate else {
+            return nil
+        }
+
+        var date = Calendar.current.date(byAdding: .day, value: 1, to: lastDate) ?? todayDate
+        var days = 0
+        var total = 0
+        var latestRandomParts: [String] = []
+        eventMessages = []
+
+        while date <= todayDate {
+            let day = Self.dayString(date)
+            var dayTotal = config.dailyIncome
+            state.health = clamp(state.health - 1)
+
+            state.money += config.dailyIncome
+            recordLedgerEntry(
+                date: day,
+                type: "income",
+                category: "工资",
+                name: "日薪",
+                amount: config.dailyIncome,
+                source: "dailySettlement",
+                refId: "dailyIncome"
+            )
+
+            for expense in config.fixedExpenses {
+                let amount = expense.amount
+                dayTotal += amount
+                state.money += amount
+                recordLedgerEntry(
+                    date: day,
+                    type: "fixedExpense",
+                    category: expense.category ?? "固定支出",
+                    name: expense.name,
+                    amount: amount,
+                    source: "dailySettlement",
+                    refId: expense.id
+                )
+            }
+
+            latestRandomParts = []
+            for (index, expense) in config.randomExpenses.enumerated() {
+                if Self.shouldApplyRandomExpense(expense, day: day) {
+                    let amount = Self.randomAmount(expense, day: day)
+                    dayTotal += amount
+                    state.money += amount
+                    recordLedgerEntry(
+                        date: day,
+                        type: "randomExpense",
+                        category: expense.category ?? "随机支出",
+                        name: expense.name,
+                        amount: amount,
+                        source: "dailySettlement",
+                        refId: expense.id,
+                        index: index
+                    )
+                    latestRandomParts.append("\(expense.name) \(signed(amount))")
+                }
+            }
+
+            var eventCount = 0
+            for (index, event) in lifeEvents.enumerated() {
+                guard eventCount < 3 else {
+                    break
+                }
+                if shouldApplyLifeEvent(event, day: day) {
+                    let beforeMoney = state.money
+                    applyLifeEvent(event, day: day, index: index)
+                    dayTotal += state.money - beforeMoney
+                    eventCount += 1
+                }
+            }
+
+            total += dayTotal
+            days += 1
+            date = Calendar.current.date(byAdding: .day, value: 1, to: date) ?? todayDate.addingTimeInterval(86400)
+        }
+
+        let debtPenalty = debtMoodPenalty()
+        state.mood = clamp(state.mood + (total < 0 ? -2 : 1) + debtPenalty)
+        state.currentActivity = "待机"
+        state.lastSettlementDate = today
+        save()
+
+        let fixedTotal = config.fixedExpenses.reduce(0) { $0 + $1.amount }
+        var lines = [
+            "已结算 \(days) 天",
+            "工资 +\(config.dailyIncome * days)",
+            "固定支出 \(signed(fixedTotal * days))"
+        ]
+        if !latestRandomParts.isEmpty {
+            lines.append(contentsOf: latestRandomParts)
+        }
+        lines.append("合计 \(signed(total))")
+        if debtPenalty < 0 {
+            lines.append("负债压力 心情 \(signed(debtPenalty))")
+        }
+        return lines.joined(separator: "\n")
     }
 
     func start(action: PetActionConfig) {
@@ -119,13 +339,72 @@ final class PetStateStore {
     }
 
     func finish(action: PetActionConfig) -> String {
-        state.money = max(0, state.money + action.moneyDelta)
+        state.money += action.moneyDelta
         state.mood = clamp(state.mood + action.moodDelta)
         state.weight = clamp(state.weight + action.weightDelta)
         state.hair = clamp(state.hair + action.hairDelta)
+        state.health = clamp(state.health + (action.healthDelta ?? 0))
         state.currentActivity = "待机"
         save()
+        recordLedgerEntry(
+            date: Self.dayString(Date()),
+            type: action.moneyDelta >= 0 ? "income" : "expense",
+            category: action.category,
+            name: action.name,
+            amount: action.moneyDelta,
+            source: "petAction",
+            refId: action.id + ":\(Int(Date().timeIntervalSince1970 * 1000))"
+        )
         return action.finishMessage + "\n" + effectSummary(for: action)
+    }
+
+    func ledgerSummary(limit: Int = 8) -> String {
+        guard !ledger.isEmpty else {
+            return "账本还是空的\n等发生收入或支出后会记录在这里"
+        }
+
+        return ledger.suffix(limit).reversed().map { entry in
+            "\(entry.date) \(entry.name) \(signed(entry.amount))，余额 \(entry.balanceAfter)"
+        }.joined(separator: "\n")
+    }
+
+    func recentLedgerEntries(limit: Int = 24) -> [LedgerEntry] {
+        Array(ledger.suffix(limit).reversed())
+    }
+
+    func recentEventEntries(limit: Int = 24) -> [LifeEventLogEntry] {
+        eventLog = Self.loadEventLog(from: eventURL)
+        return Array(eventLog.suffix(limit).reversed())
+    }
+
+    func monthlyStatsSummary() -> String {
+        ledger = Self.loadLedger(from: ledgerURL)
+        let month = Self.dayString(Date()).prefix(7)
+        let rows = ledger.filter { $0.date.hasPrefix(month) }
+        let income = rows.filter { $0.amount > 0 }.reduce(0) { $0 + $1.amount }
+        let expense = rows.filter { $0.amount < 0 }.reduce(0) { $0 + $1.amount }
+        let net = income + expense
+        return "\(month) 统计\n收入 \(signed(income))\n支出 \(signed(expense))\n结余 \(signed(net))"
+    }
+
+    func eventIds() -> Set<String> {
+        eventLog = Self.loadEventLog(from: eventURL)
+        return Set(eventLog.map { $0.id })
+    }
+
+    func newEventMessages(knownIds: inout Set<String>) -> [EventBubbleMessage] {
+        eventLog = Self.loadEventLog(from: eventURL)
+        let newEntries = eventLog.filter { !knownIds.contains($0.id) }
+        for entry in eventLog {
+            knownIds.insert(entry.id)
+        }
+
+        return newEntries.suffix(5).map { entry in
+            EventBubbleMessage(
+                label: entry.category,
+                text: "\(entry.message)\n金钱 \(signed(entry.moneyDelta)) 心情 \(signed(entry.moodDelta)) 健康 \(signed(entry.healthDelta))"
+            )
+        }
     }
 
     func save() {
@@ -150,8 +429,103 @@ final class PetStateStore {
         }
     }
 
+    private static func loadLedger(from url: URL) -> [LedgerEntry] {
+        do {
+            let data = try Data(contentsOf: url)
+            return try JSONDecoder().decode([LedgerEntry].self, from: data)
+        } catch {
+            return []
+        }
+    }
+
+    private static func loadEventLog(from url: URL) -> [LifeEventLogEntry] {
+        do {
+            let data = try Data(contentsOf: url)
+            return try JSONDecoder().decode([LifeEventLogEntry].self, from: data)
+        } catch {
+            return []
+        }
+    }
+
+    private func recordLedgerEntry(date: String, type: String, category: String, name: String, amount: Int, source: String, refId: String, index: Int = 0) {
+        guard amount != 0 else {
+            return
+        }
+
+        let id = "\(date):\(source):\(refId):\(index)"
+        guard !ledger.contains(where: { $0.id == id }) else {
+            return
+        }
+
+        ledger.append(LedgerEntry(
+            id: id,
+            date: date,
+            type: type,
+            category: category,
+            name: name,
+            amount: amount,
+            balanceAfter: state.money,
+            source: source
+        ))
+        saveLedger()
+    }
+
+    private func saveLedger() {
+        do {
+            try FileManager.default.createDirectory(
+                at: ledgerURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            let data = try JSONEncoder.prettyPrinted.encode(ledger)
+            try data.write(to: ledgerURL, options: .atomic)
+        } catch {
+            print("Failed to save pet ledger: \(error)")
+        }
+    }
+
+    private func recordEventEntry(date: String, category: String, name: String, message: String, moneyDelta: Int, moodDelta: Int, healthDelta: Int, source: String, refId: String, index: Int = 0) {
+        let id = "\(date):\(source):\(refId):\(index)"
+        guard !eventLog.contains(where: { $0.id == id }) else {
+            return
+        }
+
+        eventLog.append(LifeEventLogEntry(
+            id: id,
+            date: date,
+            category: category,
+            name: name,
+            message: message,
+            moneyDelta: moneyDelta,
+            moodDelta: moodDelta,
+            healthDelta: healthDelta,
+            source: source
+        ))
+        saveEventLog()
+    }
+
+    private func saveEventLog() {
+        do {
+            try FileManager.default.createDirectory(
+                at: eventURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            let data = try JSONEncoder.prettyPrinted.encode(eventLog)
+            try data.write(to: eventURL, options: .atomic)
+        } catch {
+            print("Failed to save pet event log: \(error)")
+        }
+    }
+
     private func clamp(_ value: Int) -> Int {
         min(100, max(0, value))
+    }
+
+    private func debtMoodPenalty() -> Int {
+        guard state.money < 0 else {
+            return 0
+        }
+
+        return -min(12, max(1, Int(ceil(Double(abs(state.money)) / 5000.0))))
     }
 
     private func effectSummary(for action: PetActionConfig) -> String {
@@ -168,12 +542,123 @@ final class PetStateStore {
         if action.hairDelta != 0 {
             parts.append("发量 \(signed(action.hairDelta))")
         }
+        if (action.healthDelta ?? 0) != 0 {
+            parts.append("健康 \(signed(action.healthDelta ?? 0))")
+        }
 
         return parts.isEmpty ? "属性没有变化" : parts.joined(separator: "\n")
     }
 
+    private func effectiveEventChance(_ event: LifeEventConfig) -> Double {
+        guard event.healthSensitive == true else {
+            return event.chance
+        }
+
+        let multiplier = 1 + Double(max(0, 80 - state.health)) / 25.0
+        return min(0.8, event.chance * multiplier)
+    }
+
+    private func shouldApplyLifeEvent(_ event: LifeEventConfig, day: String) -> Bool {
+        let seed = Self.stableSeed(day + event.id + "life")
+        let value = Double(seed % 10_000) / 10_000.0
+        return value < effectiveEventChance(event)
+    }
+
+    private func lifeEventMoney(_ event: LifeEventConfig, day: String) -> Int {
+        let lower = min(event.minMoneyDelta, event.maxMoneyDelta)
+        let upper = max(event.minMoneyDelta, event.maxMoneyDelta)
+        guard lower != upper else {
+            return lower
+        }
+
+        let range = UInt32(upper - lower + 1)
+        let offset = Int(Self.stableSeed(day + event.id + "money") % range)
+        return lower + offset
+    }
+
+    private func applyLifeEvent(_ event: LifeEventConfig, day: String, index: Int) {
+        let moneyDelta = lifeEventMoney(event, day: day)
+        let moodDelta = event.moodDelta
+        let healthDelta = event.healthDelta
+        let weightDelta = event.weightDelta ?? 0
+        let hairDelta = event.hairDelta ?? 0
+
+        state.money += moneyDelta
+        state.mood = clamp(state.mood + moodDelta)
+        state.health = clamp(state.health + healthDelta)
+        state.weight = clamp(state.weight + weightDelta)
+        state.hair = clamp(state.hair + hairDelta)
+
+        if moneyDelta != 0 {
+            recordLedgerEntry(
+                date: day,
+                type: moneyDelta > 0 ? "income" : "eventExpense",
+                category: event.category,
+                name: event.name,
+                amount: moneyDelta,
+                source: "lifeEvent",
+                refId: event.id,
+                index: index
+            )
+        }
+
+        recordEventEntry(
+            date: day,
+            category: event.category,
+            name: event.name,
+            message: event.message,
+            moneyDelta: moneyDelta,
+            moodDelta: moodDelta,
+            healthDelta: healthDelta,
+            source: "lifeEvent",
+            refId: event.id,
+            index: index
+        )
+
+        eventMessages.append(EventBubbleMessage(
+            label: event.category,
+            text: "\(event.message)\n金钱 \(signed(moneyDelta)) 心情 \(signed(moodDelta)) 健康 \(signed(healthDelta))"
+        ))
+    }
+
     private func signed(_ value: Int) -> String {
         value > 0 ? "+\(value)" : "\(value)"
+    }
+
+    private static func dayString(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar.current
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+
+    private static func date(from day: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar.current
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: day)
+    }
+
+    private static func stableSeed(_ text: String) -> UInt32 {
+        text.unicodeScalars.reduce(UInt32(2166136261)) { seed, scalar in
+            (seed ^ UInt32(scalar.value)) &* UInt32(16777619)
+        }
+    }
+
+    private static func shouldApplyRandomExpense(_ expense: EconomyRandomExpense, day: String) -> Bool {
+        let seed = stableSeed(day + expense.id + "chance")
+        let value = Double(seed % 10_000) / 10_000.0
+        return value < expense.chance
+    }
+
+    private static func randomAmount(_ expense: EconomyRandomExpense, day: String) -> Int {
+        let lower = min(expense.minAmount, expense.maxAmount)
+        let upper = max(expense.minAmount, expense.maxAmount)
+        let range = UInt32(upper - lower + 1)
+        let offset = Int(stableSeed(day + expense.id + "amount") % range)
+        return lower + offset
     }
 }
 
@@ -203,16 +688,18 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
     let root: URL
     let skills: [SkillConfig]
     let actions: [PetActionConfig]
+    let lifeEvents: [LifeEventConfig]
     let stateStore: PetStateStore
     let settingsStore: PetSettingsStore
     private var activeAction: PetActionConfig?
 
-    init(window: NSWindow?, webView: WKWebView?, root: URL, skills: [SkillConfig], actions: [PetActionConfig], stateStore: PetStateStore, settingsStore: PetSettingsStore) {
+    init(window: NSWindow?, webView: WKWebView?, root: URL, skills: [SkillConfig], actions: [PetActionConfig], lifeEvents: [LifeEventConfig], stateStore: PetStateStore, settingsStore: PetSettingsStore) {
         self.window = window
         self.webView = webView
         self.root = root
         self.skills = skills
         self.actions = actions
+        self.lifeEvents = lifeEvents
         self.stateStore = stateStore
         self.settingsStore = settingsStore
     }
@@ -251,6 +738,12 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
             toggleAlwaysOnTop()
         case "toggleStats":
             toggleStats()
+        case "showLedger":
+            sendLedger()
+        case "showEvents":
+            sendEvents()
+        case "showLedgerStats":
+            sendSpeech(stateStore.monthlyStatsSummary(), label: "月度统计")
         case "quit":
             quit()
         default:
@@ -286,8 +779,13 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
         let error = Pipe()
         let outputLimit = skill.outputLimit ?? 500
 
-        process.executableURL = resolvedURL(for: skill.command)
-        process.arguments = skill.args.map(resolveArgument)
+        if skill.command.hasPrefix("/") {
+            process.executableURL = resolvedURL(for: skill.command)
+            process.arguments = skill.args.map(resolveArgument)
+        } else {
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+            process.arguments = [skill.command] + skill.args.map(resolveArgument)
+        }
         process.currentDirectoryURL = root
         process.standardOutput = output
         process.standardError = error
@@ -478,11 +976,41 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
         webView?.evaluateJavaScript("window.petSettingsUpdated(\(json));")
     }
 
+    func sendLedger() {
+        let entries = stateStore.recentLedgerEntries()
+        guard let payload = try? JSONEncoder().encode(["entries": entries]),
+              let json = String(data: payload, encoding: .utf8) else {
+            return
+        }
+
+        webView?.evaluateJavaScript("window.petLedgerResult(\(json));")
+    }
+
+    func sendEvents() {
+        let entries = stateStore.recentEventEntries()
+        guard let payload = try? JSONEncoder().encode(["entries": entries]),
+              let json = String(data: payload, encoding: .utf8) else {
+            return
+        }
+
+        webView?.evaluateJavaScript("window.petEventLogResult(\(json));")
+    }
+
+    func sendEventMessages(_ messages: [EventBubbleMessage]) {
+        guard !messages.isEmpty,
+              let payload = try? JSONEncoder().encode(messages),
+              let json = String(data: payload, encoding: .utf8) else {
+            return
+        }
+
+        webView?.evaluateJavaScript("window.petQueueEventMessages(\(json));")
+    }
+
     private func sendSpeech(_ text: String, label: String) {
         sendSkillResult(text, label: label)
     }
 
-    private func sendSkillResult(_ text: String, label: String) {
+    func sendSkillResult(_ text: String, label: String) {
         guard let payload = try? JSONSerialization.data(withJSONObject: ["text": text, "label": label]),
               let json = String(data: payload, encoding: .utf8) else {
             return
@@ -498,15 +1026,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var webView: PetWebView!
     private var skills: [SkillConfig] = []
     private var actions: [PetActionConfig] = []
+    private var economy: EconomyConfig!
+    private var lifeEvents: [LifeEventConfig] = []
+    private var dailySettlementMessage: String?
     private var stateStore: PetStateStore!
     private var settingsStore: PetSettingsStore!
+    private var eventPollTimer: Timer?
+    private var knownEventIds = Set<String>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let htmlURL = root.appendingPathComponent("desktop/desktop-pet.html")
         skills = loadSkills(root: root)
         actions = loadActions(root: root)
+        economy = loadEconomy(root: root)
+        lifeEvents = loadLifeEvents(root: root)
         stateStore = PetStateStore(root: root)
+        dailySettlementMessage = stateStore.settleDailyBudget(config: economy, lifeEvents: lifeEvents)
+        knownEventIds = stateStore.eventIds()
         settingsStore = PetSettingsStore(root: root)
 
         let contentController = WKUserContentController()
@@ -535,10 +1072,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.delegate = self
         window.makeKeyAndOrderFront(nil)
 
-        messageHandler = PetMessageHandler(window: window, webView: webView, root: root, skills: skills, actions: actions, stateStore: stateStore, settingsStore: settingsStore)
+        messageHandler = PetMessageHandler(window: window, webView: webView, root: root, skills: skills, actions: actions, lifeEvents: lifeEvents, stateStore: stateStore, settingsStore: settingsStore)
         contentController.add(messageHandler, name: "pet")
 
         NSApp.activate(ignoringOtherApps: true)
+        startEventLogPolling()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -546,6 +1084,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        eventPollTimer?.invalidate()
         settingsStore.save(windowFrame: window.frame)
     }
 
@@ -570,6 +1109,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             print("Failed to load actions.json: \(error)")
             return []
+        }
+    }
+
+    private func loadEconomy(root: URL) -> EconomyConfig {
+        let economyURL = root.appendingPathComponent("actions/economy.json")
+
+        do {
+            let data = try Data(contentsOf: economyURL)
+            return try JSONDecoder().decode(EconomyConfig.self, from: data)
+        } catch {
+            print("Failed to load economy.json: \(error)")
+            return EconomyConfig(dailyIncome: 500, fixedExpenses: [], randomExpenses: [])
+        }
+    }
+
+    private func loadLifeEvents(root: URL) -> [LifeEventConfig] {
+        let eventsURL = root.appendingPathComponent("actions/life-events.json")
+
+        do {
+            let data = try Data(contentsOf: eventsURL)
+            return try JSONDecoder().decode([LifeEventConfig].self, from: data)
+        } catch {
+            print("Failed to load life-events.json: \(error)")
+            return []
+        }
+    }
+
+    private func startEventLogPolling() {
+        eventPollTimer?.invalidate()
+        eventPollTimer = Timer.scheduledTimer(withTimeInterval: 1.2, repeats: true) { [weak self] _ in
+            guard let self else {
+                return
+            }
+
+            let messages = self.stateStore.newEventMessages(knownIds: &self.knownEventIds)
+            self.messageHandler?.sendEventMessages(messages)
         }
     }
 }
@@ -648,6 +1223,10 @@ extension AppDelegate: WKNavigationDelegate {
         }
 
         webView.evaluateJavaScript("window.petLoadActions(\(json));")
+        if let dailySettlementMessage {
+            messageHandler.sendSkillResult(dailySettlementMessage, label: "今日收支")
+        }
+        messageHandler.sendEventMessages(stateStore.eventMessages)
     }
 }
 

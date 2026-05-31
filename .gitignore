@@ -1,5 +1,7 @@
 # Build outputs
 build/
+dist/
+out/
 
 # macOS
 .DS_Store
@@ -9,6 +11,7 @@ build/
 .vscode/
 *.swp
 *.swo
+node_modules/
 
 # Logs and temporary files
 *.log

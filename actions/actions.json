@@ -5,10 +5,11 @@
     "icon": "💼",
     "category": "work",
     "durationSeconds": 5,
-    "moodDelta": -4,
+    "moodDelta": -3,
     "weightDelta": 0,
     "hairDelta": -1,
-    "moneyDelta": 50,
+    "healthDelta": -1,
+    "moneyDelta": 35,
     "startMessage": "开工啦\n今天也要赚金币",
     "finishMessage": "工作完成"
   },
@@ -21,7 +22,8 @@
     "moodDelta": -8,
     "weightDelta": 0,
     "hairDelta": -2,
-    "moneyDelta": 20,
+    "healthDelta": -2,
+    "moneyDelta": 0,
     "startMessage": "会议开始\n我会努力保持清醒",
     "finishMessage": "会议结束"
   },
@@ -34,7 +36,8 @@
     "moodDelta": 6,
     "weightDelta": 2,
     "hairDelta": 0,
-    "moneyDelta": -15,
+    "healthDelta": 1,
+    "moneyDelta": -35,
     "startMessage": "开饭啦\n补充一点能量",
     "finishMessage": "吃饱了"
   },
@@ -47,7 +50,8 @@
     "moodDelta": 4,
     "weightDelta": 1,
     "hairDelta": 0,
-    "moneyDelta": -8,
+    "healthDelta": -1,
+    "moneyDelta": -16,
     "startMessage": "喝点甜的\n心情会好一点",
     "finishMessage": "饮料喝完了"
   },
@@ -60,6 +64,7 @@
     "moodDelta": 5,
     "weightDelta": -2,
     "hairDelta": 0,
+    "healthDelta": 8,
     "moneyDelta": 0,
     "startMessage": "开始锻炼\n动起来",
     "finishMessage": "锻炼完成"
@@ -73,7 +78,8 @@
     "moodDelta": 7,
     "weightDelta": -2,
     "hairDelta": 0,
-    "moneyDelta": -12,
+    "healthDelta": 9,
+    "moneyDelta": -35,
     "startMessage": "去打羽毛球\n今天也要扣杀",
     "finishMessage": "羽毛球打完了"
   },
@@ -86,7 +92,8 @@
     "moodDelta": 6,
     "weightDelta": -3,
     "hairDelta": 0,
-    "moneyDelta": -5,
+    "healthDelta": 7,
+    "moneyDelta": -8,
     "startMessage": "骑车出发\n吹吹风",
     "finishMessage": "骑行结束"
   },
@@ -99,7 +106,8 @@
     "moodDelta": 8,
     "weightDelta": 0,
     "hairDelta": -1,
-    "moneyDelta": -10,
+    "healthDelta": 2,
+    "moneyDelta": -50,
     "startMessage": "掼蛋开局\n这把要稳",
     "finishMessage": "牌局结束"
   },
@@ -112,7 +120,8 @@
     "moodDelta": 6,
     "weightDelta": 2,
     "hairDelta": -1,
-    "moneyDelta": -25,
+    "healthDelta": -3,
+    "moneyDelta": -120,
     "startMessage": "小酌一下\n放松但别上头",
     "finishMessage": "喝完了"
   },
@@ -125,7 +134,8 @@
     "moodDelta": 12,
     "weightDelta": 5,
     "hairDelta": 0,
-    "moneyDelta": -68,
+    "healthDelta": -2,
+    "moneyDelta": -198,
     "startMessage": "冲向自助餐\n先拿贵的",
     "finishMessage": "自助餐结束"
   }

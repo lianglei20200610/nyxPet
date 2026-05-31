@@ -37,6 +37,7 @@
         position: absolute;
         inset: 0;
         cursor: grab;
+        -webkit-app-region: drag;
       }
 
       .shadow {
@@ -62,6 +63,7 @@
         aspect-ratio: 192 / 208;
         transform-origin: 50% 88%;
         cursor: pointer;
+        -webkit-app-region: drag;
       }
 
       .sprite-pet {
@@ -95,6 +97,7 @@
         left: 42%;
         bottom: 39%;
         width: min(44%, 260px);
+        max-height: 300px;
         min-height: 86px;
         padding: 13px 15px;
         border: 4px solid var(--ink);
@@ -112,6 +115,11 @@
       .bubble.show {
         opacity: 1;
         transform: translateY(0) scale(1);
+      }
+
+      .bubble.scrollable {
+        overflow-y: auto;
+        pointer-events: auto;
       }
 
       .bubble::before {
@@ -144,10 +152,124 @@
         overflow-wrap: anywhere;
       }
 
+      .ledger-list {
+        display: grid;
+        gap: 7px;
+        font-size: 13px;
+        line-height: 1.32;
+        white-space: normal;
+      }
+
+      .ledger-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: baseline;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(56, 43, 24, 0.12);
+      }
+
+      .ledger-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .ledger-meta {
+        color: #6f5b49;
+      }
+
+      .money-income {
+        color: #138a4b;
+      }
+
+      .money-expense {
+        color: #c43d37;
+      }
+
+      .event-list {
+        display: grid;
+        gap: 8px;
+        font-size: 13px;
+        line-height: 1.3;
+        white-space: normal;
+      }
+
+      .event-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        padding-bottom: 7px;
+        border-bottom: 1px solid rgba(56, 43, 24, 0.12);
+      }
+
+      .event-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .event-main {
+        min-width: 0;
+      }
+
+      .event-date {
+        display: block;
+        color: #7c6754;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .event-name {
+        display: block;
+        margin-top: 2px;
+        color: #33261b;
+        font-size: 14px;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+      }
+
+      .event-effects {
+        display: grid;
+        grid-template-columns: repeat(3, auto);
+        gap: 5px;
+        justify-content: end;
+        align-items: center;
+      }
+
+      .event-pill {
+        min-width: 34px;
+        padding: 3px 5px;
+        border-radius: 999px;
+        background: rgba(56, 43, 24, 0.08);
+        text-align: center;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .event-pill.neutral {
+        color: #766553;
+      }
+
+      .summary-list {
+        display: grid;
+        gap: 8px;
+        font-size: 13px;
+        line-height: 1.32;
+        white-space: normal;
+      }
+
+      .summary-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(56, 43, 24, 0.12);
+      }
+
       .stats {
         position: absolute;
         left: 6%;
-        bottom: 56%;
+        bottom: 50%;
         display: grid;
         grid-template-columns: repeat(2, auto);
         gap: 6px 10px;
@@ -247,6 +369,14 @@
         font-size: 22px;
         line-height: 1;
         cursor: pointer;
+        -webkit-app-region: no-drag;
+      }
+
+      .bubble,
+      .stats,
+      .activity,
+      .menu {
+        -webkit-app-region: no-drag;
       }
 
       button:active {
@@ -304,6 +434,7 @@
         <span>心情</span><strong id="mood">--</strong>
         <span>体重</span><strong id="weight">--</strong>
         <span>发量</span><strong id="hair">--</strong>
+        <span>健康</span><strong id="health">--</strong>
         <span>金钱</span><strong id="money">--</strong>
       </section>
       <section class="activity" id="activity" aria-label="当前行动">
@@ -324,6 +455,7 @@
         mood: document.getElementById("mood"),
         weight: document.getElementById("weight"),
         hair: document.getElementById("hair"),
+        health: document.getElementById("health"),
         money: document.getElementById("money")
       };
       const activity = document.getElementById("activity");
@@ -338,6 +470,8 @@
       let activePetClass = "";
       let spriteTimer;
       let spriteFrame = 0;
+      let messageQueue = [];
+      let queuePlaying = false;
 
       const spriteStates = {
         idle: { row: 0, frames: 6, intervalMs: 460 },
@@ -361,12 +495,151 @@
       };
       let petSettings = { alwaysOnTop: true };
 
-      function say(text, label = "宠物") {
+      function resetBubbleContent() {
+        bubble.classList.remove("scrollable");
+        bubbleText.className = "bubble-text";
+        bubbleText.replaceChildren();
+      }
+
+      function say(text, label = "宠物", durationMs = 5200) {
         window.clearTimeout(hideTimer);
+        resetBubbleContent();
         bubbleLabel.textContent = label;
         bubbleText.textContent = text;
         bubble.classList.add("show");
-        hideTimer = window.setTimeout(() => bubble.classList.remove("show"), 5200);
+        hideTimer = window.setTimeout(() => bubble.classList.remove("show"), durationMs);
+      }
+
+      function enqueueBubble(text, label = "宠物", durationMs = 3600, priority = "normal") {
+        const item = { text, label, durationMs };
+        if (priority === "urgent") {
+          messageQueue.unshift(item);
+        } else {
+          messageQueue.push(item);
+        }
+        playBubbleQueue();
+      }
+
+      function playBubbleQueue() {
+        if (queuePlaying || messageQueue.length === 0) {
+          return;
+        }
+        queuePlaying = true;
+        const item = messageQueue.shift();
+        say(item.text, item.label, item.durationMs);
+        window.setTimeout(() => {
+          queuePlaying = false;
+          playBubbleQueue();
+        }, item.durationMs + 300);
+      }
+
+      function moneyClass(amount) {
+        const value = Number(amount) || 0;
+        if (value > 0) return "money-income";
+        if (value < 0) return "money-expense";
+        return "neutral";
+      }
+
+      function signed(amount) {
+        const value = Number(amount) || 0;
+        return value > 0 ? `+${value}` : `${value}`;
+      }
+
+      function showLedger(entries) {
+        window.clearTimeout(hideTimer);
+        resetBubbleContent();
+        bubble.classList.add("scrollable");
+        bubbleLabel.textContent = "账本";
+        const list = document.createElement("span");
+        list.className = "ledger-list";
+        if (!entries || entries.length === 0) {
+          list.textContent = "账本还是空的\n等发生收入或支出后会记录在这里";
+        } else {
+          for (const entry of entries) {
+            const row = document.createElement("span");
+            row.className = "ledger-row";
+            const meta = document.createElement("span");
+            meta.className = "ledger-meta";
+            meta.textContent = `${entry.date} ${entry.name}`;
+            const amount = document.createElement("strong");
+            amount.className = moneyClass(entry.amount);
+            amount.textContent = `${signed(entry.amount)} / ${entry.balanceAfter}`;
+            row.append(meta, amount);
+            list.appendChild(row);
+          }
+        }
+        bubbleText.appendChild(list);
+        bubble.classList.add("show");
+        hideTimer = window.setTimeout(() => bubble.classList.remove("show"), 52000);
+      }
+
+      function showEvents(entries) {
+        window.clearTimeout(hideTimer);
+        resetBubbleContent();
+        bubble.classList.add("scrollable");
+        bubbleLabel.textContent = "事件";
+        const list = document.createElement("span");
+        list.className = "event-list";
+        if (!entries || entries.length === 0) {
+          list.textContent = "暂无事件记录\n有生活事件发生后会记录在这里";
+        } else {
+          for (const entry of entries) {
+            const row = document.createElement("span");
+            row.className = "event-row";
+            const main = document.createElement("span");
+            main.className = "event-main";
+            const date = document.createElement("span");
+            date.className = "event-date";
+            date.textContent = entry.date;
+            const name = document.createElement("span");
+            name.className = "event-name";
+            name.textContent = entry.name;
+            main.append(date, name);
+
+            const effects = document.createElement("span");
+            effects.className = "event-effects";
+            for (const [label, value] of [["钱", entry.moneyDelta || 0], ["心", entry.moodDelta || 0], ["康", entry.healthDelta || 0]]) {
+              const pill = document.createElement("span");
+              pill.className = `event-pill ${moneyClass(value)}`;
+              pill.textContent = `${label}${signed(value)}`;
+              effects.appendChild(pill);
+            }
+            row.append(main, effects);
+            list.appendChild(row);
+          }
+        }
+        bubbleText.appendChild(list);
+        bubble.classList.add("show");
+        hideTimer = window.setTimeout(() => bubble.classList.remove("show"), 52000);
+      }
+
+      function showLedgerStats(stats) {
+        window.clearTimeout(hideTimer);
+        resetBubbleContent();
+        bubble.classList.add("scrollable");
+        bubbleLabel.textContent = `${stats.month || "本月"}统计`;
+        const list = document.createElement("span");
+        list.className = "summary-list";
+        const rows = [
+          ["收入", stats.income || 0],
+          ["支出", stats.expense || 0],
+          ["结余", stats.net || 0],
+          ...Object.entries(stats.categories || {})
+        ];
+        for (const [label, value] of rows) {
+          const row = document.createElement("span");
+          row.className = "summary-row";
+          const name = document.createElement("span");
+          name.textContent = label;
+          const amount = document.createElement("strong");
+          amount.className = moneyClass(value);
+          amount.textContent = signed(value);
+          row.append(name, amount);
+          list.appendChild(row);
+        }
+        bubbleText.appendChild(list);
+        bubble.classList.add("show");
+        hideTimer = window.setTimeout(() => bubble.classList.remove("show"), 52000);
       }
 
       function setSpriteFrame(row, col) {
@@ -426,7 +699,34 @@
         statEls.mood.textContent = state.mood;
         statEls.weight.textContent = state.weight;
         statEls.hair.textContent = state.hair;
+        statEls.health.textContent = state.health ?? "--";
         statEls.money.textContent = state.money;
+        if (state.debt?.level && state.debt.level !== "none") {
+          statEls.money.title = state.debt.label;
+          statEls.money.className = "money-expense";
+        } else {
+          statEls.money.title = "";
+          statEls.money.className = "";
+        }
+      };
+
+      window.petLedgerResult = (payload) => {
+        showLedger(payload.entries || []);
+      };
+
+      window.petEventLogResult = (payload) => {
+        showEvents(payload.entries || []);
+      };
+
+      window.petLedgerStatsResult = (payload) => {
+        showLedgerStats(payload.stats || {});
+      };
+
+      window.petQueueEventMessages = (messages) => {
+        const items = Array.isArray(messages) ? messages.slice(0, 5) : [];
+        items.forEach((message, index) => {
+          enqueueBubble(message.text, message.label || "生活事件", message.severity === "urgent" ? 7600 : 4200, message.severity);
+        });
       };
 
       window.petSettingsUpdated = (settings) => {
@@ -530,6 +830,21 @@
             dataset: { action: "toggleStats" }
           }));
           menu.appendChild(createMenuButton({
+            icon: "账",
+            title: "查看账本",
+            dataset: { action: "showLedger" }
+          }));
+          menu.appendChild(createMenuButton({
+            icon: "事",
+            title: "查看事件",
+            dataset: { action: "showEvents" }
+          }));
+          menu.appendChild(createMenuButton({
+            icon: "统",
+            title: "月度统计",
+            dataset: { action: "showLedgerStats" }
+          }));
+          menu.appendChild(createMenuButton({
             icon: "⏻",
             title: "退出",
             dataset: { action: "quit" }
@@ -621,6 +936,24 @@
         if (button.dataset.action === "toggleStats") {
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: "toggleStats"
+          });
+          return;
+        }
+        if (button.dataset.action === "showLedger") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "showLedger"
+          });
+          return;
+        }
+        if (button.dataset.action === "showEvents") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "showEvents"
+          });
+          return;
+        }
+        if (button.dataset.action === "showLedgerStats") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: button.dataset.action
           });
           return;
         }

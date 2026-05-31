@@ -1,0 +1,117 @@
+{
+  "dailyIncome": 500,
+  "fixedExpenses": [
+    {
+      "id": "mortgage",
+      "name": "房贷",
+      "category": "住房",
+      "amount": -230
+    },
+    {
+      "id": "childEducation",
+      "name": "孩子教育",
+      "category": "教育",
+      "amount": -90
+    },
+    {
+      "id": "familyFood",
+      "name": "家庭餐食",
+      "category": "餐饮",
+      "amount": -95
+    },
+    {
+      "id": "commute",
+      "name": "通勤",
+      "category": "交通",
+      "amount": -25
+    },
+    {
+      "id": "utilities",
+      "name": "水电通讯",
+      "category": "生活缴费",
+      "amount": -20
+    }
+  ],
+  "randomExpenses": [
+    {
+      "id": "dailyGroceries",
+      "name": "临时买菜",
+      "category": "餐饮",
+      "minAmount": -45,
+      "maxAmount": -18,
+      "chance": 0.35
+    },
+    {
+      "id": "childSchoolSupplies",
+      "name": "孩子文具教辅",
+      "category": "教育",
+      "minAmount": -120,
+      "maxAmount": -35,
+      "chance": 0.12
+    },
+    {
+      "id": "medicine",
+      "name": "感冒药/常用药",
+      "category": "医疗",
+      "minAmount": -90,
+      "maxAmount": -25,
+      "chance": 0.08
+    },
+    {
+      "id": "phoneAccessory",
+      "name": "手机/电脑小配件",
+      "category": "数码",
+      "minAmount": -160,
+      "maxAmount": -35,
+      "chance": 0.06
+    },
+    {
+      "id": "homeRepair",
+      "name": "家电维修/家用品更换",
+      "category": "家庭维护",
+      "minAmount": -420,
+      "maxAmount": -80,
+      "chance": 0.04
+    },
+    {
+      "id": "socialGift",
+      "name": "人情礼金",
+      "category": "人情",
+      "minAmount": -500,
+      "maxAmount": -200,
+      "chance": 0.025
+    },
+    {
+      "id": "trafficFine",
+      "name": "停车/交通罚款",
+      "category": "交通",
+      "minAmount": -200,
+      "maxAmount": -50,
+      "chance": 0.025
+    },
+    {
+      "id": "familySupport",
+      "name": "家庭支援",
+      "category": "家庭",
+      "minAmount": -300,
+      "maxAmount": -80,
+      "chance": 0.06
+    },
+    {
+      "id": "clothes",
+      "name": "换季衣物",
+      "category": "服饰",
+      "minAmount": -350,
+      "maxAmount": -120,
+      "chance": 0.035
+    },
+    {
+      "id": "takeoutTreat",
+      "name": "临时外卖加餐",
+      "category": "餐饮",
+      "minAmount": -65,
+      "maxAmount": -28,
+      "chance": 0.18
+    }
+  ]
+}
