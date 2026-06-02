@@ -110,12 +110,20 @@ struct LifeEventLogEntry: Codable {
     let moodDelta: Int
     let healthDelta: Int
     let source: String
+    let eventId: String?
     let reason: String?
 }
 
 struct EventBubbleMessage: Codable {
     let label: String
     let text: String
+    let severity: String
+
+    init(label: String, text: String, severity: String = "normal") {
+        self.label = label
+        self.text = text
+        self.severity = severity
+    }
 }
 
 struct PetState: Codable {
@@ -252,8 +260,8 @@ final class PetStateStore {
         eventLog = Self.loadEventLog(from: eventURL)
     }
 
-    func settleDailyBudget(config: EconomyConfig, lifeEvents: [LifeEventConfig]) -> String? {
-        let today = Self.dayString(Date())
+    func settleDailyBudget(config: EconomyConfig, lifeEvents: [LifeEventConfig], targetDate: Date = Date()) -> String? {
+        let today = Self.dayString(targetDate)
 
         guard let lastSettlementDate = state.lastSettlementDate else {
             state.lastSettlementDate = today
@@ -335,12 +343,22 @@ final class PetStateStore {
                 guard eventCount < 3 else {
                     break
                 }
+                if eventAlreadyApplied(day: day, eventId: event.id) {
+                    continue
+                }
+                if eventCategoryAlreadyApplied(day: day, category: event.category) {
+                    continue
+                }
                 if shouldApplyLifeEvent(event, day: day) {
                     let beforeMoney = state.money
                     applyLifeEvent(event, day: day, index: index, source: "lifeEvent", reason: eventTriggerReason(event), lifeEvents: lifeEvents)
                     dayTotal += state.money - beforeMoney
                     eventCount += 1
                 }
+            }
+
+            if eventCount == 0 {
+                dayTotal += applyLightDailyEvent(day: day, index: 9_000 + days, lifeEvents: lifeEvents)
             }
 
             total += dayTotal
@@ -424,9 +442,65 @@ final class PetStateStore {
         return "\(month) 统计\n收入 \(signed(income))\n支出 \(signed(expense))\n结余 \(signed(net))"
     }
 
+    func eventDebugSummary(lifeEvents: [LifeEventConfig]) -> String {
+        let triggerLines = lifeEvents
+            .filter { $0.triggers != nil }
+            .prefix(8)
+            .map { event -> String in
+                let trigger = eventTriggerMatch(event)
+                let chance = String(format: "%.1f%%", effectiveEventChance(event) * 100)
+                return "\(trigger.matched ? "↑" : "·") \(event.name) \(chance)\(trigger.reason.isEmpty ? "" : " \(trigger.reason)")"
+            }
+        let pendingLines = state.pendingEvents.prefix(6).map {
+            "\($0.dueDate) \($0.eventId) \($0.reason)"
+        }
+        var lines = [
+            "事件调试",
+            "金钱 \(signed(state.money)) 心情 \(state.mood) 健康 \(state.health)",
+            "负债 \(debtLevel())",
+            "待触发 \(state.pendingEvents.count) 个"
+        ]
+        lines.append(contentsOf: pendingLines.isEmpty ? ["暂无待触发后续事件"] : pendingLines)
+        lines.append("状态驱动概率")
+        lines.append(contentsOf: triggerLines.isEmpty ? ["暂无状态驱动事件"] : Array(triggerLines))
+        return lines.joined(separator: "\n")
+    }
+
+    func debugAdvanceDay(config: EconomyConfig, lifeEvents: [LifeEventConfig]) -> String {
+        let baseDate = state.lastSettlementDate.flatMap { Self.date(from: $0) } ?? Date()
+        let targetDate = Calendar.current.date(byAdding: .day, value: 1, to: baseDate) ?? Date()
+        let summary = settleDailyBudget(config: config, lifeEvents: lifeEvents, targetDate: targetDate) ?? "今天没有新的结算"
+        save()
+        return summary
+    }
+
+    func debugSetStatePreset(_ preset: String) -> String {
+        switch preset {
+        case "lowMood":
+            state.mood = 22
+            state.health = 58
+        case "lowHealth":
+            state.health = 38
+        case "debt":
+            state.money = -26_000
+            state.mood = 34
+        default:
+            return "未知调试预设"
+        }
+        state.currentActivity = "待机"
+        save()
+        return "已设置调试状态\n金钱 \(signed(state.money)) 心情 \(state.mood) 健康 \(state.health)"
+    }
+
     func eventIds() -> Set<String> {
         eventLog = Self.loadEventLog(from: eventURL)
         return Set(eventLog.map { $0.id })
+    }
+
+    func drainEventMessages() -> [EventBubbleMessage] {
+        let messages = eventMessages
+        eventMessages = []
+        return paceEventMessages(messages)
     }
 
     func newEventMessages(knownIds: inout Set<String>) -> [EventBubbleMessage] {
@@ -436,13 +510,13 @@ final class PetStateStore {
             knownIds.insert(entry.id)
         }
 
-        return newEntries.suffix(5).map { entry in
-            let reasonLine = entry.reason.map { "\n\($0)" } ?? ""
+        return paceEventMessages(newEntries.map { entry in
             return EventBubbleMessage(
                 label: entry.category,
-                text: "\(entry.message)\(reasonLine)\n金钱 \(signed(entry.moneyDelta)) 心情 \(signed(entry.moodDelta)) 健康 \(signed(entry.healthDelta))"
+                text: "\(entry.message)\n金钱 \(signed(entry.moneyDelta)) 心情 \(signed(entry.moodDelta)) 健康 \(signed(entry.healthDelta))",
+                severity: eventSeverity(moneyDelta: entry.moneyDelta, moodDelta: entry.moodDelta, healthDelta: entry.healthDelta)
             )
-        }
+        })
     }
 
     func save() {
@@ -537,9 +611,22 @@ final class PetStateStore {
             moodDelta: moodDelta,
             healthDelta: healthDelta,
             source: source,
+            eventId: refId,
             reason: reason.isEmpty ? nil : reason
         ))
         saveEventLog()
+    }
+
+    private func eventAlreadyApplied(day: String, eventId: String) -> Bool {
+        eventLog.contains {
+            $0.date == day && (($0.eventId ?? "") == eventId || $0.id.contains(":\(eventId):"))
+        }
+    }
+
+    private func eventCategoryAlreadyApplied(day: String, category: String) -> Bool {
+        eventLog.contains {
+            $0.date == day && $0.category == category
+        }
     }
 
     private func saveEventLog() {
@@ -557,6 +644,62 @@ final class PetStateStore {
 
     private func clamp(_ value: Int) -> Int {
         min(100, max(0, value))
+    }
+
+    private func eventSeverity(moneyDelta: Int, moodDelta: Int, healthDelta: Int) -> String {
+        let money = abs(moneyDelta)
+        let mood = abs(moodDelta)
+        let health = abs(healthDelta)
+        if money >= 1_000 || mood >= 8 || health >= 8 {
+            return "urgent"
+        }
+        if money >= 300 || mood >= 5 || health >= 5 {
+            return "important"
+        }
+        return "normal"
+    }
+
+    private func severityRank(_ severity: String) -> Int {
+        switch severity {
+        case "urgent":
+            return 3
+        case "important":
+            return 2
+        default:
+            return 1
+        }
+    }
+
+    private func paceEventMessages(_ messages: [EventBubbleMessage], maxDetails: Int = 3) -> [EventBubbleMessage] {
+        let items = messages.enumerated().sorted {
+            let rankDiff = severityRank($0.element.severity) - severityRank($1.element.severity)
+            return rankDiff == 0 ? $0.offset < $1.offset : rankDiff > 0
+        }
+        guard items.count > maxDetails else {
+            return items.map { $0.element }
+        }
+
+        var details: [(offset: Int, element: EventBubbleMessage)] = []
+        var picked = Set<Int>()
+        for item in items where item.element.severity != "normal" && details.count < maxDetails {
+            details.append(item)
+            picked.insert(item.offset)
+        }
+        for item in items where details.count < maxDetails && !picked.contains(item.offset) {
+            details.append(item)
+            picked.insert(item.offset)
+        }
+
+        let rest = items.filter { !picked.contains($0.offset) }
+        var result = details.map { $0.element }
+        if !rest.isEmpty {
+            let names = rest.prefix(4).compactMap {
+                $0.element.text.split(separator: "\n").first.map(String.init)
+            }.joined(separator: "、")
+            let text = "还有 \(rest.count) 件生活小事已记入事件记录" + (names.isEmpty ? "" : "\n\(names)")
+            result.append(EventBubbleMessage(label: "今日小事", text: text, severity: "normal"))
+        }
+        return result
     }
 
     private func debtMoodPenalty() -> Int {
@@ -658,10 +801,82 @@ final class PetStateStore {
         return min(0.8, chance)
     }
 
+    private func daysBetween(from fromDay: String, to toDay: String) -> Int? {
+        guard let fromDate = Self.date(from: fromDay),
+              let toDate = Self.date(from: toDay) else {
+            return nil
+        }
+        return Calendar.current.dateComponents([.day], from: fromDate, to: toDate).day
+    }
+
+    private func eventDiversityMultiplier(_ event: LifeEventConfig, day: String) -> Double {
+        var multiplier = 1.0
+        let recentSameEvent = eventLog.contains { entry in
+            guard let distance = daysBetween(from: entry.date, to: day) else {
+                return false
+            }
+            return distance > 0 && distance <= 14 && ((entry.eventId ?? "") == event.id || entry.id.contains(":\(event.id):"))
+        }
+        if recentSameEvent {
+            multiplier *= 0.18
+        }
+
+        let recentSameCategoryCount = eventLog.filter { entry in
+            guard let distance = daysBetween(from: entry.date, to: day) else {
+                return false
+            }
+            return distance > 0 && distance <= 3 && entry.category == event.category
+        }.count
+        if recentSameCategoryCount > 0 {
+            multiplier *= max(0.35, 1.0 - Double(recentSameCategoryCount) * 0.22)
+        }
+        return multiplier
+    }
+
+    private func eventCalendarMultiplier(_ event: LifeEventConfig, day: String) -> Double {
+        guard let date = Self.date(from: day) else {
+            return 1
+        }
+
+        let weekday = Calendar.current.component(.weekday, from: date)
+        let dayOfMonth = Calendar.current.component(.day, from: date)
+        let category = event.category
+        var multiplier = 1.0
+
+        if weekday == 1 || weekday == 7 {
+            if ["娱乐", "家庭", "人情", "住房", "轻日常"].contains(category) {
+                multiplier *= 1.45
+            }
+            if ["工作", "交通"].contains(category) {
+                multiplier *= 0.55
+            }
+        } else {
+            if ["工作", "交通", "餐饮"].contains(category) {
+                multiplier *= 1.25
+            }
+            if ["娱乐", "家庭"].contains(category) {
+                multiplier *= 0.9
+            }
+        }
+
+        if dayOfMonth <= 5 && ["住房", "生活缴费", "财务", "教育"].contains(category) {
+            multiplier *= 1.35
+        }
+        if dayOfMonth >= 25 {
+            if ["财务", "生活缴费", "人情"].contains(category) {
+                multiplier *= 1.25
+            }
+            if category == "娱乐" {
+                multiplier *= 0.85
+            }
+        }
+        return multiplier
+    }
+
     private func shouldApplyLifeEvent(_ event: LifeEventConfig, day: String) -> Bool {
         let seed = Self.stableSeed(day + event.id + "life")
         let value = Double(seed % 10_000) / 10_000.0
-        return value < effectiveEventChance(event)
+        return value < effectiveEventChance(event) * eventDiversityMultiplier(event, day: day) * eventCalendarMultiplier(event, day: day)
     }
 
     private func lifeEventMoney(_ event: LifeEventConfig, day: String) -> Int {
@@ -723,6 +938,9 @@ final class PetStateStore {
             guard let event = lifeEvents.first(where: { $0.id == pendingEvent.eventId }) else {
                 continue
             }
+            if eventAlreadyApplied(day: day, eventId: event.id) {
+                continue
+            }
 
             let index = Int(Self.stableSeed(pendingEvent.id) % 10_000)
             let beforeMoney = state.money
@@ -733,6 +951,27 @@ final class PetStateStore {
 
         state.pendingEvents.sort { $0.dueDate < $1.dueDate }
         return (applied, totalDelta)
+    }
+
+    private func applyLightDailyEvent(day: String, index: Int, lifeEvents: [LifeEventConfig]) -> Int {
+        let candidates = lifeEvents.filter { $0.category == "轻日常" }
+        guard !candidates.isEmpty,
+              !eventCategoryAlreadyApplied(day: day, category: "轻日常") else {
+            return 0
+        }
+
+        let ordered = candidates.sorted {
+            Self.stableSeed(day + $0.id + "lightDaily") < Self.stableSeed(day + $1.id + "lightDaily")
+        }
+        for event in ordered {
+            if eventAlreadyApplied(day: day, eventId: event.id) {
+                continue
+            }
+            let beforeMoney = state.money
+            applyLifeEvent(event, day: day, index: index, source: "lightDaily", reason: "无事件日补充轻日常", lifeEvents: lifeEvents)
+            return state.money - beforeMoney
+        }
+        return 0
     }
 
     private func applyLifeEvent(_ event: LifeEventConfig, day: String, index: Int, source: String = "lifeEvent", reason: String = "", lifeEvents: [LifeEventConfig] = []) {
@@ -775,10 +1014,10 @@ final class PetStateStore {
             index: index
         )
 
-        let reasonLine = reason.isEmpty ? "" : "\n\(reason)"
         eventMessages.append(EventBubbleMessage(
             label: event.category,
-            text: "\(event.message)\(reasonLine)\n金钱 \(signed(moneyDelta)) 心情 \(signed(moodDelta)) 健康 \(signed(healthDelta))"
+            text: "\(event.message)\n金钱 \(signed(moneyDelta)) 心情 \(signed(moodDelta)) 健康 \(signed(healthDelta))",
+            severity: eventSeverity(moneyDelta: moneyDelta, moodDelta: moodDelta, healthDelta: healthDelta)
         ))
 
         scheduleFollowUps(event, day: day, index: index, lifeEvents: lifeEvents)
@@ -859,17 +1098,19 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
     let root: URL
     let skills: [SkillConfig]
     let actions: [PetActionConfig]
+    let economy: EconomyConfig
     let lifeEvents: [LifeEventConfig]
     let stateStore: PetStateStore
     let settingsStore: PetSettingsStore
     private var activeAction: PetActionConfig?
 
-    init(window: NSWindow?, webView: WKWebView?, root: URL, skills: [SkillConfig], actions: [PetActionConfig], lifeEvents: [LifeEventConfig], stateStore: PetStateStore, settingsStore: PetSettingsStore) {
+    init(window: NSWindow?, webView: WKWebView?, root: URL, skills: [SkillConfig], actions: [PetActionConfig], economy: EconomyConfig, lifeEvents: [LifeEventConfig], stateStore: PetStateStore, settingsStore: PetSettingsStore) {
         self.window = window
         self.webView = webView
         self.root = root
         self.skills = skills
         self.actions = actions
+        self.economy = economy
         self.lifeEvents = lifeEvents
         self.stateStore = stateStore
         self.settingsStore = settingsStore
@@ -915,6 +1156,17 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
             sendEvents()
         case "showLedgerStats":
             sendSpeech(stateStore.monthlyStatsSummary(), label: "月度统计")
+        case "showEventDebug":
+            sendSpeech(stateStore.eventDebugSummary(lifeEvents: lifeEvents), label: "事件调试")
+        case "debugAdvanceDay":
+            let message = stateStore.debugAdvanceDay(config: economy, lifeEvents: lifeEvents)
+            sendSpeech(message, label: "推进一天")
+            sendState()
+            _ = stateStore.drainEventMessages()
+        case "debugSetStatePreset":
+            let preset = body["preset"] as? String ?? ""
+            sendSpeech(stateStore.debugSetStatePreset(preset), label: "调试状态")
+            sendState()
         case "quit":
             quit()
         default:
@@ -1111,12 +1363,49 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
     }
 
     func sendState() {
-        guard let payload = try? JSONEncoder().encode(stateStore.state),
+        let state = stateStore.state
+        let item: [String: Any] = [
+            "mood": state.mood,
+            "weight": state.weight,
+            "hair": state.hair,
+            "health": state.health,
+            "money": state.money,
+            "currentActivity": state.currentActivity,
+            "lastSettlementDate": state.lastSettlementDate ?? "",
+            "pendingEvents": state.pendingEvents.map {
+                [
+                    "id": $0.id,
+                    "eventId": $0.eventId,
+                    "dueDate": $0.dueDate,
+                    "sourceEventId": $0.sourceEventId,
+                    "reason": $0.reason
+                ]
+            },
+            "debt": debtInfo(for: state.money)
+        ]
+
+        guard let payload = try? JSONSerialization.data(withJSONObject: item),
               let json = String(data: payload, encoding: .utf8) else {
             return
         }
 
         webView?.evaluateJavaScript("window.petStateUpdated(\(json));")
+    }
+
+    private func debtInfo(for money: Int) -> [String: Any] {
+        if money > 0 {
+            return ["level": "none", "label": "现金正常", "moodPenalty": 0]
+        }
+        if money == 0 {
+            return ["level": "zero", "label": "现金为 0", "moodPenalty": 0]
+        }
+        if money > -10_000 {
+            return ["level": "light", "label": "轻微透支", "moodPenalty": -2]
+        }
+        if money > -50_000 {
+            return ["level": "pressure", "label": "压力负债", "moodPenalty": -6]
+        }
+        return ["level": "severe", "label": "严重负债", "moodPenalty": -12]
     }
 
     func sendActivityStarted(_ action: PetActionConfig) {
@@ -1245,7 +1534,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.delegate = self
         window.makeKeyAndOrderFront(nil)
 
-        messageHandler = PetMessageHandler(window: window, webView: webView, root: root, skills: skills, actions: actions, lifeEvents: lifeEvents, stateStore: stateStore, settingsStore: settingsStore)
+        messageHandler = PetMessageHandler(window: window, webView: webView, root: root, skills: skills, actions: actions, economy: economy, lifeEvents: lifeEvents, stateStore: stateStore, settingsStore: settingsStore)
         contentController.add(messageHandler, name: "pet")
 
         NSApp.activate(ignoringOtherApps: true)

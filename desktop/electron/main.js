@@ -148,7 +148,7 @@ function bootstrapRenderer() {
     sendSkillResult(dailySettlementMessage, "今日收支");
   }
   if (dailyEventMessages.length > 0) {
-    sendCallback("petQueueEventMessages", dailyEventMessages);
+    sendCallback("petQueueEventMessages", paceEventMessages(dailyEventMessages));
   }
 }
 
@@ -165,7 +165,8 @@ function debtMoodPenalty() {
 
 function debtInfo() {
   const money = Number(state.money || 0);
-  if (money >= 0) return { level: "none", label: "无负债", moodPenalty: 0 };
+  if (money > 0) return { level: "none", label: "现金正常", moodPenalty: 0 };
+  if (money === 0) return { level: "zero", label: "现金为 0", moodPenalty: 0 };
   if (money > -10000) return { level: "light", label: "轻微透支", moodPenalty: -2 };
   if (money > -50000) return { level: "pressure", label: "压力负债", moodPenalty: -6 };
   return { level: "severe", label: "严重负债", moodPenalty: -12 };
@@ -272,6 +273,28 @@ function eventSummary(limit = 24) {
     }));
 }
 
+function eventDebugSummary() {
+  const triggerEvents = (lifeEvents || [])
+    .filter((event) => event.triggers)
+    .map((event) => {
+      const trigger = eventTriggerMatch(event);
+      return `${trigger.matched ? "↑" : "·"} ${event.name} ${(effectiveEventChance(event) * 100).toFixed(1)}%${trigger.reason ? ` ${trigger.reason}` : ""}`;
+    })
+    .slice(0, 8);
+  const pending = Array.isArray(state.pendingEvents) ? state.pendingEvents : [];
+  const pendingLines = pending.slice(0, 6).map((item) => `${item.dueDate} ${item.eventId} ${item.reason || ""}`.trim());
+  const lines = [
+    "事件调试",
+    `金钱 ${signed(Number(state.money || 0))} 心情 ${state.mood} 健康 ${state.health}`,
+    `负债 ${debtInfo().label}`,
+    `待触发 ${pending.length} 个`,
+    ...(pendingLines.length > 0 ? pendingLines : ["暂无待触发后续事件"]),
+    "状态驱动概率",
+    ...(triggerEvents.length > 0 ? triggerEvents : ["暂无状态驱动事件"])
+  ];
+  return lines.join("\n");
+}
+
 function recordEventEntry({ date, category, name, message, moneyDelta, moodDelta, healthDelta, source, refId, reason = "", index = 0 }) {
   const id = ledgerId(date, source, refId || name, index);
   if (eventLog.some((entry) => entry.id === id)) {
@@ -287,19 +310,85 @@ function recordEventEntry({ date, category, name, message, moneyDelta, moodDelta
     moodDelta,
     healthDelta,
     source,
+    eventId: refId || "",
     reason,
     severity: eventSeverity({ moneyDelta, moodDelta, healthDelta })
   });
   writeJson(eventLogPath, eventLog);
 }
 
+function eventAlreadyApplied(day, eventId) {
+  return eventLog.some((entry) => (
+    entry.date === day
+    && (entry.eventId === eventId || String(entry.id || "").includes(`:${eventId}:`))
+  ));
+}
+
+function eventCategoryAlreadyApplied(day, category) {
+  return eventLog.some((entry) => entry.date === day && entry.category === category);
+}
+
+function daysBetween(fromDay, toDay) {
+  const from = parseDay(fromDay);
+  const to = parseDay(toDay);
+  if (!from || !to) {
+    return Infinity;
+  }
+  return Math.round((to - from) / 86400000);
+}
+
 function eventBubbleMessage(entry) {
-  const reasonLine = entry.reason ? `\n${entry.reason}` : "";
   return {
     label: (entry.severity || eventSeverity(entry)) === "urgent" ? `紧急 · ${entry.category || "生活事件"}` : entry.category || "生活事件",
-    text: `${entry.message || entry.name}${reasonLine}\n金钱 ${signed(entry.moneyDelta || 0)} 心情 ${signed(entry.moodDelta || 0)} 健康 ${signed(entry.healthDelta || 0)}`,
+    text: `${entry.message || entry.name}\n金钱 ${signed(entry.moneyDelta || 0)} 心情 ${signed(entry.moodDelta || 0)} 健康 ${signed(entry.healthDelta || 0)}`,
     severity: entry.severity || eventSeverity(entry)
   };
+}
+
+function severityRank(severity) {
+  return { urgent: 3, important: 2, normal: 1 }[severity] || 1;
+}
+
+function paceEventMessages(messages, maxDetails = 3) {
+  const items = (messages || [])
+    .map((message, index) => ({ ...message, severity: message.severity || "normal", index }))
+    .sort((left, right) => severityRank(right.severity) - severityRank(left.severity) || left.index - right.index);
+  if (items.length <= maxDetails) {
+    return items;
+  }
+
+  const details = [];
+  const picked = new Set();
+  for (const item of items) {
+    if (item.severity !== "normal" && details.length < maxDetails) {
+      details.push(item);
+      picked.add(item.index);
+    }
+  }
+  for (const item of items) {
+    if (details.length >= maxDetails) {
+      break;
+    }
+    if (!picked.has(item.index)) {
+      details.push(item);
+      picked.add(item.index);
+    }
+  }
+
+  const rest = items.filter((item) => !picked.has(item.index));
+  if (rest.length > 0) {
+    const names = rest
+      .slice(0, 4)
+      .map((item) => String(item.text || "").split("\n")[0])
+      .filter(Boolean)
+      .join("、");
+    details.push({
+      label: "今日小事",
+      text: `还有 ${rest.length} 件生活小事已记入事件记录${names ? `\n${names}` : ""}`,
+      severity: "normal"
+    });
+  }
+  return details.map(({ index, ...message }) => message);
 }
 
 function broadcastNewEventLogEntries() {
@@ -317,7 +406,7 @@ function broadcastNewEventLogEntries() {
   }
 
   if (newEntries.length > 0) {
-    sendCallback("petQueueEventMessages", newEntries.slice(-5).map(eventBubbleMessage));
+    sendCallback("petQueueEventMessages", paceEventMessages(newEntries.map(eventBubbleMessage)));
   }
 }
 
@@ -411,9 +500,57 @@ function effectiveEventChance(event) {
   return Math.min(0.8, chance);
 }
 
+function eventDiversityMultiplier(event, day) {
+  let multiplier = 1;
+  const recentSameEvent = eventLog.some((entry) => {
+    const distance = daysBetween(entry.date, day);
+    return distance > 0 && distance <= 14 && (entry.eventId === event.id || String(entry.id || "").includes(`:${event.id}:`));
+  });
+  if (recentSameEvent) {
+    multiplier *= 0.18;
+  }
+
+  const recentSameCategoryCount = eventLog.filter((entry) => {
+    const distance = daysBetween(entry.date, day);
+    return distance > 0 && distance <= 3 && entry.category === event.category;
+  }).length;
+  if (recentSameCategoryCount > 0) {
+    multiplier *= Math.max(0.35, 1 - recentSameCategoryCount * 0.22);
+  }
+  return multiplier;
+}
+
+function eventCalendarMultiplier(event, day) {
+  const date = parseDay(day);
+  if (!date) {
+    return 1;
+  }
+  const weekday = date.getDay();
+  const dayOfMonth = date.getDate();
+  const category = event.category || "";
+  let multiplier = 1;
+
+  if (weekday === 0 || weekday === 6) {
+    if (["娱乐", "家庭", "人情", "住房", "轻日常"].includes(category)) multiplier *= 1.45;
+    if (["工作", "交通"].includes(category)) multiplier *= 0.55;
+  } else {
+    if (["工作", "交通", "餐饮"].includes(category)) multiplier *= 1.25;
+    if (["娱乐", "家庭"].includes(category)) multiplier *= 0.9;
+  }
+
+  if (dayOfMonth <= 5) {
+    if (["住房", "生活缴费", "财务", "教育"].includes(category)) multiplier *= 1.35;
+  }
+  if (dayOfMonth >= 25) {
+    if (["财务", "生活缴费", "人情"].includes(category)) multiplier *= 1.25;
+    if (["娱乐"].includes(category)) multiplier *= 0.85;
+  }
+  return multiplier;
+}
+
 function shouldApplyLifeEvent(event, day) {
   const value = (stableSeed(`${day}${event.id}life`) % 10000) / 10000;
-  return value < effectiveEventChance(event);
+  return value < effectiveEventChance(event) * eventDiversityMultiplier(event, day) * eventCalendarMultiplier(event, day);
 }
 
 function lifeEventMoney(event, day) {
@@ -500,10 +637,9 @@ function applyLifeEvent(event, day, index, source = "lifeEvent", reason = "") {
     index
   });
 
-  const reasonLine = reason ? `\n${reason}` : "";
   dailyEventMessages.push({
     label: event.category || "生活事件",
-    text: `${event.message || event.name}${reasonLine}\n金钱 ${signed(moneyDelta)} 心情 ${signed(moodDelta)} 健康 ${signed(healthDelta)}`,
+    text: `${event.message || event.name}\n金钱 ${signed(moneyDelta)} 心情 ${signed(moodDelta)} 健康 ${signed(healthDelta)}`,
     severity: eventSeverity({ moneyDelta, moodDelta, healthDelta })
   });
 
@@ -531,6 +667,9 @@ function processPendingEvents(day, limit) {
     if (!event) {
       continue;
     }
+    if (eventAlreadyApplied(day, event.id)) {
+      continue;
+    }
     const beforeMoney = state.money;
     applyLifeEvent(event, day, stableSeed(pendingEvent.id) % 10000, "followUp", pendingEvent.reason || "连续事件");
     totalDelta += state.money - beforeMoney;
@@ -541,8 +680,28 @@ function processPendingEvents(day, limit) {
   return { applied, totalDelta };
 }
 
-function settleDailyBudget() {
-  const today = dayString(new Date());
+function applyLightDailyEvent(day, index) {
+  const candidates = (lifeEvents || []).filter((event) => event.category === "轻日常");
+  if (candidates.length === 0 || eventCategoryAlreadyApplied(day, "轻日常")) {
+    return 0;
+  }
+  const ordered = candidates
+    .map((event) => ({ event, score: stableSeed(`${day}${event.id}lightDaily`) }))
+    .sort((left, right) => left.score - right.score);
+
+  for (const { event } of ordered) {
+    if (eventAlreadyApplied(day, event.id)) {
+      continue;
+    }
+    const beforeMoney = state.money;
+    applyLifeEvent(event, day, index, "lightDaily", "无事件日补充轻日常");
+    return state.money - beforeMoney;
+  }
+  return 0;
+}
+
+function settleDailyBudget(targetDate = new Date()) {
+  const today = dayString(targetDate);
   if (!state.lastSettlementDate) {
     state.lastSettlementDate = today;
     writeJson(statePath, state);
@@ -623,11 +782,25 @@ function settleDailyBudget() {
       if (eventCount >= 3) {
         break;
       }
+      if (eventAlreadyApplied(day, event.id)) {
+        continue;
+      }
+      if (eventCategoryAlreadyApplied(day, event.category || "生活事件")) {
+        continue;
+      }
       if (shouldApplyLifeEvent(event, day)) {
         const beforeMoney = state.money;
         applyLifeEvent(event, day, index, "lifeEvent", eventTriggerMatch(event).reason);
         dayTotal += state.money - beforeMoney;
         eventCount += 1;
+      }
+    }
+
+    if (eventCount === 0) {
+      const beforeMoney = state.money;
+      const lightDelta = applyLightDailyEvent(day, 9000 + days);
+      if (lightDelta !== 0 || state.money !== beforeMoney || eventCategoryAlreadyApplied(day, "轻日常")) {
+        dayTotal += lightDelta;
       }
     }
 
@@ -660,6 +833,32 @@ function settleDailyBudget() {
     lines.push(`负债等级 ${derived.debt.label}`);
   }
   return lines.join("\n");
+}
+
+function debugAdvanceDay() {
+  const today = dayString(new Date());
+  const lastDate = parseDay(state.lastSettlementDate || today) || new Date();
+  const summary = settleDailyBudget(addDays(lastDate, 1)) || "今天没有新的结算";
+  publishState();
+  return summary;
+}
+
+function debugSetStatePreset(preset) {
+  const presets = {
+    lowMood: { mood: 22, health: 58, money: Number(state.money || 0) },
+    lowHealth: { mood: Number(state.mood ?? 70), health: 38, money: Number(state.money || 0) },
+    debt: { mood: 34, health: Number(state.health ?? 75), money: -26000 }
+  };
+  const next = presets[preset];
+  if (!next) {
+    return "未知调试预设";
+  }
+  state.mood = clamp(next.mood);
+  state.health = clamp(next.health);
+  state.money = next.money;
+  state.currentActivity = "待机";
+  publishState();
+  return `已设置调试状态\n金钱 ${signed(state.money)} 心情 ${state.mood} 健康 ${state.health}`;
 }
 
 function effectSummary(action) {
@@ -930,6 +1129,9 @@ ipcMain.on("pet-message", (_event, body) => {
   if (action === "showLedger") sendCallback("petLedgerResult", { entries: ledgerSummary(24) });
   if (action === "showEvents") sendCallback("petEventLogResult", { entries: eventSummary(24) });
   if (action === "showLedgerStats") sendCallback("petLedgerStatsResult", { stats: ledgerMonthlyStats() });
+  if (action === "showEventDebug") sendSkillResult(eventDebugSummary(), "事件调试");
+  if (action === "debugAdvanceDay") sendSkillResult(debugAdvanceDay(), "推进一天");
+  if (action === "debugSetStatePreset") sendSkillResult(debugSetStatePreset(body.preset), "调试状态");
   if (action === "quit") app.quit();
 });
 

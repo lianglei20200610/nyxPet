@@ -208,6 +208,13 @@
         padding-bottom: 0;
       }
 
+      .event-day {
+        margin-top: 2px;
+        color: #5f4d3e;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
       .event-main {
         min-width: 0;
       }
@@ -217,13 +224,6 @@
         color: #7c6754;
         font-size: 11px;
         font-weight: 700;
-      }
-
-      .event-reason {
-        display: block;
-        margin-top: 2px;
-        color: #8c735b;
-        font-size: 11px;
       }
 
       .event-name {
@@ -459,7 +459,7 @@
         <span>发量</span><strong id="hair">--</strong>
         <span>健康</span><strong id="health">--</strong>
         <span>金钱</span><strong id="money">--</strong>
-        <strong class="full-row" id="debt">无负债</strong>
+        <strong class="full-row" id="debt">现金正常</strong>
       </section>
       <section class="activity" id="activity" aria-label="当前行动">
         <span id="activityText">待机</span>
@@ -518,7 +518,8 @@
         interaction: { label: "互动", icon: "🧩" },
         events: { label: "事件", icon: "📖" },
         skill: { label: "技能", icon: "✨" },
-        settings: { label: "设置", icon: "⚙️" }
+        settings: { label: "设置", icon: "⚙️" },
+        developer: { label: "开发工具", icon: "🛠" }
       };
       let petSettings = { alwaysOnTop: true };
 
@@ -581,6 +582,15 @@
         }).format(value);
       }
 
+      function debtLabelForMoney(amount, debt) {
+        const value = Number(amount) || 0;
+        if (value >= 0) return "";
+        if (debt?.label) return debt.label;
+        if (value > -10000) return "轻微透支";
+        if (value > -50000) return "压力负债";
+        return "严重负债";
+      }
+
       function showLedger(entries) {
         window.clearTimeout(hideTimer);
         resetBubbleContent();
@@ -619,24 +629,26 @@
         if (!entries || entries.length === 0) {
           list.textContent = "暂无事件记录\n有生活事件发生后会记录在这里";
         } else {
+          let currentDate = "";
           for (const entry of entries) {
+            if (entry.date !== currentDate) {
+              currentDate = entry.date;
+              const day = document.createElement("span");
+              day.className = "event-day";
+              day.textContent = currentDate;
+              list.appendChild(day);
+            }
             const row = document.createElement("span");
             row.className = "event-row";
             const main = document.createElement("span");
             main.className = "event-main";
             const date = document.createElement("span");
             date.className = "event-date";
-            date.textContent = entry.date;
+            date.textContent = entry.category || "生活事件";
             const name = document.createElement("span");
             name.className = "event-name";
             name.textContent = entry.name;
             main.append(date, name);
-            if (entry.reason) {
-              const reason = document.createElement("span");
-              reason.className = "event-reason";
-              reason.textContent = entry.reason;
-              main.appendChild(reason);
-            }
 
             const effects = document.createElement("span");
             effects.className = "event-effects";
@@ -751,15 +763,21 @@
         statEls.hair.textContent = state.hair;
         statEls.health.textContent = state.health ?? "--";
         statEls.money.textContent = formatMoney(state.money);
-        if (state.debt?.level && state.debt.level !== "none") {
-          statEls.money.title = state.debt.label;
+        const debtLabel = debtLabelForMoney(state.money, state.debt);
+        if (Number(state.money || 0) < 0) {
+          statEls.money.title = debtLabel;
           statEls.money.className = "money-expense";
-          statEls.debt.textContent = state.debt.label;
+          statEls.debt.textContent = debtLabel;
           statEls.debt.classList.add("is-debt");
+        } else if (Number(state.money || 0) === 0) {
+          statEls.money.title = "现金为 0";
+          statEls.money.className = "";
+          statEls.debt.textContent = "现金为 0";
+          statEls.debt.classList.remove("is-debt");
         } else {
           statEls.money.title = "";
           statEls.money.className = "";
-          statEls.debt.textContent = "无负债";
+          statEls.debt.textContent = "现金正常";
           statEls.debt.classList.remove("is-debt");
         }
       };
@@ -777,7 +795,7 @@
       };
 
       window.petQueueEventMessages = (messages) => {
-        const items = Array.isArray(messages) ? messages.slice(0, 5) : [];
+        const items = Array.isArray(messages) ? messages.slice(0, 4) : [];
         items.forEach((message, index) => {
           enqueueBubble(message.text, message.label || "生活事件", message.severity === "urgent" ? 7600 : 4200, message.severity);
         });
@@ -913,10 +931,29 @@
             dataset: { action: "showLedgerStats" }
           }));
           menu.appendChild(createMenuButton({
+            icon: categoryMeta.developer.icon,
+            title: categoryMeta.developer.label,
+            dataset: { action: "openCategory", category: "developer" }
+          }));
+          menu.appendChild(createMenuButton({
             icon: "⏻",
             title: "退出",
             dataset: { action: "quit" }
           }));
+          return;
+        }
+
+        if (category === "developer") {
+          const tools = [
+            ["📋", "事件调试状态", { action: "showEventDebug" }],
+            ["⏭", "推进一天结算", { action: "debugAdvanceDay" }],
+            ["☁", "设为低心情", { action: "debugSetStatePreset", preset: "lowMood" }],
+            ["✚", "设为低健康", { action: "debugSetStatePreset", preset: "lowHealth" }],
+            ["￥", "设为负债", { action: "debugSetStatePreset", preset: "debt" }]
+          ];
+          for (const [icon, title, dataset] of tools) {
+            menu.appendChild(createMenuButton({ icon, title, dataset }));
+          }
           return;
         }
 
@@ -1025,6 +1062,23 @@
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: button.dataset.action
           });
+          return;
+        }
+        if (["showEventDebug", "debugAdvanceDay"].includes(button.dataset.action)) {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: button.dataset.action
+          });
+          menu.classList.remove("open");
+          renderRootMenu();
+          return;
+        }
+        if (button.dataset.action === "debugSetStatePreset") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "debugSetStatePreset",
+            preset: button.dataset.preset
+          });
+          menu.classList.remove("open");
+          renderRootMenu();
           return;
         }
         if (button.dataset.action === "quit") {

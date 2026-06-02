@@ -77,6 +77,10 @@ def check_configs():
             require(follow_up["eventId"] in event_ids, f"lifeEvents[{index}] follow-up target missing: {follow_up['eventId']}")
     require(has_event_follow_up, "life-events.json should include at least one follow-up event chain")
     require(has_state_trigger, "life-events.json should include at least one state-driven trigger")
+    require(
+        sum(1 for event in life_events if event.get("category") == "轻日常") >= 5,
+        "life-events.json should include lightweight daily fallback events",
+    )
 
     skill_ids = set()
     for index, skill in enumerate(skills):
@@ -166,6 +170,9 @@ def check_html_contract():
         "setPetMode",
         "preferredSpriteState",
         "actionEffectTitle",
+        "showEventDebug",
+        "debugAdvanceDay",
+        "debugSetStatePreset",
         "is-working",
         "is-food",
         "is-exercise",
@@ -190,8 +197,10 @@ def check_html_contract():
     require("-webkit-app-region: no-drag" in html, "desktop HTML must mark controls as no-drag for Electron")
     require("暂无事件记录" in html, "event log empty state must not reuse ledger empty state")
     require("function showEvents" in html, "desktop HTML must render event log separately from ledger")
+    require(".event-day" in html, "event log should group entries by date")
     require(".pet {" in html and "-webkit-app-region: drag" in html, "pet body should be draggable")
     require('id="debt"' in html and "formatMoney" in html, "stats panel must show formatted money and debt status")
+    require("现金为 0" in html and "现金正常" in html, "stats panel must distinguish zero cash from normal cash")
 
     asset_refs = re.findall(r'(?:url\([\"\']?([^\"\')]+)[\"\']?\)|<img[^>]+src="([^"]+)")', html)
     asset_refs = [css_ref or img_ref for css_ref, img_ref in asset_refs]
@@ -236,6 +245,15 @@ def check_electron_shell():
         "processPendingEvents",
         "scheduleFollowUps",
         "eventTriggerMatch",
+        "eventDebugSummary",
+        "debugAdvanceDay",
+        "debugSetStatePreset",
+        "eventAlreadyApplied",
+        "eventCategoryAlreadyApplied",
+        "eventDiversityMultiplier",
+        "eventCalendarMultiplier",
+        "applyLightDailyEvent",
+        "paceEventMessages",
         "healthSensitive",
         "watchEventLog",
         "fs.watchFile",
@@ -278,7 +296,7 @@ def check_swift_build():
     swift = (ROOT / "desktop" / "DesktopPet.swift").read_text(encoding="utf-8")
     for item in ["EconomyConfig", "LifeEventConfig", "LedgerEntry", "LifeEventLogEntry", "settleDailyBudget", "lastSettlementDate", "data/ledger.json", "data/events.json", "recordLedgerEntry", "applyLifeEvent", "healthSensitive", "newEventMessages", "startEventLogPolling"]:
         require(item in swift, f"Swift desktop shell missing economy persistence contract: {item}")
-    for item in ["PendingEvent", "processPendingEvents", "scheduleFollowUps", "eventTriggerMatch", "pendingEvents"]:
+    for item in ["PendingEvent", "processPendingEvents", "scheduleFollowUps", "eventTriggerMatch", "pendingEvents", "eventDebugSummary", "debugAdvanceDay", "debugSetStatePreset", "eventAlreadyApplied", "eventCategoryAlreadyApplied", "eventDiversityMultiplier", "eventCalendarMultiplier", "applyLightDailyEvent", "paceEventMessages"]:
         require(item in swift, f"Swift desktop shell missing event chain contract: {item}")
     require("debtMoodPenalty" in swift, "Swift desktop shell must apply mood pressure when money is negative")
     require("max(0, state.money +" not in swift, "Swift desktop shell must allow negative money balances")
