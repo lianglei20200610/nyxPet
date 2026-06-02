@@ -51,6 +51,8 @@ def check_configs():
     require(len(economy["randomExpenses"]) >= 8, "economy.json should include a realistic random expense pool")
 
     event_ids = set()
+    has_event_follow_up = False
+    has_state_trigger = False
     for index, event in enumerate(life_events):
         for field in ["id", "name", "category", "message", "chance", "minMoneyDelta", "maxMoneyDelta", "moodDelta", "healthDelta"]:
             require(field in event, f"lifeEvents[{index}] missing {field}")
@@ -58,6 +60,23 @@ def check_configs():
         event_ids.add(event["id"])
         require(0 <= event["chance"] <= 1, f"lifeEvents[{index}] chance must be between 0 and 1")
         require(event["minMoneyDelta"] <= event["maxMoneyDelta"], f"lifeEvents[{index}] minMoneyDelta must be <= maxMoneyDelta")
+        if "triggers" in event:
+            has_state_trigger = True
+            require(isinstance(event["triggers"], dict), f"lifeEvents[{index}] triggers must be an object")
+            allowed_triggers = {"healthBelow", "moodBelow", "moneyBelow", "moneyAbove", "debtLevel"}
+            require(set(event["triggers"]).issubset(allowed_triggers), f"lifeEvents[{index}] has unsupported trigger fields")
+        if "followUps" in event:
+            has_event_follow_up = True
+            require(isinstance(event["followUps"], list), f"lifeEvents[{index}] followUps must be a list")
+            for follow_index, follow_up in enumerate(event["followUps"]):
+                require("eventId" in follow_up, f"lifeEvents[{index}].followUps[{follow_index}] missing eventId")
+                require(0 <= follow_up.get("chance", 1) <= 1, f"lifeEvents[{index}].followUps[{follow_index}] chance must be between 0 and 1")
+
+    for index, event in enumerate(life_events):
+        for follow_up in event.get("followUps", []):
+            require(follow_up["eventId"] in event_ids, f"lifeEvents[{index}] follow-up target missing: {follow_up['eventId']}")
+    require(has_event_follow_up, "life-events.json should include at least one follow-up event chain")
+    require(has_state_trigger, "life-events.json should include at least one state-driven trigger")
 
     skill_ids = set()
     for index, skill in enumerate(skills):
@@ -82,6 +101,8 @@ def check_configs():
         "name",
         "icon",
         "category",
+        "mode",
+        "spriteState",
         "durationSeconds",
         "moodDelta",
         "weightDelta",
@@ -98,6 +119,8 @@ def check_configs():
         require(action["id"] not in action_ids, f"duplicate action id: {action['id']}")
         action_ids.add(action["id"])
         require(action["durationSeconds"] > 0, f"actions[{index}] durationSeconds must be positive")
+        require(action["mode"] in {"work", "food", "exercise", "entertainment"}, f"actions[{index}] has unknown mode")
+        require(action["spriteState"] in {"idle", "runningRight", "runningLeft", "waving", "jumping", "failed", "waiting", "running", "review"}, f"actions[{index}] has unknown spriteState")
 
     return len(skills), len(actions)
 
@@ -141,6 +164,8 @@ def check_html_contract():
         "--sprite-col",
         "--sprite-row",
         "setPetMode",
+        "preferredSpriteState",
+        "actionEffectTitle",
         "is-working",
         "is-food",
         "is-exercise",
@@ -166,6 +191,7 @@ def check_html_contract():
     require("暂无事件记录" in html, "event log empty state must not reuse ledger empty state")
     require("function showEvents" in html, "desktop HTML must render event log separately from ledger")
     require(".pet {" in html and "-webkit-app-region: drag" in html, "pet body should be draggable")
+    require('id="debt"' in html and "formatMoney" in html, "stats panel must show formatted money and debt status")
 
     asset_refs = re.findall(r'(?:url\([\"\']?([^\"\')]+)[\"\']?\)|<img[^>]+src="([^"]+)")', html)
     asset_refs = [css_ref or img_ref for css_ref, img_ref in asset_refs]
@@ -206,6 +232,10 @@ def check_electron_shell():
         "ledger.json",
         "events.json",
         "applyLifeEvent",
+        "pendingEvents",
+        "processPendingEvents",
+        "scheduleFollowUps",
+        "eventTriggerMatch",
         "healthSensitive",
         "watchEventLog",
         "fs.watchFile",
@@ -248,6 +278,8 @@ def check_swift_build():
     swift = (ROOT / "desktop" / "DesktopPet.swift").read_text(encoding="utf-8")
     for item in ["EconomyConfig", "LifeEventConfig", "LedgerEntry", "LifeEventLogEntry", "settleDailyBudget", "lastSettlementDate", "data/ledger.json", "data/events.json", "recordLedgerEntry", "applyLifeEvent", "healthSensitive", "newEventMessages", "startEventLogPolling"]:
         require(item in swift, f"Swift desktop shell missing economy persistence contract: {item}")
+    for item in ["PendingEvent", "processPendingEvents", "scheduleFollowUps", "eventTriggerMatch", "pendingEvents"]:
+        require(item in swift, f"Swift desktop shell missing event chain contract: {item}")
     require("debtMoodPenalty" in swift, "Swift desktop shell must apply mood pressure when money is negative")
     require("max(0, state.money +" not in swift, "Swift desktop shell must allow negative money balances")
 

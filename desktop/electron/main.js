@@ -28,7 +28,8 @@ const initialState = {
   health: 75,
   money: 500000,
   currentActivity: "待机",
-  lastSettlementDate: null
+  lastSettlementDate: null,
+  pendingEvents: []
 };
 
 let mainWindow;
@@ -70,6 +71,9 @@ function loadRuntimeData() {
   lifeEvents = readJson(lifeEventsPath, []);
   settings = { ...initialSettings, ...readJson(settingsPath, {}) };
   state = { ...initialState, ...readJson(statePath, {}) };
+  if (!Array.isArray(state.pendingEvents)) {
+    state.pendingEvents = [];
+  }
   ledger = readJson(ledgerPath, []);
   if (!Array.isArray(ledger)) {
     ledger = [];
@@ -111,7 +115,9 @@ function sendActivityStarted(action) {
   sendCallback("petActivityStarted", {
     id: action.id,
     name: action.name,
-    durationSeconds: action.durationSeconds
+    durationSeconds: action.durationSeconds,
+    mode: action.mode || action.category,
+    spriteState: action.spriteState || ""
   });
 }
 
@@ -121,12 +127,17 @@ function sendActivityEnded() {
 
 function bootstrapRenderer() {
   const publicSkills = skills.map(({ id, name, icon }) => ({ id, name, icon }));
-  const publicActions = actions.map(({ id, name, icon, category, durationSeconds }) => ({
-    id,
-    name,
-    icon,
-    category,
-    durationSeconds
+  const publicActions = actions.map((action) => ({
+    id: action.id,
+    name: action.name,
+    icon: action.icon,
+    category: action.category,
+    durationSeconds: action.durationSeconds,
+    mode: action.mode,
+    spriteState: action.spriteState,
+    moneyDelta: action.moneyDelta,
+    moodDelta: action.moodDelta,
+    healthDelta: action.healthDelta
   }));
 
   sendCallback("petLoadSkills", publicSkills);
@@ -256,11 +267,12 @@ function eventSummary(limit = 24) {
       moneyDelta: entry.moneyDelta,
       moodDelta: entry.moodDelta,
       healthDelta: entry.healthDelta,
+      reason: entry.reason || "",
       severity: entry.severity || eventSeverity(entry)
     }));
 }
 
-function recordEventEntry({ date, category, name, message, moneyDelta, moodDelta, healthDelta, source, refId, index = 0 }) {
+function recordEventEntry({ date, category, name, message, moneyDelta, moodDelta, healthDelta, source, refId, reason = "", index = 0 }) {
   const id = ledgerId(date, source, refId || name, index);
   if (eventLog.some((entry) => entry.id === id)) {
     return;
@@ -275,15 +287,17 @@ function recordEventEntry({ date, category, name, message, moneyDelta, moodDelta
     moodDelta,
     healthDelta,
     source,
+    reason,
     severity: eventSeverity({ moneyDelta, moodDelta, healthDelta })
   });
   writeJson(eventLogPath, eventLog);
 }
 
 function eventBubbleMessage(entry) {
+  const reasonLine = entry.reason ? `\n${entry.reason}` : "";
   return {
     label: (entry.severity || eventSeverity(entry)) === "urgent" ? `紧急 · ${entry.category || "生活事件"}` : entry.category || "生活事件",
-    text: `${entry.message || entry.name}\n金钱 ${signed(entry.moneyDelta || 0)} 心情 ${signed(entry.moodDelta || 0)} 健康 ${signed(entry.healthDelta || 0)}`,
+    text: `${entry.message || entry.name}${reasonLine}\n金钱 ${signed(entry.moneyDelta || 0)} 心情 ${signed(entry.moodDelta || 0)} 健康 ${signed(entry.healthDelta || 0)}`,
     severity: entry.severity || eventSeverity(entry)
   };
 }
@@ -328,6 +342,11 @@ function addDays(date, count) {
   return next;
 }
 
+function addDaysString(day, count) {
+  const parsed = parseDay(day);
+  return parsed ? dayString(addDays(parsed, count)) : day;
+}
+
 function stableSeed(text) {
   let seed = 2166136261;
   for (const char of text) {
@@ -349,14 +368,47 @@ function randomAmount(expense, day) {
   return lower + (stableSeed(`${day}${expense.id}amount`) % range);
 }
 
-function effectiveEventChance(event) {
-  const baseChance = Number(event.chance || 0);
-  if (!event.healthSensitive) {
-    return baseChance;
+function debtRank(level) {
+  return { none: 0, light: 1, pressure: 2, severe: 3 }[level] || 0;
+}
+
+function eventTriggerMatch(event) {
+  const triggers = event.triggers || {};
+  const reasons = [];
+
+  if (Number.isFinite(Number(triggers.healthBelow)) && Number(state.health ?? 75) < Number(triggers.healthBelow)) {
+    reasons.push("健康偏低");
   }
+  if (Number.isFinite(Number(triggers.moodBelow)) && Number(state.mood ?? 70) < Number(triggers.moodBelow)) {
+    reasons.push("心情偏低");
+  }
+  if (Number.isFinite(Number(triggers.moneyBelow)) && Number(state.money ?? 0) < Number(triggers.moneyBelow)) {
+    reasons.push("现金紧张");
+  }
+  if (Number.isFinite(Number(triggers.moneyAbove)) && Number(state.money ?? 0) > Number(triggers.moneyAbove)) {
+    reasons.push("现金充裕");
+  }
+  if (triggers.debtLevel && debtRank(debtInfo().level) >= debtRank(triggers.debtLevel)) {
+    reasons.push("负债压力");
+  }
+
+  return {
+    matched: reasons.length > 0,
+    reason: reasons.length > 0 ? `由于${reasons.join("、")}，这件事更容易发生` : ""
+  };
+}
+
+function effectiveEventChance(event) {
+  let chance = Number(event.chance || 0);
   const health = Number(state.health ?? 75);
-  const multiplier = 1 + Math.max(0, 80 - health) / 25;
-  return Math.min(0.8, baseChance * multiplier);
+  if (event.healthSensitive) {
+    chance *= 1 + Math.max(0, 80 - health) / 25;
+  }
+  const trigger = eventTriggerMatch(event);
+  if (event.triggers) {
+    chance *= trigger.matched ? 3.2 : 0.25;
+  }
+  return Math.min(0.8, chance);
 }
 
 function shouldApplyLifeEvent(event, day) {
@@ -373,7 +425,42 @@ function lifeEventMoney(event, day) {
   return lower + (stableSeed(`${day}${event.id}money`) % (upper - lower + 1));
 }
 
-function applyLifeEvent(event, day, index) {
+function scheduleFollowUps(event, day, index) {
+  const followUps = Array.isArray(event.followUps) ? event.followUps : [];
+  if (followUps.length === 0) {
+    return;
+  }
+  if (!Array.isArray(state.pendingEvents)) {
+    state.pendingEvents = [];
+  }
+
+  for (const followUp of followUps) {
+    const eventId = followUp.eventId;
+    if (!eventId || !lifeEvents.some((item) => item.id === eventId)) {
+      continue;
+    }
+    const chance = Number(followUp.chance ?? 1);
+    const value = (stableSeed(`${day}${event.id}${eventId}${index}follow`) % 10000) / 10000;
+    if (value >= chance) {
+      continue;
+    }
+
+    const dueDate = addDaysString(day, Number(followUp.delayDays || 1));
+    const id = `${dueDate}:followUp:${event.id}:${eventId}:${index}`;
+    const exists = state.pendingEvents.some((item) => item.id === id);
+    if (!exists) {
+      state.pendingEvents.push({
+        id,
+        eventId,
+        dueDate,
+        sourceEventId: event.id,
+        reason: `由「${event.name}」后续触发`
+      });
+    }
+  }
+}
+
+function applyLifeEvent(event, day, index, source = "lifeEvent", reason = "") {
   const moneyDelta = lifeEventMoney(event, day);
   const moodDelta = Number(event.moodDelta || 0);
   const healthDelta = Number(event.healthDelta || 0);
@@ -393,7 +480,7 @@ function applyLifeEvent(event, day, index) {
       category: event.category || "生活事件",
       name: event.name,
       amount: moneyDelta,
-      source: "lifeEvent",
+      source,
       refId: event.id,
       index
     });
@@ -407,16 +494,51 @@ function applyLifeEvent(event, day, index) {
     moneyDelta,
     moodDelta,
     healthDelta,
-    source: "lifeEvent",
+    source,
     refId: event.id,
+    reason,
     index
   });
 
+  const reasonLine = reason ? `\n${reason}` : "";
   dailyEventMessages.push({
     label: event.category || "生活事件",
-    text: `${event.message || event.name}\n金钱 ${signed(moneyDelta)} 心情 ${signed(moodDelta)} 健康 ${signed(healthDelta)}`,
+    text: `${event.message || event.name}${reasonLine}\n金钱 ${signed(moneyDelta)} 心情 ${signed(moodDelta)} 健康 ${signed(healthDelta)}`,
     severity: eventSeverity({ moneyDelta, moodDelta, healthDelta })
   });
+
+  scheduleFollowUps(event, day, index);
+}
+
+function processPendingEvents(day, limit) {
+  if (!Array.isArray(state.pendingEvents)) {
+    state.pendingEvents = [];
+  }
+
+  const pending = state.pendingEvents;
+  const dueEvents = pending.filter((item) => item.dueDate <= day);
+  state.pendingEvents = pending.filter((item) => item.dueDate > day);
+
+  let applied = 0;
+  let totalDelta = 0;
+  for (const pendingEvent of dueEvents) {
+    if (applied >= limit) {
+      state.pendingEvents.push(pendingEvent);
+      continue;
+    }
+
+    const event = lifeEvents.find((item) => item.id === pendingEvent.eventId);
+    if (!event) {
+      continue;
+    }
+    const beforeMoney = state.money;
+    applyLifeEvent(event, day, stableSeed(pendingEvent.id) % 10000, "followUp", pendingEvent.reason || "连续事件");
+    totalDelta += state.money - beforeMoney;
+    applied += 1;
+  }
+
+  state.pendingEvents.sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
+  return { applied, totalDelta };
 }
 
 function settleDailyBudget() {
@@ -490,14 +612,20 @@ function settleDailyBudget() {
       }
     }
 
-    let eventCount = 0;
-    for (const [index, event] of (lifeEvents || []).entries()) {
+    const pendingResult = processPendingEvents(day, 3);
+    let eventCount = pendingResult.applied;
+    dayTotal += pendingResult.totalDelta;
+    const orderedEvents = (lifeEvents || [])
+      .map((event, index) => ({ event, index }))
+      .sort((left, right) => stableSeed(`${day}${left.event.id}order`) - stableSeed(`${day}${right.event.id}order`));
+
+    for (const { event, index } of orderedEvents) {
       if (eventCount >= 3) {
         break;
       }
       if (shouldApplyLifeEvent(event, day)) {
         const beforeMoney = state.money;
-        applyLifeEvent(event, day, index);
+        applyLifeEvent(event, day, index, "lifeEvent", eventTriggerMatch(event).reason);
         dayTotal += state.money - beforeMoney;
         eventCount += 1;
       }

@@ -219,6 +219,13 @@
         font-weight: 700;
       }
 
+      .event-reason {
+        display: block;
+        margin-top: 2px;
+        color: #8c735b;
+        font-size: 11px;
+      }
+
       .event-name {
         display: block;
         margin-top: 2px;
@@ -294,6 +301,22 @@
 
       .stats span:nth-child(odd) {
         color: #7c6754;
+      }
+
+      .stats strong {
+        text-align: right;
+      }
+
+      .stats .full-row {
+        grid-column: 1 / -1;
+        padding-top: 2px;
+        color: #766553;
+        font-size: 12px;
+        text-align: right;
+      }
+
+      .stats .full-row.is-debt {
+        color: #c43d37;
       }
 
       .activity {
@@ -436,6 +459,7 @@
         <span>发量</span><strong id="hair">--</strong>
         <span>健康</span><strong id="health">--</strong>
         <span>金钱</span><strong id="money">--</strong>
+        <strong class="full-row" id="debt">无负债</strong>
       </section>
       <section class="activity" id="activity" aria-label="当前行动">
         <span id="activityText">待机</span>
@@ -456,7 +480,8 @@
         weight: document.getElementById("weight"),
         hair: document.getElementById("hair"),
         health: document.getElementById("health"),
-        money: document.getElementById("money")
+        money: document.getElementById("money"),
+        debt: document.getElementById("debt")
       };
       const activity = document.getElementById("activity");
       const activityText = document.getElementById("activityText");
@@ -490,6 +515,8 @@
         food: { label: "饮食", icon: "🍱" },
         exercise: { label: "运动", icon: "🏃" },
         entertainment: { label: "娱乐", icon: "🎲" },
+        interaction: { label: "互动", icon: "🧩" },
+        events: { label: "事件", icon: "📖" },
         skill: { label: "技能", icon: "✨" },
         settings: { label: "设置", icon: "⚙️" }
       };
@@ -545,6 +572,15 @@
         return value > 0 ? `+${value}` : `${value}`;
       }
 
+      function formatMoney(amount) {
+        const value = Number(amount) || 0;
+        return new Intl.NumberFormat("zh-CN", {
+          style: "currency",
+          currency: "CNY",
+          maximumFractionDigits: 0
+        }).format(value);
+      }
+
       function showLedger(entries) {
         window.clearTimeout(hideTimer);
         resetBubbleContent();
@@ -595,6 +631,12 @@
             name.className = "event-name";
             name.textContent = entry.name;
             main.append(date, name);
+            if (entry.reason) {
+              const reason = document.createElement("span");
+              reason.className = "event-reason";
+              reason.textContent = entry.reason;
+              main.appendChild(reason);
+            }
 
             const effects = document.createElement("span");
             effects.className = "event-effects";
@@ -658,7 +700,7 @@
         }, state.intervalMs);
       }
 
-      function setPetMode(mode) {
+      function setPetMode(mode, preferredSpriteState = "") {
         const modeClass = {
           work: "working",
           food: "food",
@@ -676,7 +718,7 @@
           pet.classList.add(activePetClass);
         }
 
-        const stateName = {
+        const stateName = preferredSpriteState || {
           working: "running",
           food: "waving",
           exercise: "jumping",
@@ -684,6 +726,14 @@
           skill: "review"
         }[modeClass] || "idle";
         playSpriteState(stateName);
+      }
+
+      function actionEffectTitle(action) {
+        const parts = [`${action.name} · ${Math.round(action.durationSeconds)}秒`];
+        if (Number(action.moneyDelta || 0) !== 0) parts.push(`金钱${signed(action.moneyDelta)}`);
+        if (Number(action.moodDelta || 0) !== 0) parts.push(`心情${signed(action.moodDelta)}`);
+        if (Number(action.healthDelta || 0) !== 0) parts.push(`健康${signed(action.healthDelta)}`);
+        return parts.join(" · ");
       }
 
       playSpriteState("idle");
@@ -700,13 +750,17 @@
         statEls.weight.textContent = state.weight;
         statEls.hair.textContent = state.hair;
         statEls.health.textContent = state.health ?? "--";
-        statEls.money.textContent = state.money;
+        statEls.money.textContent = formatMoney(state.money);
         if (state.debt?.level && state.debt.level !== "none") {
           statEls.money.title = state.debt.label;
           statEls.money.className = "money-expense";
+          statEls.debt.textContent = state.debt.label;
+          statEls.debt.classList.add("is-debt");
         } else {
           statEls.money.title = "";
           statEls.money.className = "";
+          statEls.debt.textContent = "无负债";
+          statEls.debt.classList.remove("is-debt");
         }
       };
 
@@ -767,21 +821,25 @@
         menu.classList.remove("submenu");
         clearMenu();
 
-        const categories = [...new Set(loadedActions.map((action) => action.category))];
-        for (const category of categories) {
-          const meta = categoryMeta[category] || { label: category, icon: "•" };
-          menu.appendChild(createMenuButton({
-            icon: meta.icon,
-            title: meta.label,
-            dataset: { action: "openCategory", category }
-          }));
-        }
-
         if (loadedSkills.length > 0) {
           menu.appendChild(createMenuButton({
             icon: categoryMeta.skill.icon,
             title: categoryMeta.skill.label,
             dataset: { action: "openCategory", category: "skill" }
+          }));
+        }
+
+        menu.appendChild(createMenuButton({
+          icon: categoryMeta.events.icon,
+          title: categoryMeta.events.label,
+          dataset: { action: "showEvents" }
+        }));
+
+        if (loadedActions.length > 0) {
+          menu.appendChild(createMenuButton({
+            icon: categoryMeta.interaction.icon,
+            title: categoryMeta.interaction.label,
+            dataset: { action: "openCategory", category: "interaction" }
           }));
         }
 
@@ -818,6 +876,21 @@
           return;
         }
 
+        if (category === "interaction") {
+          for (const action of loadedActions) {
+            menu.appendChild(createMenuButton({
+              icon: action.icon || "•",
+              title: actionEffectTitle(action),
+              dataset: {
+                action: "petAction",
+                actionId: action.id,
+                actionName: action.name
+              }
+            }));
+          }
+          return;
+        }
+
         if (category === "settings") {
           menu.appendChild(createMenuButton({
             icon: petSettings.alwaysOnTop ? "📌" : "📍",
@@ -835,11 +908,6 @@
             dataset: { action: "showLedger" }
           }));
           menu.appendChild(createMenuButton({
-            icon: "事",
-            title: "查看事件",
-            dataset: { action: "showEvents" }
-          }));
-          menu.appendChild(createMenuButton({
             icon: "统",
             title: "月度统计",
             dataset: { action: "showLedgerStats" }
@@ -855,7 +923,7 @@
         for (const action of loadedActions.filter((item) => item.category === category)) {
           menu.appendChild(createMenuButton({
             icon: action.icon || "•",
-            title: `${action.name} · ${Math.round(action.durationSeconds)}秒`,
+            title: actionEffectTitle(action),
             dataset: {
               action: "petAction",
               actionId: action.id,
@@ -871,7 +939,7 @@
         const duration = Math.max(1, Number(action.durationSeconds) || 1);
         const startedAt = Date.now();
         const activeAction = loadedActions.find((item) => item.id === action.id);
-        setPetMode(activeAction?.category || "working");
+        setPetMode(action.mode || activeAction?.mode || activeAction?.category || "working", action.spriteState || activeAction?.spriteState || "");
         activityText.textContent = `${action.name}中 · ${duration}秒`;
         activity.classList.add("show");
         activityFill.style.width = "0%";
@@ -939,15 +1007,17 @@
           });
           return;
         }
-        if (button.dataset.action === "showLedger") {
-          window.webkit?.messageHandlers?.pet?.postMessage({
-            action: "showLedger"
-          });
-          return;
-        }
         if (button.dataset.action === "showEvents") {
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: "showEvents"
+          });
+          menu.classList.remove("open");
+          renderRootMenu();
+          return;
+        }
+        if (button.dataset.action === "showLedger") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "showLedger"
           });
           return;
         }
