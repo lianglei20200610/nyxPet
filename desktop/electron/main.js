@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..", "..");
-const dataDir = path.join(root, "data");
+const dataDir = path.join(app.getPath("userData"), "data");
 const settingsPath = path.join(dataDir, "pet-settings.json");
 const statePath = path.join(dataDir, "pet-state.json");
 const ledgerPath = path.join(dataDir, "ledger.json");
@@ -60,6 +60,12 @@ const storyDefinitions = [
   { id: "home_repair", title: "家庭维护", eventIds: ["appliance_break", "repair_quote", "fixed_appliance", "replace_appliance"] },
   { id: "commute", title: "通勤调整", eventIds: ["commute_delay", "adjust_commute", "walk_to_work"] }
 ];
+
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!gotSingleInstanceLock) {
+  app.quit();
+}
 
 function publishState() {
   writeJson(statePath, state);
@@ -149,10 +155,7 @@ function bootstrapRenderer() {
     category: action.category,
     durationSeconds: action.durationSeconds,
     mode: action.mode,
-    spriteState: action.spriteState,
-    moneyDelta: action.moneyDelta,
-    moodDelta: action.moodDelta,
-    healthDelta: action.healthDelta
+    spriteState: action.spriteState
   }));
 
   sendCallback("petLoadSkills", publicSkills);
@@ -256,6 +259,11 @@ function ledgerMonthlyStats() {
   }
   stats.net = stats.income + stats.expense;
   return stats;
+}
+
+function monthlyStatsSummary() {
+  const stats = ledgerMonthlyStats();
+  return `${stats.month} 统计\n收入 ${signed(stats.income)}\n支出 ${signed(stats.expense)}\n结余 ${signed(stats.net)}`;
 }
 
 function eventSeverity(entry) {
@@ -1296,6 +1304,7 @@ function showContextMenu() {
     { type: "separator" },
     {
       label: "退出",
+      accelerator: "CommandOrControl+Q",
       click: () => app.quit()
     }
   ]);
@@ -1355,12 +1364,25 @@ ipcMain.on("pet-message", (_event, body) => {
   if (action === "quit") app.quit();
 });
 
-app.whenReady().then(() => {
-  loadRuntimeData();
-  createWindow();
-  watchEventLog();
-  scheduleRealtimeEvent();
+app.on("second-instance", () => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  mainWindow.show();
+  mainWindow.focus();
 });
+
+if (gotSingleInstanceLock) {
+  app.whenReady().then(() => {
+    loadRuntimeData();
+    createWindow();
+    watchEventLog();
+    scheduleRealtimeEvent();
+  });
+}
 
 app.on("before-quit", () => {
   if (realtimeEventTimer) {

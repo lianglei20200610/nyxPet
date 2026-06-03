@@ -487,6 +487,21 @@
         grid-template-columns: repeat(4, 48px);
       }
 
+      .interaction-trigger {
+        position: absolute;
+        left: 29%;
+        bottom: 2.5%;
+        z-index: 4;
+        width: 74px;
+        height: 36px;
+        border-width: 3px;
+        border-radius: 16px;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0;
+        -webkit-app-region: no-drag;
+      }
+
       button {
         width: 48px;
         height: 48px;
@@ -504,7 +519,8 @@
       .bubble,
       .stats,
       .activity,
-      .menu {
+      .menu,
+      .interaction-trigger {
         -webkit-app-region: no-drag;
       }
 
@@ -571,12 +587,14 @@
         <span id="activityText">待机</span>
         <div class="activity-bar"><div class="activity-fill" id="activityFill"></div></div>
       </section>
+      <button class="interaction-trigger" id="interactionTrigger" type="button">互动</button>
       <nav class="menu" id="menu" aria-label="互动菜单"></nav>
     </main>
     <script>
       const pet = document.getElementById("pet");
       const spritePet = document.querySelector(".sprite-pet");
       const menu = document.getElementById("menu");
+      const interactionTrigger = document.getElementById("interactionTrigger");
       const bubble = document.getElementById("bubble");
       const bubbleLabel = document.getElementById("bubbleLabel");
       const bubbleText = document.getElementById("bubbleText");
@@ -1207,6 +1225,14 @@
       };
 
       pet.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (!menu.classList.contains("open")) {
+          renderRootMenu();
+        }
+        menu.classList.toggle("open");
+      });
+
+      interactionTrigger.addEventListener("click", (event) => {
         event.stopPropagation();
         if (!menu.classList.contains("open")) {
           renderRootMenu();

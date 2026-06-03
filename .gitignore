@@ -12,6 +12,7 @@ out/
 *.swp
 *.swo
 node_modules/
+.tools/
 
 # Logs and temporary files
 *.log
