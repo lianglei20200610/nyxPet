@@ -71,6 +71,8 @@ def check_configs():
             for follow_index, follow_up in enumerate(event["followUps"]):
                 require("eventId" in follow_up, f"lifeEvents[{index}].followUps[{follow_index}] missing eventId")
                 require(0 <= follow_up.get("chance", 1) <= 1, f"lifeEvents[{index}].followUps[{follow_index}] chance must be between 0 and 1")
+        if event.get("category") == "在线插曲":
+            require(isinstance(event.get("interludeFor"), list) and event["interludeFor"], f"lifeEvents[{index}] online interlude must declare interludeFor")
 
     for index, event in enumerate(life_events):
         for follow_up in event.get("followUps", []):
@@ -78,8 +80,29 @@ def check_configs():
     require(has_event_follow_up, "life-events.json should include at least one follow-up event chain")
     require(has_state_trigger, "life-events.json should include at least one state-driven trigger")
     require(
+        sum(1 for event in life_events if event.get("followUps")) >= 18,
+        "life-events.json should include a broad set of story chains",
+    )
+    for story_id in ["family_talk", "child_progress", "skill_improved", "fixed_appliance", "health_improved"]:
+        require(story_id in event_ids, f"life-events.json missing story resolution event: {story_id}")
+    require(
         sum(1 for event in life_events if event.get("category") == "轻日常") >= 5,
         "life-events.json should include lightweight daily fallback events",
+    )
+    require(
+        sum(
+            1
+            for event in life_events
+            if event.get("category") in {"轻日常", "健康", "心情", "在线插曲"}
+            and abs(event.get("minMoneyDelta", 0)) + abs(event.get("maxMoneyDelta", 0)) <= 120
+            and abs(event.get("moodDelta", 0)) <= 4
+            and abs(event.get("healthDelta", 0)) <= 4
+        ) >= 8,
+        "life-events.json should include enough lightweight realtime event candidates",
+    )
+    require(
+        sum(1 for event in life_events if event.get("category") == "在线插曲") >= 6,
+        "life-events.json should include online story interludes",
     )
 
     skill_ids = set()
@@ -142,6 +165,7 @@ def check_html_contract():
         "window.petActivityEnded",
         "window.petLedgerResult",
         "window.petEventLogResult",
+        "window.petStoryResult",
         "window.petQueueEventMessages",
     ]
     for callback in required_callbacks:
@@ -154,6 +178,7 @@ def check_html_contract():
         'action: "toggleStats"',
         'action: "showLedger"',
         'action: "showEvents"',
+        'action: "showStories"',
         'action: "quit"',
         'postMessage("drag")',
     ]
@@ -168,11 +193,15 @@ def check_html_contract():
         "--sprite-col",
         "--sprite-row",
         "setPetMode",
+        "showEventPetReaction",
+        "tone-story",
+        "event-tags",
         "preferredSpriteState",
         "actionEffectTitle",
         "showEventDebug",
         "debugAdvanceDay",
         "debugSetStatePreset",
+        "debugResetState",
         "is-working",
         "is-food",
         "is-exercise",
@@ -197,6 +226,7 @@ def check_html_contract():
     require("-webkit-app-region: no-drag" in html, "desktop HTML must mark controls as no-drag for Electron")
     require("暂无事件记录" in html, "event log empty state must not reuse ledger empty state")
     require("function showEvents" in html, "desktop HTML must render event log separately from ledger")
+    require("function showStories" in html and ".story-list" in html, "desktop HTML must render player-readable story summaries")
     require(".event-day" in html, "event log should group entries by date")
     require(".pet {" in html and "-webkit-app-region: drag" in html, "pet body should be draggable")
     require('id="debt"' in html and "formatMoney" in html, "stats panel must show formatted money and debt status")
@@ -248,11 +278,20 @@ def check_electron_shell():
         "eventDebugSummary",
         "debugAdvanceDay",
         "debugSetStatePreset",
+        "debugResetState",
         "eventAlreadyApplied",
         "eventCategoryAlreadyApplied",
         "eventDiversityMultiplier",
         "eventCalendarMultiplier",
         "applyLightDailyEvent",
+        "scheduleRealtimeEvent",
+        "applyRealtimeEvent",
+        "realtimeEventCandidates",
+        "realtimeInterludeCandidates",
+        "realtimeContextIds",
+        "eventMessageTone",
+        "eventSpriteState",
+        "eventStoryLabel",
         "paceEventMessages",
         "healthSensitive",
         "watchEventLog",
@@ -260,6 +299,9 @@ def check_electron_shell():
         "recordLedgerEntry",
         "ledgerSummary",
         "eventSummary",
+        "storySummary",
+        "storyDefinitions",
+        "compareEventEntriesDesc",
         "ledgerMonthlyStats",
         "actionBlockReason",
         "applyDerivedStateEffects",
@@ -296,7 +338,7 @@ def check_swift_build():
     swift = (ROOT / "desktop" / "DesktopPet.swift").read_text(encoding="utf-8")
     for item in ["EconomyConfig", "LifeEventConfig", "LedgerEntry", "LifeEventLogEntry", "settleDailyBudget", "lastSettlementDate", "data/ledger.json", "data/events.json", "recordLedgerEntry", "applyLifeEvent", "healthSensitive", "newEventMessages", "startEventLogPolling"]:
         require(item in swift, f"Swift desktop shell missing economy persistence contract: {item}")
-    for item in ["PendingEvent", "processPendingEvents", "scheduleFollowUps", "eventTriggerMatch", "pendingEvents", "eventDebugSummary", "debugAdvanceDay", "debugSetStatePreset", "eventAlreadyApplied", "eventCategoryAlreadyApplied", "eventDiversityMultiplier", "eventCalendarMultiplier", "applyLightDailyEvent", "paceEventMessages"]:
+    for item in ["PendingEvent", "processPendingEvents", "scheduleFollowUps", "eventTriggerMatch", "pendingEvents", "eventDebugSummary", "debugAdvanceDay", "debugSetStatePreset", "debugResetState", "eventAlreadyApplied", "eventCategoryAlreadyApplied", "eventDiversityMultiplier", "eventCalendarMultiplier", "applyLightDailyEvent", "applyRealtimeEvent", "realtimeEventCandidates", "realtimeInterludeCandidates", "realtimeContextIds", "scheduleRealtimeEvent", "eventMessageTone", "eventSpriteState", "storyLabel", "StoryDefinition", "storySummaries", "sendStories", "compareEventsDescending", "paceEventMessages"]:
         require(item in swift, f"Swift desktop shell missing event chain contract: {item}")
     require("debtMoodPenalty" in swift, "Swift desktop shell must apply mood pressure when money is negative")
     require("max(0, state.money +" not in swift, "Swift desktop shell must allow negative money balances")

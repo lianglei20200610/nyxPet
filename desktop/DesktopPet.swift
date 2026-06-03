@@ -98,6 +98,7 @@ struct LifeEventConfig: Decodable {
     let healthSensitive: Bool?
     let triggers: EventTriggers?
     let followUps: [EventFollowUp]?
+    let interludeFor: [String]?
 }
 
 struct LifeEventLogEntry: Codable {
@@ -118,12 +119,33 @@ struct EventBubbleMessage: Codable {
     let label: String
     let text: String
     let severity: String
+    let tone: String
+    let spriteState: String
+    let durationMs: Int
 
-    init(label: String, text: String, severity: String = "normal") {
+    init(label: String, text: String, severity: String = "normal", tone: String = "", spriteState: String = "", durationMs: Int = 4_200) {
         self.label = label
         self.text = text
         self.severity = severity
+        self.tone = tone
+        self.spriteState = spriteState
+        self.durationMs = durationMs
     }
+}
+
+struct StoryDefinition {
+    let id: String
+    let title: String
+    let eventIds: Set<String>
+}
+
+struct StorySummaryItem: Codable {
+    let id: String
+    let title: String
+    let status: String
+    let latestDate: String
+    let summary: String
+    let next: String
 }
 
 struct PetState: Codable {
@@ -250,6 +272,15 @@ final class PetStateStore {
     private var ledger: [LedgerEntry]
     private var eventLog: [LifeEventLogEntry]
     private(set) var eventMessages: [EventBubbleMessage] = []
+    private let storyDefinitions = [
+        StoryDefinition(id: "debt", title: "财务压力", eventIds: ["debt_anxiety", "careful_budgeting", "cut_spending", "extra_side_job", "cashflow_ease", "tired_after_side_job"]),
+        StoryDefinition(id: "work_pressure", title: "工作压力", eventIds: ["work_pressure", "late_sleep", "pressure_insomnia", "adjust_sleep"]),
+        StoryDefinition(id: "health_recovery", title: "健康恢复", eventIds: ["flu", "stomach", "physical_exam", "flu_medicine", "sick_leave", "recover_from_flu", "exercise_plan", "diet_adjust", "health_improved"]),
+        StoryDefinition(id: "family_education", title: "家庭教育", eventIds: ["child_tuition_extra", "study_plan", "parent_child_tension", "child_progress", "child_award", "family_celebration", "family_conflict", "family_talk", "family_budget_talk"]),
+        StoryDefinition(id: "career_growth", title: "职业成长", eventIds: ["training_fee", "course_started", "skill_practice", "skill_improved", "study_fatigue", "side_job", "promotion"]),
+        StoryDefinition(id: "home_repair", title: "家庭维护", eventIds: ["appliance_break", "repair_quote", "fixed_appliance", "replace_appliance"]),
+        StoryDefinition(id: "commute", title: "通勤调整", eventIds: ["commute_delay", "adjust_commute", "walk_to_work"])
+    ]
 
     init(root: URL) {
         stateURL = root.appendingPathComponent("data/pet-state.json")
@@ -429,7 +460,52 @@ final class PetStateStore {
 
     func recentEventEntries(limit: Int = 24) -> [LifeEventLogEntry] {
         eventLog = Self.loadEventLog(from: eventURL)
-        return Array(eventLog.suffix(limit).reversed())
+        return Array(eventLog.sorted(by: Self.compareEventsDescending).prefix(limit))
+    }
+
+    private static func compareEventsDescending(_ left: LifeEventLogEntry, _ right: LifeEventLogEntry) -> Bool {
+        if left.date != right.date {
+            return left.date > right.date
+        }
+        return left.id > right.id
+    }
+
+    func storySummaries(lifeEvents: [LifeEventConfig], limit: Int = 7) -> [StorySummaryItem] {
+        eventLog = Self.loadEventLog(from: eventURL)
+        var items: [StorySummaryItem] = []
+        for story in storyDefinitions {
+            let happened = eventLog
+                .filter { entry in
+                    story.eventIds.contains(entry.eventId ?? "") || story.eventIds.contains(entry.id.split(separator: ":").dropFirst(2).first.map(String.init) ?? "")
+                }
+                .sorted(by: Self.compareEventsDescending)
+            let pending = state.pendingEvents
+                .filter { story.eventIds.contains($0.eventId) || story.eventIds.contains($0.sourceEventId) }
+                .sorted { $0.dueDate < $1.dueDate }
+
+            guard !happened.isEmpty || !pending.isEmpty else {
+                continue
+            }
+
+            let recentNames = happened.prefix(4).reversed().map { $0.name }.joined(separator: " -> ")
+            let next = pending.isEmpty ? "" : "下一步可能是：" + pending.prefix(2).map {
+                "\(eventName($0.eventId, lifeEvents: lifeEvents))（\($0.dueDate)）"
+            }.joined(separator: "、")
+            items.append(StorySummaryItem(
+                id: story.id,
+                title: story.title,
+                status: pending.isEmpty ? "" : "进行中",
+                latestDate: happened.first?.date ?? pending.first?.dueDate ?? "",
+                summary: recentNames.isEmpty ? "这条故事线已经有后续在等待发生。" : "最近进展：\(recentNames)",
+                next: next
+            ))
+        }
+
+        return Array(items.sorted { $0.latestDate > $1.latestDate }.prefix(limit))
+    }
+
+    private func eventName(_ eventId: String, lifeEvents: [LifeEventConfig]) -> String {
+        lifeEvents.first(where: { $0.id == eventId })?.name ?? eventId
     }
 
     func monthlyStatsSummary() -> String {
@@ -475,21 +551,54 @@ final class PetStateStore {
     }
 
     func debugSetStatePreset(_ preset: String) -> String {
+        state = PetState.initial
+        state.lastSettlementDate = Self.dayString(Date())
         switch preset {
         case "lowMood":
             state.mood = 22
-            state.health = 58
         case "lowHealth":
             state.health = 38
         case "debt":
             state.money = -26_000
-            state.mood = 34
         default:
             return "未知调试预设"
         }
         state.currentActivity = "待机"
         save()
         return "已设置调试状态\n金钱 \(signed(state.money)) 心情 \(state.mood) 健康 \(state.health)"
+    }
+
+    func debugResetState() -> String {
+        state = PetState.initial
+        state.lastSettlementDate = Self.dayString(Date())
+        save()
+        return "已重置默认值\n金钱 \(signed(state.money)) 心情 \(state.mood) 健康 \(state.health)"
+    }
+
+    func applyRealtimeEvent(lifeEvents: [LifeEventConfig]) -> Bool {
+        let day = Self.dayString(Date())
+        guard realtimeEventsToday(day: day) < 4 else {
+            return false
+        }
+
+        let interludes = realtimeInterludeCandidates(day: day, lifeEvents: lifeEvents)
+        let candidates = !interludes.isEmpty && Double.random(in: 0...1) < 0.7
+            ? interludes
+            : realtimeEventCandidates(day: day, lifeEvents: lifeEvents)
+        guard let event = candidates.randomElement() else {
+            return false
+        }
+
+        applyLifeEvent(
+            event,
+            day: day,
+            index: Int(Date().timeIntervalSince1970 * 1000),
+            source: "realtime",
+            reason: "在线实时事件",
+            lifeEvents: lifeEvents
+        )
+        save()
+        return true
     }
 
     func eventIds() -> Set<String> {
@@ -511,10 +620,14 @@ final class PetStateStore {
         }
 
         return paceEventMessages(newEntries.map { entry in
+            let severity = eventSeverity(moneyDelta: entry.moneyDelta, moodDelta: entry.moodDelta, healthDelta: entry.healthDelta)
             return EventBubbleMessage(
-                label: entry.category,
+                label: eventMessageLabel(category: entry.category, source: entry.source, severity: severity),
                 text: "\(entry.message)\n金钱 \(signed(entry.moneyDelta)) 心情 \(signed(entry.moodDelta)) 健康 \(signed(entry.healthDelta))",
-                severity: eventSeverity(moneyDelta: entry.moneyDelta, moodDelta: entry.moodDelta, healthDelta: entry.healthDelta)
+                severity: severity,
+                tone: eventMessageTone(category: entry.category, source: entry.source, moneyDelta: entry.moneyDelta, moodDelta: entry.moodDelta, healthDelta: entry.healthDelta, severity: severity),
+                spriteState: eventSpriteState(category: entry.category, source: entry.source, moneyDelta: entry.moneyDelta, moodDelta: entry.moodDelta, healthDelta: entry.healthDelta),
+                durationMs: eventMessageDuration(source: entry.source, severity: severity)
             )
         })
     }
@@ -629,6 +742,59 @@ final class PetStateStore {
         }
     }
 
+    private func realtimeEventsToday(day: String) -> Int {
+        eventLog.filter { $0.date == day && $0.source == "realtime" }.count
+    }
+
+    private func realtimeEventCandidates(day: String, lifeEvents: [LifeEventConfig]) -> [LifeEventConfig] {
+        lifeEvents.filter { event in
+            guard ["轻日常", "健康", "心情", "在线插曲"].contains(event.category),
+                  !eventAlreadyApplied(day: day, eventId: event.id) else {
+                return false
+            }
+
+            let moneyImpact = abs(event.minMoneyDelta) + abs(event.maxMoneyDelta)
+            let moodImpact = abs(event.moodDelta)
+            let healthImpact = abs(event.healthDelta)
+            return moneyImpact <= 120 && moodImpact <= 4 && healthImpact <= 4
+        }
+    }
+
+    private func realtimeContextIds(day: String) -> Set<String> {
+        var ids = Set<String>()
+        for item in state.pendingEvents {
+            ids.insert(item.eventId)
+            ids.insert(item.sourceEventId)
+        }
+        for entry in eventLog {
+            guard let distance = daysBetween(from: entry.date, to: day),
+                  distance >= 0,
+                  distance <= 3,
+                  entry.source != "realtime" else {
+                continue
+            }
+            if let eventId = entry.eventId {
+                ids.insert(eventId)
+            }
+            let parts = entry.id.split(separator: ":").map(String.init)
+            if parts.count >= 4 {
+                ids.insert(parts[2])
+            }
+        }
+        return ids
+    }
+
+    private func realtimeInterludeCandidates(day: String, lifeEvents: [LifeEventConfig]) -> [LifeEventConfig] {
+        let contextIds = realtimeContextIds(day: day)
+        return realtimeEventCandidates(day: day, lifeEvents: lifeEvents).filter { event in
+            guard event.category == "在线插曲",
+                  let interludeFor = event.interludeFor else {
+                return false
+            }
+            return interludeFor.contains { contextIds.contains($0) }
+        }
+    }
+
     private func saveEventLog() {
         do {
             try FileManager.default.createDirectory(
@@ -668,6 +834,69 @@ final class PetStateStore {
         default:
             return 1
         }
+    }
+
+    private func eventMessageLabel(category: String, source: String, severity: String) -> String {
+        if source == "realtime" {
+            return "插曲 · \(category)"
+        }
+        if source == "followUp" {
+            return "后续 · \(category)"
+        }
+        return severity == "urgent" ? "紧急 · \(category)" : category
+    }
+
+    private func eventMessageTone(category: String, source: String, moneyDelta: Int, moodDelta: Int, healthDelta: Int, severity: String) -> String {
+        if source == "realtime" {
+            return "soft"
+        }
+        if source == "followUp" {
+            return "story"
+        }
+        if severity == "urgent" {
+            return "urgent"
+        }
+
+        let score = moodDelta + healthDelta + (moneyDelta > 0 ? 2 : (moneyDelta < 0 ? -2 : 0))
+        if score > 2 {
+            return "good"
+        }
+        if score < -2 {
+            return "bad"
+        }
+        return "soft"
+    }
+
+    private func eventSpriteState(category: String, source: String, moneyDelta: Int, moodDelta: Int, healthDelta: Int) -> String {
+        if source == "realtime" {
+            return "waving"
+        }
+        if healthDelta <= -5 || category == "医疗" {
+            return "failed"
+        }
+        if moodDelta >= 7 || healthDelta >= 6 {
+            return "jumping"
+        }
+        if ["工作", "成长", "教育"].contains(category) {
+            return "review"
+        }
+        if ["交通", "健康"].contains(category) {
+            return "runningRight"
+        }
+        if ["家庭", "人情", "娱乐", "轻日常", "在线插曲"].contains(category) {
+            return "waving"
+        }
+        return moodDelta + healthDelta < -2 ? "waiting" : "waving"
+    }
+
+    private func eventMessageDuration(source: String, severity: String) -> Int {
+        if source == "realtime" {
+            return 3_200
+        }
+        if source == "followUp" {
+            return 5_600
+        }
+        return severity == "urgent" ? 7_600 : 4_200
     }
 
     private func paceEventMessages(_ messages: [EventBubbleMessage], maxDetails: Int = 3) -> [EventBubbleMessage] {
@@ -1014,10 +1243,14 @@ final class PetStateStore {
             index: index
         )
 
+        let severity = eventSeverity(moneyDelta: moneyDelta, moodDelta: moodDelta, healthDelta: healthDelta)
         eventMessages.append(EventBubbleMessage(
-            label: event.category,
+            label: eventMessageLabel(category: event.category, source: source, severity: severity),
             text: "\(event.message)\n金钱 \(signed(moneyDelta)) 心情 \(signed(moodDelta)) 健康 \(signed(healthDelta))",
-            severity: eventSeverity(moneyDelta: moneyDelta, moodDelta: moodDelta, healthDelta: healthDelta)
+            severity: severity,
+            tone: eventMessageTone(category: event.category, source: source, moneyDelta: moneyDelta, moodDelta: moodDelta, healthDelta: healthDelta, severity: severity),
+            spriteState: eventSpriteState(category: event.category, source: source, moneyDelta: moneyDelta, moodDelta: moodDelta, healthDelta: healthDelta),
+            durationMs: eventMessageDuration(source: source, severity: severity)
         ))
 
         scheduleFollowUps(event, day: day, index: index, lifeEvents: lifeEvents)
@@ -1154,6 +1387,8 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
             sendLedger()
         case "showEvents":
             sendEvents()
+        case "showStories":
+            sendStories()
         case "showLedgerStats":
             sendSpeech(stateStore.monthlyStatsSummary(), label: "月度统计")
         case "showEventDebug":
@@ -1166,6 +1401,9 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
         case "debugSetStatePreset":
             let preset = body["preset"] as? String ?? ""
             sendSpeech(stateStore.debugSetStatePreset(preset), label: "调试状态")
+            sendState()
+        case "debugResetState":
+            sendSpeech(stateStore.debugResetState(), label: "调试状态")
             sendState()
         case "quit":
             quit()
@@ -1449,13 +1687,50 @@ final class PetMessageHandler: NSObject, WKScriptMessageHandler {
     }
 
     func sendEvents() {
-        let entries = stateStore.recentEventEntries()
-        guard let payload = try? JSONEncoder().encode(["entries": entries]),
+        let entries = stateStore.recentEventEntries().map { entry in
+            [
+                "date": entry.date,
+                "name": entry.name,
+                "category": entry.category,
+                "message": entry.message,
+                "moneyDelta": entry.moneyDelta,
+                "moodDelta": entry.moodDelta,
+                "healthDelta": entry.healthDelta,
+                "source": entry.source,
+                "eventId": entry.eventId ?? "",
+                "storyLabel": storyLabel(for: entry),
+                "reason": entry.reason ?? ""
+            ] as [String: Any]
+        }
+        guard let payload = try? JSONSerialization.data(withJSONObject: ["entries": entries]),
               let json = String(data: payload, encoding: .utf8) else {
             return
         }
 
         webView?.evaluateJavaScript("window.petEventLogResult(\(json));")
+    }
+
+    func sendStories() {
+        let stories = stateStore.storySummaries(lifeEvents: lifeEvents)
+        guard let payload = try? JSONEncoder().encode(["stories": stories]),
+              let json = String(data: payload, encoding: .utf8) else {
+            return
+        }
+
+        webView?.evaluateJavaScript("window.petStoryResult(\(json));")
+    }
+
+    private func storyLabel(for entry: LifeEventLogEntry) -> String {
+        if entry.source == "followUp" {
+            return "故事后续"
+        }
+        if entry.source == "realtime" {
+            return "在线插曲"
+        }
+        if ["财务", "工作", "健康", "家庭", "教育", "家庭维护", "交通"].contains(entry.category) {
+            return "\(entry.category)线"
+        }
+        return ""
     }
 
     func sendEventMessages(_ messages: [EventBubbleMessage]) {
@@ -1494,6 +1769,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var stateStore: PetStateStore!
     private var settingsStore: PetSettingsStore!
     private var eventPollTimer: Timer?
+    private var realtimeEventTimer: Timer?
     private var knownEventIds = Set<String>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -1539,6 +1815,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         NSApp.activate(ignoringOtherApps: true)
         startEventLogPolling()
+        scheduleRealtimeEvent()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -1547,6 +1824,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         eventPollTimer?.invalidate()
+        realtimeEventTimer?.invalidate()
         settingsStore.save(windowFrame: window.frame)
     }
 
@@ -1608,6 +1886,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let messages = self.stateStore.newEventMessages(knownIds: &self.knownEventIds)
             self.messageHandler?.sendEventMessages(messages)
         }
+    }
+
+    private func scheduleRealtimeEvent() {
+        realtimeEventTimer?.invalidate()
+        let delay = TimeInterval(Int.random(in: 30 * 60...90 * 60))
+        realtimeEventTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+            self?.triggerRealtimeEvent()
+        }
+    }
+
+    private func triggerRealtimeEvent() {
+        if stateStore.applyRealtimeEvent(lifeEvents: lifeEvents) {
+            messageHandler?.sendState()
+        }
+        scheduleRealtimeEvent()
     }
 }
 

@@ -45,6 +45,21 @@ let announcedEventIds = new Set();
 let activeActionId = null;
 let dailySettlementMessage = null;
 let dailyEventMessages = [];
+let realtimeEventTimer = null;
+
+const realtimeEventMinMs = 30 * 60 * 1000;
+const realtimeEventMaxMs = 90 * 60 * 1000;
+const realtimeEventDailyLimit = 4;
+
+const storyDefinitions = [
+  { id: "debt", title: "财务压力", eventIds: ["debt_anxiety", "careful_budgeting", "cut_spending", "extra_side_job", "cashflow_ease", "tired_after_side_job"] },
+  { id: "work_pressure", title: "工作压力", eventIds: ["work_pressure", "late_sleep", "pressure_insomnia", "adjust_sleep"] },
+  { id: "health_recovery", title: "健康恢复", eventIds: ["flu", "stomach", "physical_exam", "flu_medicine", "sick_leave", "recover_from_flu", "exercise_plan", "diet_adjust", "health_improved"] },
+  { id: "family_education", title: "家庭教育", eventIds: ["child_tuition_extra", "study_plan", "parent_child_tension", "child_progress", "child_award", "family_celebration", "family_conflict", "family_talk", "family_budget_talk"] },
+  { id: "career_growth", title: "职业成长", eventIds: ["training_fee", "course_started", "skill_practice", "skill_improved", "study_fatigue", "side_job", "promotion"] },
+  { id: "home_repair", title: "家庭维护", eventIds: ["appliance_break", "repair_quote", "fixed_appliance", "replace_appliance"] },
+  { id: "commute", title: "通勤调整", eventIds: ["commute_delay", "adjust_commute", "walk_to_work"] }
+];
 
 function publishState() {
   writeJson(statePath, state);
@@ -258,8 +273,9 @@ function eventSummary(limit = 24) {
     eventLog = latestEventLog;
   }
   return eventLog
-    .slice(-limit)
-    .reverse()
+    .slice()
+    .sort(compareEventEntriesDesc)
+    .slice(0, limit)
     .map((entry) => ({
       date: entry.date,
       name: entry.name,
@@ -268,9 +284,77 @@ function eventSummary(limit = 24) {
       moneyDelta: entry.moneyDelta,
       moodDelta: entry.moodDelta,
       healthDelta: entry.healthDelta,
+      source: entry.source || "",
+      eventId: entry.eventId || "",
+      storyLabel: eventStoryLabel(entry),
       reason: entry.reason || "",
       severity: entry.severity || eventSeverity(entry)
     }));
+}
+
+function compareEventEntriesDesc(left, right) {
+  const dateOrder = String(right.date || "").localeCompare(String(left.date || ""));
+  if (dateOrder !== 0) {
+    return dateOrder;
+  }
+  return String(right.id || "").localeCompare(String(left.id || ""));
+}
+
+function eventStoryLabel(entry) {
+  if (entry.source === "followUp") return "故事后续";
+  if (entry.source === "realtime") return "在线插曲";
+  const category = entry.category || "";
+  if (["财务", "工作", "健康", "家庭", "教育", "家庭维护", "交通"].includes(category)) {
+    return `${category}线`;
+  }
+  return "";
+}
+
+function eventName(eventId) {
+  return (lifeEvents || []).find((event) => event.id === eventId)?.name || eventId;
+}
+
+function storySummary(limit = 7) {
+  const latestEventLog = readJson(eventLogPath, []);
+  if (Array.isArray(latestEventLog)) {
+    eventLog = latestEventLog;
+  }
+
+  const stories = [];
+  for (const story of storyDefinitions) {
+    const ids = new Set(story.eventIds);
+    const happened = eventLog
+      .filter((entry) => ids.has(entry.eventId) || ids.has(String(entry.id || "").split(":")[2]))
+      .sort(compareEventEntriesDesc);
+    const pending = (Array.isArray(state.pendingEvents) ? state.pendingEvents : [])
+      .filter((item) => ids.has(item.eventId) || ids.has(item.sourceEventId))
+      .sort((left, right) => String(left.dueDate).localeCompare(String(right.dueDate)));
+
+    if (happened.length === 0 && pending.length === 0) {
+      continue;
+    }
+
+    const recent = happened.slice(0, 4).reverse();
+    const names = recent.map((entry) => entry.name).join(" -> ");
+    const hasPending = pending.length > 0;
+    const status = hasPending ? "进行中" : "";
+    const next = hasPending
+      ? `下一步可能是：${pending.slice(0, 2).map((item) => `${eventName(item.eventId)}（${item.dueDate}）`).join("、")}`
+      : "";
+
+    stories.push({
+      id: story.id,
+      title: story.title,
+      status,
+      latestDate: happened[0]?.date || pending[0]?.dueDate || "",
+      summary: names ? `最近进展：${names}` : "这条故事线已经有后续在等待发生。",
+      next
+    });
+  }
+
+  return stories
+    .sort((left, right) => String(right.latestDate).localeCompare(String(left.latestDate)))
+    .slice(0, limit);
 }
 
 function eventDebugSummary() {
@@ -338,11 +422,49 @@ function daysBetween(fromDay, toDay) {
 }
 
 function eventBubbleMessage(entry) {
+  const severity = entry.severity || eventSeverity(entry);
   return {
-    label: (entry.severity || eventSeverity(entry)) === "urgent" ? `紧急 · ${entry.category || "生活事件"}` : entry.category || "生活事件",
+    label: eventMessageLabel(entry.category || "生活事件", entry.source || "", severity),
     text: `${entry.message || entry.name}\n金钱 ${signed(entry.moneyDelta || 0)} 心情 ${signed(entry.moodDelta || 0)} 健康 ${signed(entry.healthDelta || 0)}`,
-    severity: entry.severity || eventSeverity(entry)
+    severity,
+    tone: eventMessageTone(entry),
+    spriteState: eventSpriteState(entry),
+    durationMs: eventMessageDuration(entry.source || "", severity)
   };
+}
+
+function eventMessageLabel(category, source, severity) {
+  if (source === "realtime") return `插曲 · ${category}`;
+  if (source === "followUp") return `后续 · ${category}`;
+  return severity === "urgent" ? `紧急 · ${category}` : category;
+}
+
+function eventMessageTone(entry) {
+  if (entry.source === "realtime") return "soft";
+  if (entry.source === "followUp") return "story";
+  if ((entry.severity || eventSeverity(entry)) === "urgent") return "urgent";
+  const score = Number(entry.moodDelta || 0) + Number(entry.healthDelta || 0) + Math.sign(Number(entry.moneyDelta || 0)) * 2;
+  if (score > 2) return "good";
+  if (score < -2) return "bad";
+  return "soft";
+}
+
+function eventSpriteState(entry) {
+  const category = entry.category || "";
+  if (entry.source === "realtime") return "waving";
+  if (Number(entry.healthDelta || 0) <= -5 || category === "医疗") return "failed";
+  if (Number(entry.moodDelta || 0) >= 7 || Number(entry.healthDelta || 0) >= 6) return "jumping";
+  if (category === "工作" || category === "成长" || category === "教育") return "review";
+  if (category === "交通" || category === "健康") return "runningRight";
+  if (["家庭", "人情", "娱乐", "轻日常", "在线插曲"].includes(category)) return "waving";
+  if (eventMessageTone(entry) === "bad") return "waiting";
+  return "waving";
+}
+
+function eventMessageDuration(source, severity) {
+  if (source === "realtime") return 3200;
+  if (source === "followUp") return 5600;
+  return severity === "urgent" ? 7600 : 4200;
 }
 
 function severityRank(severity) {
@@ -640,7 +762,10 @@ function applyLifeEvent(event, day, index, source = "lifeEvent", reason = "") {
   dailyEventMessages.push({
     label: event.category || "生活事件",
     text: `${event.message || event.name}\n金钱 ${signed(moneyDelta)} 心情 ${signed(moodDelta)} 健康 ${signed(healthDelta)}`,
-    severity: eventSeverity({ moneyDelta, moodDelta, healthDelta })
+    severity: eventSeverity({ moneyDelta, moodDelta, healthDelta }),
+    tone: eventMessageTone({ category: event.category, source, moneyDelta, moodDelta, healthDelta }),
+    spriteState: eventSpriteState({ category: event.category, source, moneyDelta, moodDelta, healthDelta }),
+    durationMs: eventMessageDuration(source, eventSeverity({ moneyDelta, moodDelta, healthDelta }))
   });
 
   scheduleFollowUps(event, day, index);
@@ -698,6 +823,83 @@ function applyLightDailyEvent(day, index) {
     return state.money - beforeMoney;
   }
   return 0;
+}
+
+function realtimeEventCandidates(day) {
+  return (lifeEvents || []).filter((event) => {
+    if (!["轻日常", "健康", "心情", "在线插曲"].includes(event.category)) {
+      return false;
+    }
+    if (eventAlreadyApplied(day, event.id)) {
+      return false;
+    }
+    const money = Math.abs(Number(event.minMoneyDelta || 0)) + Math.abs(Number(event.maxMoneyDelta || 0));
+    const mood = Math.abs(Number(event.moodDelta || 0));
+    const health = Math.abs(Number(event.healthDelta || 0));
+    return money <= 120 && mood <= 4 && health <= 4;
+  });
+}
+
+function realtimeContextIds(day) {
+  const ids = new Set();
+  for (const item of Array.isArray(state.pendingEvents) ? state.pendingEvents : []) {
+    if (item.eventId) ids.add(item.eventId);
+    if (item.sourceEventId) ids.add(item.sourceEventId);
+  }
+  for (const entry of eventLog) {
+    const distance = daysBetween(entry.date, day);
+    if (distance >= 0 && distance <= 3 && entry.source !== "realtime") {
+      if (entry.eventId) ids.add(entry.eventId);
+      const idParts = String(entry.id || "").split(":");
+      if (idParts.length >= 4) ids.add(idParts[2]);
+    }
+  }
+  return ids;
+}
+
+function realtimeInterludeCandidates(day) {
+  const contextIds = realtimeContextIds(day);
+  return realtimeEventCandidates(day).filter((event) => {
+    const interludeFor = Array.isArray(event.interludeFor) ? event.interludeFor : [];
+    return event.category === "在线插曲" && interludeFor.some((id) => contextIds.has(id));
+  });
+}
+
+function realtimeEventsToday(day) {
+  return eventLog.filter((entry) => entry.date === day && entry.source === "realtime").length;
+}
+
+function applyRealtimeEvent() {
+  if (activeActionId) {
+    scheduleRealtimeEvent();
+    return;
+  }
+
+  const day = dayString(new Date());
+  if (realtimeEventsToday(day) >= realtimeEventDailyLimit) {
+    scheduleRealtimeEvent();
+    return;
+  }
+
+  const interludes = realtimeInterludeCandidates(day);
+  const candidates = interludes.length > 0 && Math.random() < 0.7 ? interludes : realtimeEventCandidates(day);
+  if (candidates.length === 0) {
+    scheduleRealtimeEvent();
+    return;
+  }
+
+  const event = candidates[Math.floor(Math.random() * candidates.length)];
+  applyLifeEvent(event, day, Date.now(), "realtime", "在线实时事件");
+  publishState();
+  scheduleRealtimeEvent();
+}
+
+function scheduleRealtimeEvent() {
+  if (realtimeEventTimer) {
+    clearTimeout(realtimeEventTimer);
+  }
+  const delay = realtimeEventMinMs + Math.floor(Math.random() * (realtimeEventMaxMs - realtimeEventMinMs));
+  realtimeEventTimer = setTimeout(applyRealtimeEvent, delay);
 }
 
 function settleDailyBudget(targetDate = new Date()) {
@@ -844,21 +1046,37 @@ function debugAdvanceDay() {
 }
 
 function debugSetStatePreset(preset) {
+  state = {
+    ...state,
+    ...initialState,
+    lastSettlementDate: dayString(new Date()),
+    pendingEvents: []
+  };
   const presets = {
-    lowMood: { mood: 22, health: 58, money: Number(state.money || 0) },
-    lowHealth: { mood: Number(state.mood ?? 70), health: 38, money: Number(state.money || 0) },
-    debt: { mood: 34, health: Number(state.health ?? 75), money: -26000 }
+    lowMood: { mood: 22 },
+    lowHealth: { health: 38 },
+    debt: { money: -26000 }
   };
   const next = presets[preset];
   if (!next) {
     return "未知调试预设";
   }
-  state.mood = clamp(next.mood);
-  state.health = clamp(next.health);
-  state.money = next.money;
+  state = { ...state, ...next };
+  state.mood = clamp(state.mood);
+  state.health = clamp(state.health);
   state.currentActivity = "待机";
   publishState();
   return `已设置调试状态\n金钱 ${signed(state.money)} 心情 ${state.mood} 健康 ${state.health}`;
+}
+
+function debugResetState() {
+  state = {
+    ...initialState,
+    lastSettlementDate: dayString(new Date()),
+    pendingEvents: []
+  };
+  publishState();
+  return `已重置默认值\n金钱 ${signed(state.money)} 心情 ${state.mood} 健康 ${state.health}`;
 }
 
 function effectSummary(action) {
@@ -1128,10 +1346,12 @@ ipcMain.on("pet-message", (_event, body) => {
   if (action === "toggleStats") toggleStats();
   if (action === "showLedger") sendCallback("petLedgerResult", { entries: ledgerSummary(24) });
   if (action === "showEvents") sendCallback("petEventLogResult", { entries: eventSummary(24) });
+  if (action === "showStories") sendCallback("petStoryResult", { stories: storySummary() });
   if (action === "showLedgerStats") sendCallback("petLedgerStatsResult", { stats: ledgerMonthlyStats() });
   if (action === "showEventDebug") sendSkillResult(eventDebugSummary(), "事件调试");
   if (action === "debugAdvanceDay") sendSkillResult(debugAdvanceDay(), "推进一天");
   if (action === "debugSetStatePreset") sendSkillResult(debugSetStatePreset(body.preset), "调试状态");
+  if (action === "debugResetState") sendSkillResult(debugResetState(), "调试状态");
   if (action === "quit") app.quit();
 });
 
@@ -1139,9 +1359,13 @@ app.whenReady().then(() => {
   loadRuntimeData();
   createWindow();
   watchEventLog();
+  scheduleRealtimeEvent();
 });
 
 app.on("before-quit", () => {
+  if (realtimeEventTimer) {
+    clearTimeout(realtimeEventTimer);
+  }
   fs.unwatchFile(eventLogPath, broadcastNewEventLogEntries);
   saveWindowFrame();
 });

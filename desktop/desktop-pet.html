@@ -117,6 +117,31 @@
         transform: translateY(0) scale(1);
       }
 
+      .bubble.tone-good {
+        background: #f0fff2;
+        border-color: #1f8a4c;
+      }
+
+      .bubble.tone-bad {
+        background: #fff2ef;
+        border-color: #b94a3c;
+      }
+
+      .bubble.tone-urgent {
+        background: #fff7df;
+        border-color: #a95d1d;
+      }
+
+      .bubble.tone-soft {
+        background: #f7fbff;
+        border-color: #47718f;
+      }
+
+      .bubble.tone-story {
+        background: #f8f2ff;
+        border-color: #6c5794;
+      }
+
       .bubble.scrollable {
         overflow-y: auto;
         pointer-events: auto;
@@ -133,6 +158,14 @@
         border-left: 4px solid var(--ink);
         border-bottom: 4px solid var(--ink);
         transform: rotate(45deg);
+      }
+
+      .bubble.tone-good::before,
+      .bubble.tone-bad::before,
+      .bubble.tone-urgent::before,
+      .bubble.tone-soft::before,
+      .bubble.tone-story::before {
+        background: inherit;
       }
 
       .bubble-label {
@@ -203,6 +236,15 @@
         border-bottom: 1px solid rgba(56, 43, 24, 0.12);
       }
 
+      .event-row.is-follow-up {
+        padding-left: 12px;
+        border-left: 3px solid rgba(108, 87, 148, 0.45);
+      }
+
+      .event-row.is-interlude {
+        opacity: 0.88;
+      }
+
       .event-row:last-child {
         border-bottom: 0;
         padding-bottom: 0;
@@ -224,6 +266,70 @@
         color: #7c6754;
         font-size: 11px;
         font-weight: 700;
+      }
+
+      .event-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 3px;
+      }
+
+      .event-tag {
+        padding: 1px 5px;
+        border-radius: 999px;
+        background: rgba(71, 113, 143, 0.12);
+        color: #5b4a3d;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .story-list {
+        display: grid;
+        gap: 10px;
+        font-size: 13px;
+        line-height: 1.32;
+        white-space: normal;
+      }
+
+      .story-row {
+        padding-bottom: 9px;
+        border-bottom: 1px solid rgba(56, 43, 24, 0.12);
+      }
+
+      .story-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .story-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-weight: 800;
+      }
+
+      .story-status {
+        padding: 1px 6px;
+        border-radius: 999px;
+        background: rgba(108, 87, 148, 0.12);
+        color: #604f7e;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .story-text {
+        display: block;
+        margin-top: 4px;
+        color: #5f4d3e;
+      }
+
+      .story-next {
+        display: block;
+        margin-top: 4px;
+        color: #7c6754;
+        font-size: 12px;
       }
 
       .event-name {
@@ -494,7 +600,10 @@
       let menuMode = "root";
       let activePetClass = "";
       let spriteTimer;
+      let eventModeTimer;
       let spriteFrame = 0;
+      let currentMode = "";
+      let currentSpriteState = "";
       let messageQueue = [];
       let queuePlaying = false;
 
@@ -517,6 +626,7 @@
         entertainment: { label: "娱乐", icon: "🎲" },
         interaction: { label: "互动", icon: "🧩" },
         events: { label: "事件", icon: "📖" },
+        stories: { label: "故事", icon: "📚" },
         skill: { label: "技能", icon: "✨" },
         settings: { label: "设置", icon: "⚙️" },
         developer: { label: "开发工具", icon: "🛠" }
@@ -525,21 +635,25 @@
 
       function resetBubbleContent() {
         bubble.classList.remove("scrollable");
+        bubble.classList.remove("tone-good", "tone-bad", "tone-urgent", "tone-soft", "tone-story");
         bubbleText.className = "bubble-text";
         bubbleText.replaceChildren();
       }
 
-      function say(text, label = "宠物", durationMs = 5200) {
+      function say(text, label = "宠物", durationMs = 5200, tone = "") {
         window.clearTimeout(hideTimer);
         resetBubbleContent();
+        if (tone) {
+          bubble.classList.add(`tone-${tone}`);
+        }
         bubbleLabel.textContent = label;
         bubbleText.textContent = text;
         bubble.classList.add("show");
         hideTimer = window.setTimeout(() => bubble.classList.remove("show"), durationMs);
       }
 
-      function enqueueBubble(text, label = "宠物", durationMs = 3600, priority = "normal") {
-        const item = { text, label, durationMs };
+      function enqueueBubble(text, label = "宠物", durationMs = 3600, priority = "normal", options = {}) {
+        const item = { text, label, durationMs, ...options };
         if (priority === "urgent") {
           messageQueue.unshift(item);
         } else {
@@ -554,7 +668,10 @@
         }
         queuePlaying = true;
         const item = messageQueue.shift();
-        say(item.text, item.label, item.durationMs);
+        if (item.spriteState) {
+          showEventPetReaction(item.spriteState, item.durationMs);
+        }
+        say(item.text, item.label, item.durationMs, item.tone || "");
         window.setTimeout(() => {
           queuePlaying = false;
           playBubbleQueue();
@@ -640,6 +757,8 @@
             }
             const row = document.createElement("span");
             row.className = "event-row";
+            if (entry.source === "followUp") row.classList.add("is-follow-up");
+            if (entry.source === "realtime") row.classList.add("is-interlude");
             const main = document.createElement("span");
             main.className = "event-main";
             const date = document.createElement("span");
@@ -649,6 +768,21 @@
             name.className = "event-name";
             name.textContent = entry.name;
             main.append(date, name);
+            if (entry.storyLabel || entry.source) {
+              const tags = document.createElement("span");
+              tags.className = "event-tags";
+              const storyTag = document.createElement("span");
+              storyTag.className = "event-tag";
+              storyTag.textContent = entry.storyLabel || (entry.source === "realtime" ? "在线插曲" : "生活事件");
+              tags.appendChild(storyTag);
+              if (entry.source === "followUp") {
+                const followTag = document.createElement("span");
+                followTag.className = "event-tag";
+                followTag.textContent = "后续";
+                tags.appendChild(followTag);
+              }
+              main.appendChild(tags);
+            }
 
             const effects = document.createElement("span");
             effects.className = "event-effects";
@@ -659,6 +793,48 @@
               effects.appendChild(pill);
             }
             row.append(main, effects);
+            list.appendChild(row);
+          }
+        }
+        bubbleText.appendChild(list);
+        bubble.classList.add("show");
+        hideTimer = window.setTimeout(() => bubble.classList.remove("show"), 52000);
+      }
+
+      function showStories(stories) {
+        window.clearTimeout(hideTimer);
+        resetBubbleContent();
+        bubble.classList.add("scrollable");
+        bubbleLabel.textContent = "故事";
+        const list = document.createElement("span");
+        list.className = "story-list";
+        if (!stories || stories.length === 0) {
+          list.textContent = "暂无进行中的故事\n有连续事件发生后会整理在这里";
+        } else {
+          for (const story of stories) {
+            const row = document.createElement("span");
+            row.className = "story-row";
+            const title = document.createElement("span");
+            title.className = "story-title";
+            const name = document.createElement("span");
+            name.textContent = story.title;
+            title.appendChild(name);
+            if (story.status) {
+              const status = document.createElement("span");
+              status.className = "story-status";
+              status.textContent = story.status;
+              title.appendChild(status);
+            }
+            const text = document.createElement("span");
+            text.className = "story-text";
+            text.textContent = story.summary;
+            row.append(title, text);
+            if (story.next) {
+              const next = document.createElement("span");
+              next.className = "story-next";
+              next.textContent = story.next;
+              row.appendChild(next);
+            }
             list.appendChild(row);
           }
         }
@@ -713,6 +889,8 @@
       }
 
       function setPetMode(mode, preferredSpriteState = "") {
+        currentMode = mode || "";
+        currentSpriteState = preferredSpriteState || "";
         const modeClass = {
           work: "working",
           food: "food",
@@ -738,6 +916,19 @@
           skill: "review"
         }[modeClass] || "idle";
         playSpriteState(stateName);
+      }
+
+      function showEventPetReaction(spriteState, durationMs) {
+        if (busy) return;
+        const previousMode = currentMode;
+        const previousSpriteState = currentSpriteState;
+        window.clearTimeout(eventModeTimer);
+        setPetMode("event", spriteState);
+        eventModeTimer = window.setTimeout(() => {
+          if (!busy) {
+            setPetMode(previousMode, previousSpriteState);
+          }
+        }, Math.max(1200, durationMs - 300));
       }
 
       function actionEffectTitle(action) {
@@ -790,6 +981,10 @@
         showEvents(payload.entries || []);
       };
 
+      window.petStoryResult = (payload) => {
+        showStories(payload.stories || []);
+      };
+
       window.petLedgerStatsResult = (payload) => {
         showLedgerStats(payload.stats || {});
       };
@@ -797,7 +992,11 @@
       window.petQueueEventMessages = (messages) => {
         const items = Array.isArray(messages) ? messages.slice(0, 4) : [];
         items.forEach((message, index) => {
-          enqueueBubble(message.text, message.label || "生活事件", message.severity === "urgent" ? 7600 : 4200, message.severity);
+          const duration = message.durationMs || (message.severity === "urgent" ? 7600 : 4200);
+          enqueueBubble(message.text, message.label || "生活事件", duration, message.severity, {
+            tone: message.tone || "",
+            spriteState: message.spriteState || ""
+          });
         });
       };
 
@@ -851,6 +1050,11 @@
           icon: categoryMeta.events.icon,
           title: categoryMeta.events.label,
           dataset: { action: "showEvents" }
+        }));
+        menu.appendChild(createMenuButton({
+          icon: categoryMeta.stories.icon,
+          title: categoryMeta.stories.label,
+          dataset: { action: "showStories" }
         }));
 
         if (loadedActions.length > 0) {
@@ -949,7 +1153,8 @@
             ["⏭", "推进一天结算", { action: "debugAdvanceDay" }],
             ["☁", "设为低心情", { action: "debugSetStatePreset", preset: "lowMood" }],
             ["✚", "设为低健康", { action: "debugSetStatePreset", preset: "lowHealth" }],
-            ["￥", "设为负债", { action: "debugSetStatePreset", preset: "debt" }]
+            ["￥", "设为负债", { action: "debugSetStatePreset", preset: "debt" }],
+            ["↺", "重置默认值", { action: "debugResetState" }]
           ];
           for (const [icon, title, dataset] of tools) {
             menu.appendChild(createMenuButton({ icon, title, dataset }));
@@ -1052,6 +1257,14 @@
           renderRootMenu();
           return;
         }
+        if (button.dataset.action === "showStories") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "showStories"
+          });
+          menu.classList.remove("open");
+          renderRootMenu();
+          return;
+        }
         if (button.dataset.action === "showLedger") {
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: "showLedger"
@@ -1064,7 +1277,7 @@
           });
           return;
         }
-        if (["showEventDebug", "debugAdvanceDay"].includes(button.dataset.action)) {
+        if (["showEventDebug", "debugAdvanceDay", "debugResetState"].includes(button.dataset.action)) {
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: button.dataset.action
           });
