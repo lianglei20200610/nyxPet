@@ -477,6 +477,80 @@
         pointer-events: none;
       }
 
+      .skill-prompt {
+        position: absolute;
+        inset: 0;
+        display: none;
+        place-items: center;
+        padding: 18px;
+        background: rgba(31, 25, 18, 0.26);
+        pointer-events: auto;
+        -webkit-app-region: no-drag;
+      }
+
+      .skill-prompt.open {
+        display: grid;
+      }
+
+      .skill-prompt-panel {
+        width: min(320px, 92vw);
+        padding: 14px;
+        border: 3px solid var(--ink);
+        border-radius: 8px;
+        background: var(--paper);
+        color: #33261b;
+        box-shadow: 0 8px 0 rgba(45, 38, 27, 0.16);
+      }
+
+      .skill-prompt-title {
+        margin: 0 0 10px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .skill-prompt-field {
+        display: grid;
+        gap: 5px;
+        margin-bottom: 9px;
+        font-size: 12px;
+      }
+
+      .skill-prompt-field input {
+        width: 100%;
+        min-width: 0;
+        padding: 8px 9px;
+        border: 2px solid rgba(56, 43, 24, 0.42);
+        border-radius: 6px;
+        font: inherit;
+        color: #33261b;
+        background: #fffdf7;
+        -webkit-user-select: text;
+        user-select: text;
+      }
+
+      .skill-prompt-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .skill-prompt-actions button {
+        min-width: 64px;
+        height: 32px;
+        border: 2px solid var(--ink);
+        border-radius: 6px;
+        background: #fff7df;
+        color: #33261b;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .skill-prompt-actions button[data-action="confirm"] {
+        background: #f8d45a;
+      }
+
       .menu.open {
         opacity: 1;
         transform: translate(-50%, 0) scale(1);
@@ -487,19 +561,120 @@
         grid-template-columns: repeat(4, 48px);
       }
 
-      .interaction-trigger {
-        position: absolute;
-        left: 29%;
-        bottom: 2.5%;
-        z-index: 4;
-        width: 74px;
-        height: 36px;
+      body.is-windows .pet {
+        left: 7%;
+        bottom: 9%;
+        width: 38%;
+        min-width: 188px;
+        max-width: 248px;
+      }
+
+      body.is-windows .shadow {
+        left: 26%;
+        bottom: 6%;
+        width: 26%;
+      }
+
+      body.is-windows .stats {
+        left: 6%;
+        right: auto;
+        top: auto;
+        bottom: 50%;
+        width: 178px;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 5px 10px;
+        padding: 9px 11px;
+        border-width: 2px;
+        border-radius: 14px;
+        font-size: 12px;
+        box-shadow: 0 5px 0 rgba(45, 38, 27, 0.1);
+      }
+
+      body.is-windows .stats strong {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      body.is-windows .stats .full-row {
+        font-size: 11px;
+      }
+
+      body.is-windows .bubble {
+        left: 41%;
+        right: 14px;
+        bottom: 34%;
+        width: auto;
+        min-height: 78px;
+        max-height: 260px;
+        padding: 12px 14px;
         border-width: 3px;
-        border-radius: 16px;
-        font-size: 15px;
-        font-weight: 800;
-        letter-spacing: 0;
-        -webkit-app-region: no-drag;
+        border-radius: 18px;
+        box-shadow: 0 7px 0 rgba(45, 38, 27, 0.11);
+      }
+
+      body.is-windows .bubble.skill-output {
+        left: 33%;
+        right: 12px;
+        bottom: 26%;
+        max-height: 390px;
+        min-height: 150px;
+      }
+
+      body.is-windows .bubble::before {
+        left: -9px;
+        bottom: 15px;
+        width: 20px;
+        height: 20px;
+        border-left-width: 3px;
+        border-bottom-width: 3px;
+      }
+
+      body.is-windows .bubble-label {
+        margin-bottom: 6px;
+        font-size: 12px;
+      }
+
+      body.is-windows .bubble-text {
+        font-size: 16px;
+        line-height: 1.32;
+      }
+
+      body.is-windows .bubble.skill-output .bubble-text {
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      body.is-windows .activity {
+        left: 40%;
+        right: 16px;
+        bottom: 22%;
+        width: auto;
+        border-width: 2px;
+        border-radius: 13px;
+        font-size: 12px;
+      }
+
+      body.is-windows .menu {
+        left: 41%;
+        bottom: 7%;
+        z-index: 5;
+        grid-template-columns: repeat(5, 44px);
+        gap: 7px;
+      }
+
+      body.is-windows .menu.submenu {
+        grid-template-columns: repeat(4, 44px);
+      }
+
+      body.is-windows button {
+        width: 44px;
+        height: 44px;
+        border-width: 2px;
+        border-radius: 13px;
+        box-shadow: 0 4px 0 rgba(45, 38, 27, 0.14);
+        font-size: 20px;
       }
 
       button {
@@ -519,8 +694,7 @@
       .bubble,
       .stats,
       .activity,
-      .menu,
-      .interaction-trigger {
+      .menu {
         -webkit-app-region: no-drag;
       }
 
@@ -587,18 +761,34 @@
         <span id="activityText">待机</span>
         <div class="activity-bar"><div class="activity-fill" id="activityFill"></div></div>
       </section>
-      <button class="interaction-trigger" id="interactionTrigger" type="button">互动</button>
       <nav class="menu" id="menu" aria-label="互动菜单"></nav>
+      <section class="skill-prompt" id="skillPrompt" aria-hidden="true">
+        <form class="skill-prompt-panel" id="skillPromptForm">
+          <p class="skill-prompt-title" id="skillPromptTitle">运行技能</p>
+          <div id="skillPromptFields"></div>
+          <div class="skill-prompt-actions">
+            <button type="button" data-action="cancel">取消</button>
+            <button type="submit" data-action="confirm">运行</button>
+          </div>
+        </form>
+      </section>
     </main>
     <script>
+      if (navigator.userAgent.includes("Windows")) {
+        document.body.classList.add("is-windows");
+      }
+
       const pet = document.getElementById("pet");
       const spritePet = document.querySelector(".sprite-pet");
       const menu = document.getElementById("menu");
-      const interactionTrigger = document.getElementById("interactionTrigger");
       const bubble = document.getElementById("bubble");
       const bubbleLabel = document.getElementById("bubbleLabel");
       const bubbleText = document.getElementById("bubbleText");
       const dragZone = document.getElementById("dragZone");
+      const skillPrompt = document.getElementById("skillPrompt");
+      const skillPromptForm = document.getElementById("skillPromptForm");
+      const skillPromptTitle = document.getElementById("skillPromptTitle");
+      const skillPromptFields = document.getElementById("skillPromptFields");
       const statEls = {
         mood: document.getElementById("mood"),
         weight: document.getElementById("weight"),
@@ -651,8 +841,60 @@
       };
       let petSettings = { alwaysOnTop: true };
 
+      function collectSkillPromptValues(skill) {
+        const prompts = Array.isArray(skill?.prompts) ? skill.prompts : [];
+        if (prompts.length === 0) {
+          return Promise.resolve({});
+        }
+
+        skillPromptFields.replaceChildren();
+        skillPromptTitle.textContent = skill.name || "运行技能";
+        const inputs = prompts.map((prompt) => {
+          const field = document.createElement("label");
+          field.className = "skill-prompt-field";
+          field.textContent = `${prompt.label || prompt.id}${prompt.hasSaved ? "（已保存，留空沿用）" : ""}`;
+
+          const input = document.createElement("input");
+          input.type = prompt.secret ? "password" : "text";
+          input.name = prompt.id;
+          input.autocomplete = "off";
+          input.value = prompt.defaultValue || "";
+          input.placeholder = prompt.hasSaved ? "留空使用上次保存的值" : "";
+          input.required = prompt.required !== false && !prompt.hasSaved && !input.value;
+          field.appendChild(input);
+          skillPromptFields.appendChild(field);
+          return input;
+        });
+
+        skillPrompt.classList.add("open");
+        skillPrompt.setAttribute("aria-hidden", "false");
+        inputs[0]?.focus();
+
+        return new Promise((resolve) => {
+          const close = (value) => {
+            skillPrompt.classList.remove("open");
+            skillPrompt.setAttribute("aria-hidden", "true");
+            skillPromptForm.removeEventListener("submit", onSubmit);
+            skillPromptForm.querySelector('[data-action="cancel"]').removeEventListener("click", onCancel);
+            resolve(value);
+          };
+          const onSubmit = (event) => {
+            event.preventDefault();
+            const values = {};
+            for (const input of inputs) {
+              values[input.name] = input.value;
+            }
+            close(values);
+          };
+          const onCancel = () => close(null);
+          skillPromptForm.addEventListener("submit", onSubmit);
+          skillPromptForm.querySelector('[data-action="cancel"]').addEventListener("click", onCancel);
+        });
+      }
+
       function resetBubbleContent() {
         bubble.classList.remove("scrollable");
+        bubble.classList.remove("skill-output");
         bubble.classList.remove("tone-good", "tone-bad", "tone-urgent", "tone-soft", "tone-story");
         bubbleText.className = "bubble-text";
         bubbleText.replaceChildren();
@@ -668,6 +910,22 @@
         bubbleText.textContent = text;
         bubble.classList.add("show");
         hideTimer = window.setTimeout(() => bubble.classList.remove("show"), durationMs);
+      }
+
+      function skillResultDuration(text) {
+        const length = String(text || "").length;
+        return Math.min(60000, Math.max(20000, 12000 + length * 35));
+      }
+
+      function showSkillResult(result) {
+        const text = result.text || "脚本运行完成";
+        window.clearTimeout(hideTimer);
+        resetBubbleContent();
+        bubble.classList.add("scrollable", "skill-output");
+        bubbleLabel.textContent = result.label || "小技能";
+        bubbleText.textContent = text;
+        bubble.classList.add("show");
+        hideTimer = window.setTimeout(() => bubble.classList.remove("show"), skillResultDuration(text));
       }
 
       function enqueueBubble(text, label = "宠物", durationMs = 3600, priority = "normal", options = {}) {
@@ -963,7 +1221,7 @@
         if (activePetClass === "is-skill") {
           setPetMode("");
         }
-        say(result.text || "脚本运行完成", result.label || "小技能");
+        showSkillResult(result);
       };
 
       window.petStateUpdated = (state) => {
@@ -1088,6 +1346,9 @@
           title: categoryMeta.settings.label,
           dataset: { action: "openCategory", category: "settings" }
         }));
+        if (document.body.classList.contains("is-windows")) {
+          menu.classList.add("open");
+        }
       }
 
       function renderCategoryMenu(category) {
@@ -1226,14 +1487,10 @@
 
       pet.addEventListener("click", (event) => {
         event.stopPropagation();
-        if (!menu.classList.contains("open")) {
+        if (document.body.classList.contains("is-windows")) {
           renderRootMenu();
+          return;
         }
-        menu.classList.toggle("open");
-      });
-
-      interactionTrigger.addEventListener("click", (event) => {
-        event.stopPropagation();
         if (!menu.classList.contains("open")) {
           renderRootMenu();
         }
@@ -1241,17 +1498,25 @@
       });
 
       document.addEventListener("click", () => {
+        if (document.body.classList.contains("is-windows")) {
+          renderRootMenu();
+          return;
+        }
         menu.classList.remove("open");
         renderRootMenu();
       });
 
       document.addEventListener("contextmenu", (event) => {
         event.preventDefault();
+        if (document.body.classList.contains("is-windows")) {
+          renderRootMenu();
+          return;
+        }
         menu.classList.remove("open");
         renderRootMenu();
       });
 
-      menu.addEventListener("click", (event) => {
+      menu.addEventListener("click", async (event) => {
         const button = event.target.closest("button");
         if (!button) return;
         event.stopPropagation();
@@ -1333,12 +1598,20 @@
             renderRootMenu();
             return;
           }
-          const skillName = button.dataset.skillName || "小技能";
+          const skill = loadedSkills.find((item) => item.id === button.dataset.skillId);
+          const skillName = button.dataset.skillName || skill?.name || "小技能";
+          const promptValues = await collectSkillPromptValues(skill);
+          if (promptValues === null) {
+            menu.classList.remove("open");
+            renderRootMenu();
+            return;
+          }
           setPetMode("skill");
           say("正在运行脚本...", skillName);
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: "runSkill",
-            skillId: button.dataset.skillId
+            skillId: button.dataset.skillId,
+            promptValues
           });
         } else if (button.dataset.action === "petAction") {
           if (busy) {

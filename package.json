@@ -16,6 +16,9 @@
   "build": {
     "appId": "com.nyx.pet",
     "productName": "Nyx Pet",
+    "asarUnpack": [
+      "skills/**/*.py"
+    ],
     "files": [
       "desktop/**/*",
       "actions/**/*",

@@ -4,11 +4,16 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..", "..");
-const dataDir = path.join(app.getPath("userData"), "data");
+const appDir = app.isPackaged ? path.dirname(process.execPath) : root;
+const bundledSkillsDir = path.join(root, "skills");
+const externalSkillsDir = app.isPackaged ? path.join(appDir, "skills") : bundledSkillsDir;
+const skillsPath = path.join(externalSkillsDir, "skills.json");
+const dataDir = app.isPackaged ? path.join(appDir, "data") : path.join(app.getPath("userData"), "data");
 const settingsPath = path.join(dataDir, "pet-settings.json");
 const statePath = path.join(dataDir, "pet-state.json");
 const ledgerPath = path.join(dataDir, "ledger.json");
 const eventLogPath = path.join(dataDir, "events.json");
+const skillInputsPath = path.join(dataDir, "skill-inputs.json");
 const economyPath = path.join(root, "actions", "economy.json");
 const lifeEventsPath = path.join(root, "actions", "life-events.json");
 
@@ -41,6 +46,7 @@ let settings = { ...initialSettings };
 let state = { ...initialState };
 let ledger = [];
 let eventLog = [];
+let skillInputs = {};
 let announcedEventIds = new Set();
 let activeActionId = null;
 let dailySettlementMessage = null;
@@ -86,7 +92,7 @@ function writeJson(filePath, value) {
 }
 
 function loadRuntimeData() {
-  skills = readJson(path.join(root, "skills", "skills.json"), []);
+  skills = readJson(skillsPath, readJson(path.join(bundledSkillsDir, "skills.json"), []));
   actions = readJson(path.join(root, "actions", "actions.json"), []);
   economy = { ...economy, ...readJson(economyPath, {}) };
   lifeEvents = readJson(lifeEventsPath, []);
@@ -102,6 +108,10 @@ function loadRuntimeData() {
   eventLog = readJson(eventLogPath, []);
   if (!Array.isArray(eventLog)) {
     eventLog = [];
+  }
+  skillInputs = readJson(skillInputsPath, {});
+  if (!skillInputs || typeof skillInputs !== "object" || Array.isArray(skillInputs)) {
+    skillInputs = {};
   }
   dailySettlementMessage = settleDailyBudget();
   announcedEventIds = new Set(eventLog.map((entry) => entry.id));
@@ -122,6 +132,34 @@ function sendCallback(name, payload) {
 
 function sendSkillResult(text, label = "小技能") {
   sendCallback("petSkillResult", { text, label });
+}
+
+function promptStoreForSkill(skillId) {
+  const stored = skillInputs[skillId];
+  return stored && typeof stored === "object" && !Array.isArray(stored) ? stored : {};
+}
+
+function publicPrompt(skillId, prompt) {
+  const stored = promptStoreForSkill(skillId);
+  const value = stored[prompt.id];
+  const hasSaved = value !== undefined && value !== null && String(value) !== "";
+  return {
+    id: prompt.id,
+    label: prompt.label,
+    secret: Boolean(prompt.secret),
+    required: prompt.required !== false,
+    defaultValue: prompt.secret ? "" : (hasSaved ? String(value) : String(prompt.defaultValue || "")),
+    hasSaved
+  };
+}
+
+function publicSkill(skill) {
+  return {
+    id: skill.id,
+    name: skill.name,
+    icon: skill.icon,
+    prompts: Array.isArray(skill.prompts) ? skill.prompts.map((prompt) => publicPrompt(skill.id, prompt)) : []
+  };
 }
 
 function sendState() {
@@ -147,7 +185,7 @@ function sendActivityEnded() {
 }
 
 function bootstrapRenderer() {
-  const publicSkills = skills.map(({ id, name, icon }) => ({ id, name, icon }));
+  const publicSkills = skills.map(publicSkill);
   const publicActions = actions.map((action) => ({
     id: action.id,
     name: action.name,
@@ -1039,8 +1077,8 @@ function settleDailyBudget(targetDate = new Date()) {
   if (debtPenalty < 0) {
     lines.push(`负债压力 心情 ${signed(debtPenalty)}`);
   }
-  if (derived.debt.level !== "none") {
-    lines.push(`负债等级 ${derived.debt.label}`);
+  if (derived.level !== "none") {
+    lines.push(`负债等级 ${derived.label}`);
   }
   return lines.join("\n");
 }
@@ -1107,8 +1145,8 @@ function validateSkill(skill) {
     return "技能配置错误\n缺少脚本路径";
   }
 
-  const resolvedScript = path.resolve(root, script);
-  const skillsDir = path.join(root, "skills");
+  const resolvedScript = resolveSkillScriptPath(script);
+  const skillsDir = externalSkillsDir;
   if (!resolvedScript.startsWith(`${skillsDir}${path.sep}`)) {
     return "技能配置被拦截\n脚本必须放在 skills/ 目录";
   }
@@ -1140,16 +1178,73 @@ function resolveCommand(command) {
   return command === "/usr/bin/python3" ? "python3" : command;
 }
 
+function resolveSkillScriptPath(script) {
+  if (script.startsWith("skills/") || script.startsWith(`skills${path.sep}`)) {
+    return path.resolve(externalSkillsDir, script.replace(/^skills[\\/]/, ""));
+  }
+  if (script.startsWith("./")) {
+    return path.resolve(externalSkillsDir, script.slice(2));
+  }
+  return path.resolve(externalSkillsDir, script);
+}
+
+function childWorkingDirectory() {
+  return externalSkillsDir;
+}
+
 function resolveSkillArgs(args) {
-  return args.map((arg) => {
-    if (arg.startsWith("skills/") || arg.startsWith("./")) {
-      return path.resolve(root, arg);
+  return args.map((arg, index) => {
+    if (index === 0 && (arg.startsWith("skills/") || arg.startsWith(`skills${path.sep}`) || arg.startsWith("./") || !path.isAbsolute(arg))) {
+      return resolveSkillScriptPath(arg);
     }
     return arg;
   });
 }
 
-function runSkill(skillId) {
+function promptArgsForSkill(skill, promptValues) {
+  if (!Array.isArray(skill.prompts)) {
+    return { args: [], error: "" };
+  }
+
+  const stored = { ...promptStoreForSkill(skill.id) };
+  const args = [];
+  let changed = false;
+
+  for (const prompt of skill.prompts) {
+    if (!prompt || !prompt.arg || !prompt.id) {
+      continue;
+    }
+
+    const incoming = promptValues && typeof promptValues === "object" ? promptValues[prompt.id] : undefined;
+    const typedValue = incoming === undefined || incoming === null ? "" : String(incoming).trim();
+    const storedValue = stored[prompt.id] === undefined || stored[prompt.id] === null ? "" : String(stored[prompt.id]).trim();
+    const fallbackValue = prompt.defaultValue === undefined || prompt.defaultValue === null ? "" : String(prompt.defaultValue).trim();
+    const value = typedValue || storedValue || fallbackValue;
+
+    if (typedValue && prompt.persist !== false) {
+      stored[prompt.id] = typedValue;
+      changed = true;
+    }
+
+    if ((prompt.required !== false) && !value) {
+      return { args: [], error: `技能缺少参数\n${prompt.label || prompt.id}` };
+    }
+
+    if (value) {
+      args.push(String(prompt.arg), value);
+    }
+  }
+
+  if (changed) {
+    skillInputs[skill.id] = stored;
+    writeJson(skillInputsPath, skillInputs);
+    sendCallback("petLoadSkills", skills.map(publicSkill));
+  }
+
+  return { args, error: "" };
+}
+
+function runSkill(skillId, promptValues = {}) {
   const skill = skills.find((item) => item.id === skillId);
   if (!skill) {
     sendSkillResult(`找不到这个小技能\n${skillId}`, "小技能");
@@ -1164,11 +1259,28 @@ function runSkill(skillId) {
 
   const outputLimit = skill.outputLimit || 500;
   const timeoutMs = Math.max(1, skill.timeoutSeconds || 10) * 1000;
-  const child = spawn(resolveCommand(skill.command), resolveSkillArgs(skill.args), {
-    cwd: root,
+  const promptArgs = promptArgsForSkill(skill, promptValues);
+  if (promptArgs.error) {
+    sendSkillResult(promptArgs.error, skill.name);
+    return;
+  }
+  const child = spawn(resolveCommand(skill.command), [
+    ...resolveSkillArgs(skill.args),
+    ...promptArgs.args
+  ], {
+    cwd: childWorkingDirectory(),
+    env: {
+      ...process.env,
+      PYTHONIOENCODING: "utf-8"
+    },
     shell: false,
     windowsHide: true
   });
+
+  if (child.stdin) {
+    child.stdin.write("\n");
+    child.stdin.end();
+  }
 
   let stdout = "";
   let stderr = "";
@@ -1343,13 +1455,21 @@ function watchEventLog() {
   fs.watchFile(eventLogPath, { interval: 1200 }, broadcastNewEventLogEntries);
 }
 
+function watchSkillsConfig() {
+  fs.mkdirSync(externalSkillsDir, { recursive: true });
+  fs.watchFile(skillsPath, { interval: 1200 }, () => {
+    skills = readJson(skillsPath, []);
+    sendCallback("petLoadSkills", skills.map(publicSkill));
+  });
+}
+
 ipcMain.on("pet-message", (_event, body) => {
   const action = typeof body === "string" ? body : body && body.action;
   if (!action) {
     return;
   }
 
-  if (action === "runSkill") runSkill(body.skillId);
+  if (action === "runSkill") runSkill(body.skillId, body.promptValues);
   if (action === "petAction") applyPetAction(body.actionId);
   if (action === "toggleAlwaysOnTop") toggleAlwaysOnTop();
   if (action === "toggleStats") toggleStats();
@@ -1380,6 +1500,7 @@ if (gotSingleInstanceLock) {
     loadRuntimeData();
     createWindow();
     watchEventLog();
+    watchSkillsConfig();
     scheduleRealtimeEvent();
   });
 }
@@ -1389,6 +1510,7 @@ app.on("before-quit", () => {
     clearTimeout(realtimeEventTimer);
   }
   fs.unwatchFile(eventLogPath, broadcastNewEventLogEntries);
+  fs.unwatchFile(skillsPath);
   saveWindowFrame();
 });
 

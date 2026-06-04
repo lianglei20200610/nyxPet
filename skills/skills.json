@@ -3,9 +3,47 @@
     "id": "test",
     "name": "测试脚本",
     "icon": "✨",
-    "command": "/usr/bin/python3",
-    "args": ["skills/test_skill.py"],
+    "command": "python",
+    "args": ["test_skill.py"],
     "timeoutSeconds": 10,
-    "outputLimit": 500
+    "outputLimit": 3000
+  },
+  {
+    "id": "overtime_calculator",
+    "name": "计算加班时长",
+    "icon": "⏱️",
+    "command": "python",
+    "args": ["overtime_calculator.py"],
+    "timeoutSeconds": 30,
+    "outputLimit": 3000,
+    "prompts": [
+      {
+        "id": "username",
+        "label": "EHR 账号",
+        "arg": "--username",
+        "required": true
+      },
+      {
+        "id": "password",
+        "label": "EHR 密码",
+        "arg": "--password",
+        "secret": true,
+        "required": true
+      },
+      {
+        "id": "query_year",
+        "label": "统计年份",
+        "arg": "--query_year",
+        "defaultValue": "2026",
+        "required": true
+      },
+      {
+        "id": "query_mon",
+        "label": "统计月份",
+        "arg": "--query_mon",
+        "defaultValue": "6",
+        "required": true
+      }
+    ]
   }
 ]
