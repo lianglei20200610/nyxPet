@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nyx Pet Guide Screenshots</title>
+    <style>
+      :root {
+        --ink: #382b18;
+        --paper: #fffaf0;
+        --accent: #f8d45a;
+        --soft: #f7fbff;
+        --line: rgba(56, 43, 24, 0.14);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 16px;
+        color: var(--ink);
+        background: #f2efe7;
+        font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+      }
+
+      h1 {
+        margin: 0 0 14px;
+        font-size: 24px;
+        line-height: 1.2;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .panel {
+        padding: 14px;
+        border: 3px solid var(--ink);
+        border-radius: 10px;
+        background: var(--paper);
+        box-shadow: 0 7px 0 rgba(45, 38, 27, 0.16);
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+      }
+
+      .pet-stage {
+        display: grid;
+        grid-template-columns: 104px 1fr;
+        gap: 10px;
+        align-items: end;
+      }
+
+      .pet {
+        width: 104px;
+        height: 104px;
+        display: grid;
+        place-items: center;
+        border: 3px solid var(--ink);
+        border-radius: 12px;
+        background: #fff;
+        font-size: 60px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 12px;
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        background: #fff;
+        font-size: 13px;
+      }
+
+      .menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .icon-btn {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border: 2px solid var(--ink);
+        border-radius: 13px;
+        background: #fffdf7;
+        box-shadow: 0 4px 0 rgba(45, 38, 27, 0.14);
+        font-size: 22px;
+      }
+
+      .icon-btn.badge::after {
+        content: "";
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 9px;
+        height: 9px;
+        border: 2px solid #fffdf7;
+        border-radius: 50%;
+        background: #e33b35;
+      }
+
+      .list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .row {
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .row:last-child { border-bottom: 0; }
+
+      .title {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-weight: 800;
+      }
+
+      .tag {
+        flex: 0 0 auto;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: rgba(108, 87, 148, 0.12);
+        color: #604f7e;
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .text {
+        display: block;
+        margin-top: 4px;
+        color: #5f4d3e;
+        font-size: 13px;
+        line-height: 1.38;
+      }
+
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+
+      .tab {
+        padding: 4px 10px;
+        border: 1px solid var(--ink);
+        border-radius: 999px;
+        background: #fffdf7;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .tab.active { background: var(--accent); }
+
+      .skill-box {
+        display: grid;
+        gap: 9px;
+        padding: 14px;
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        background: #fffdf7;
+      }
+
+      .field {
+        display: grid;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .input {
+        height: 32px;
+        padding: 7px 9px;
+        border: 2px solid rgba(56, 43, 24, 0.42);
+        border-radius: 6px;
+        background: #fff;
+        color: #7c6754;
+      }
+
+      .skin-list {
+        display: grid;
+        gap: 7px;
+        margin-top: 10px;
+      }
+
+      .skin {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 8px;
+        align-items: center;
+        height: 36px;
+        padding: 0 10px;
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        background: #fffdf7;
+        font-size: 13px;
+        font-weight: 800;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Nyx Pet 功能界面示例</h1>
+    <main class="grid">
+      <section class="panel">
+        <h2>主界面与入口</h2>
+        <div class="pet-stage">
+          <div class="pet">🐾</div>
+          <div class="stats">
+            <span>心情 82</span>
+            <span>健康 78</span>
+            <span>体重 50</span>
+            <span>金钱 500000</span>
+          </div>
+        </div>
+        <div class="menu">
+          <span class="icon-btn">⏱️</span>
+          <span class="icon-btn badge">📖</span>
+          <span class="icon-btn badge">📚</span>
+          <span class="icon-btn">🧩</span>
+          <span class="icon-btn">⚙️</span>
+        </div>
+        <span class="text">红点表示事件或故事有新的未读内容。</span>
+      </section>
+
+      <section class="panel">
+        <h2>技能：计算加班时长</h2>
+        <div class="skill-box">
+          <div class="field"><span>EHR 账号</span><span class="input">your_account</span></div>
+          <div class="field"><span>EHR 密码</span><span class="input">••••••••</span></div>
+          <div class="field"><span>统计年份</span><span class="input">2026</span></div>
+          <div class="field"><span>统计月份</span><span class="input">6</span></div>
+        </div>
+        <span class="text">第一次输入后会保存到本机 data\\skill-inputs.json，之后可直接沿用或修改月份。</span>
+      </section>
+
+      <section class="panel">
+        <h2>故事筛选与时间线</h2>
+        <div class="tabs">
+          <span class="tab active">全部</span>
+          <span class="tab">掼蛋</span>
+          <span class="tab">羽毛球</span>
+          <span class="tab">饮食</span>
+        </div>
+        <div class="list">
+          <div class="row">
+            <div class="title"><span>饮食小剧场</span><span class="tag">进行中</span></div>
+            <span class="text">最近进展：自助餐吃撑 -> 第二天清淡点</span>
+            <span class="text">2026-06-06 自助餐吃撑：撑是真的撑，快乐也是真的快乐。</span>
+          </div>
+          <div class="row">
+            <div class="title"><span>掼蛋冲级线</span><span class="tag">进行中</span></div>
+            <span class="text">最近进展：三冲 A 未果 -> 排队复仇</span>
+            <span class="text">冲了三次 A 都没冲过去，又被打回 2，好气啊。</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>互动、事件与换皮肤</h2>
+        <div class="list">
+          <div class="row">
+            <div class="title"><span>羽毛球</span><span class="tag">互动</span></div>
+            <span class="text">可能触发“需要买球了”“拍线松了”“多拍拉锯”等事件，并形成后续故事。</span>
+          </div>
+          <div class="row">
+            <div class="title"><span>掼蛋</span><span class="tag">互动</span></div>
+            <span class="text">会触发阿杜掼蛋局、掼蛋冲级线、战术复盘等故事。</span>
+          </div>
+        </div>
+        <div class="skin-list">
+          <span class="skin"><span>✓</span><span>默认皮肤</span></span>
+          <span class="skin"><span>🎨</span><span>AcademicASI</span></span>
+          <span class="skin"><span>🎨</span><span>Byte Bunny</span></span>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

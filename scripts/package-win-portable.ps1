@@ -11,6 +11,8 @@ $exePath = Join-Path $packageDir "Nyx Pet.exe"
 $skillsDir = Join-Path $root "skills"
 $petsDir = Join-Path $root "pets"
 $readmePath = Join-Path $root "README-PORTABLE.md"
+$userGuidePath = Join-Path $root "USER_GUIDE.md"
+$userGuideImagesDir = Join-Path $root "docs\images"
 
 if (!(Test-Path $node)) {
   throw "Node runtime not found: $node"
@@ -26,6 +28,10 @@ if (!(Test-Path $skillsDir)) {
 
 if (!(Test-Path $readmePath)) {
   throw "Portable README not found: $readmePath"
+}
+
+if (!(Test-Path $userGuidePath)) {
+  throw "User guide not found: $userGuidePath"
 }
 
 Push-Location $root
@@ -53,6 +59,12 @@ if (Test-Path $petsDir) {
   Copy-Item -Path $petsDir -Destination (Join-Path $packageDir "pets") -Recurse -Force
 }
 Copy-Item -Path $readmePath -Destination $packageDir -Force
+Copy-Item -Path $userGuidePath -Destination $packageDir -Force
+if (Test-Path $userGuideImagesDir) {
+  $packageDocsDir = Join-Path $packageDir "docs"
+  New-Item -ItemType Directory -Path $packageDocsDir -Force | Out-Null
+  Copy-Item -Path $userGuideImagesDir -Destination (Join-Path $packageDocsDir "images") -Recurse -Force
+}
 
 $runtimeData = @(
   "data",
