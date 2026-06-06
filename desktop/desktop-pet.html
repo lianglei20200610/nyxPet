@@ -33,13 +33,6 @@
         height: 100vh;
       }
 
-      .drag-zone {
-        position: absolute;
-        inset: 0;
-        cursor: grab;
-        -webkit-app-region: drag;
-      }
-
       .shadow {
         position: absolute;
         left: 34%;
@@ -62,8 +55,13 @@
         max-width: 260px;
         aspect-ratio: 192 / 208;
         transform-origin: 50% 88%;
-        cursor: pointer;
-        -webkit-app-region: drag;
+        cursor: grab;
+        -webkit-app-region: no-drag;
+        touch-action: none;
+      }
+
+      .pet.is-dragging {
+        cursor: grabbing;
       }
 
       .sprite-pet {
@@ -737,7 +735,6 @@
   </head>
   <body>
     <main class="pet-shell">
-      <div class="drag-zone" id="dragZone"></div>
       <div class="shadow"></div>
       <section class="pet" id="pet" aria-label="宠物">
         <span class="sprite-pet" role="img" aria-label="Goku Forms Codex 宠物">
@@ -784,11 +781,11 @@
       const bubble = document.getElementById("bubble");
       const bubbleLabel = document.getElementById("bubbleLabel");
       const bubbleText = document.getElementById("bubbleText");
-      const dragZone = document.getElementById("dragZone");
       const skillPrompt = document.getElementById("skillPrompt");
       const skillPromptForm = document.getElementById("skillPromptForm");
       const skillPromptTitle = document.getElementById("skillPromptTitle");
       const skillPromptFields = document.getElementById("skillPromptFields");
+      const stats = document.getElementById("stats");
       const statEls = {
         mood: document.getElementById("mood"),
         weight: document.getElementById("weight"),
@@ -840,6 +837,100 @@
         developer: { label: "开发工具", icon: "🛠" }
       };
       let petSettings = { alwaysOnTop: true };
+      let mousePassthrough = null;
+      let petDrag = null;
+      let suppressNextPetClick = false;
+
+      function setMousePassthrough(enabled) {
+        if (mousePassthrough === enabled) {
+          return;
+        }
+        mousePassthrough = enabled;
+        window.webkit?.messageHandlers?.pet?.postMessage({
+          action: "setMousePassthrough",
+          enabled
+        });
+      }
+
+      function isInteractiveElement(element) {
+        if (!element) {
+          return false;
+        }
+        if (element.closest(".skill-prompt.open, .menu.open, .pet, button, input, textarea, select")) {
+          return true;
+        }
+        const bubbleHit = element.closest(".bubble.show");
+        if (bubbleHit && bubbleHit.classList.contains("scrollable")) {
+          return true;
+        }
+        if (element.closest(".stats")) {
+          return getComputedStyle(stats).display !== "none";
+        }
+        if (element.closest(".activity.show")) {
+          return true;
+        }
+        return false;
+      }
+
+      function updateMousePassthrough(event) {
+        if (!document.body.classList.contains("is-windows")) {
+          return;
+        }
+        const target = document.elementFromPoint(event.clientX, event.clientY);
+        setMousePassthrough(!isInteractiveElement(target));
+      }
+
+      function moveWindowBy(deltaX, deltaY) {
+        window.webkit?.messageHandlers?.pet?.postMessage({
+          action: "moveWindowBy",
+          deltaX,
+          deltaY
+        });
+      }
+
+      function startPetDrag(event) {
+        if (!document.body.classList.contains("is-windows") || event.button !== 0) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        setMousePassthrough(false);
+        pet.classList.add("is-dragging");
+        pet.setPointerCapture?.(event.pointerId);
+        petDrag = {
+          pointerId: event.pointerId,
+          lastScreenX: event.screenX,
+          lastScreenY: event.screenY,
+          moved: false
+        };
+      }
+
+      function continuePetDrag(event) {
+        if (!petDrag || event.pointerId !== petDrag.pointerId) {
+          return;
+        }
+        event.preventDefault();
+        const deltaX = event.screenX - petDrag.lastScreenX;
+        const deltaY = event.screenY - petDrag.lastScreenY;
+        if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
+          return;
+        }
+        petDrag.lastScreenX = event.screenX;
+        petDrag.lastScreenY = event.screenY;
+        petDrag.moved = true;
+        moveWindowBy(deltaX, deltaY);
+      }
+
+      function endPetDrag(event) {
+        if (!petDrag || event.pointerId !== petDrag.pointerId) {
+          return;
+        }
+        suppressNextPetClick = petDrag.moved;
+        petDrag = null;
+        pet.classList.remove("is-dragging");
+        pet.releasePointerCapture?.(event.pointerId);
+        updateMousePassthrough(event);
+      }
 
       function collectSkillPromptValues(skill) {
         const prompts = Array.isArray(skill?.prompts) ? skill.prompts : [];
@@ -1485,8 +1576,23 @@
         }, 700);
       };
 
+      if (document.body.classList.contains("is-windows")) {
+        setMousePassthrough(true);
+        document.addEventListener("mousemove", updateMousePassthrough);
+        document.addEventListener("pointerdown", updateMousePassthrough);
+        document.addEventListener("mouseleave", () => setMousePassthrough(true));
+        pet.addEventListener("pointerdown", startPetDrag);
+        pet.addEventListener("pointermove", continuePetDrag);
+        pet.addEventListener("pointerup", endPetDrag);
+        pet.addEventListener("pointercancel", endPetDrag);
+      }
+
       pet.addEventListener("click", (event) => {
         event.stopPropagation();
+        if (suppressNextPetClick) {
+          suppressNextPetClick = false;
+          return;
+        }
         if (document.body.classList.contains("is-windows")) {
           renderRootMenu();
           return;

@@ -10,7 +10,7 @@
     "start:mac-native": "./desktop/run-desktop-pet.sh",
     "dist": "electron-builder",
     "dist:mac": "electron-builder --mac",
-    "dist:win": "electron-builder --win portable --config.win.signAndEditExecutable=false",
+    "dist:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-win-portable.ps1",
     "dist:win:installer": "electron-builder --win"
   },
   "build": {

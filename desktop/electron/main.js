@@ -52,6 +52,7 @@ let activeActionId = null;
 let dailySettlementMessage = null;
 let dailyEventMessages = [];
 let realtimeEventTimer = null;
+let mousePassthroughEnabled = false;
 
 const realtimeEventMinMs = 30 * 60 * 1000;
 const realtimeEventMaxMs = 90 * 60 * 1000;
@@ -1423,6 +1424,33 @@ function showContextMenu() {
   menu.popup({ window: mainWindow });
 }
 
+function setMousePassthrough(enabled) {
+  if (process.platform !== "win32" || !mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  if (mousePassthroughEnabled === enabled) {
+    return;
+  }
+  mousePassthroughEnabled = enabled;
+  if (enabled) {
+    mainWindow.setIgnoreMouseEvents(true, { forward: true });
+    return;
+  }
+  mainWindow.setIgnoreMouseEvents(false);
+}
+
+function moveWindowBy(deltaX, deltaY) {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  const bounds = mainWindow.getBounds();
+  mainWindow.setPosition(
+    Math.round(bounds.x + Number(deltaX || 0)),
+    Math.round(bounds.y + Number(deltaY || 0)),
+    false
+  );
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     x: Math.round(settings.windowX),
@@ -1443,6 +1471,7 @@ function createWindow() {
   });
 
   mainWindow.setAlwaysOnTop(settings.alwaysOnTop, "floating");
+  setMousePassthrough(true);
   mainWindow.loadFile(path.join(root, "desktop", "desktop-pet.html"));
   mainWindow.once("ready-to-show", bootstrapRenderer);
   mainWindow.on("move", saveWindowFrame);
@@ -1473,6 +1502,8 @@ ipcMain.on("pet-message", (_event, body) => {
   if (action === "petAction") applyPetAction(body.actionId);
   if (action === "toggleAlwaysOnTop") toggleAlwaysOnTop();
   if (action === "toggleStats") toggleStats();
+  if (action === "setMousePassthrough") setMousePassthrough(Boolean(body.enabled));
+  if (action === "moveWindowBy") moveWindowBy(body.deltaX, body.deltaY);
   if (action === "showLedger") sendCallback("petLedgerResult", { entries: ledgerSummary(24) });
   if (action === "showEvents") sendCallback("petEventLogResult", { entries: eventSummary(24) });
   if (action === "showStories") sendCallback("petStoryResult", { stories: storySummary() });
