@@ -1,152 +1,4071 @@
 [
-  {"id":"flu","name":"感冒发烧","category":"医疗","message":"有点发烧，去买药看医生。","chance":0.025,"minMoneyDelta":-220,"maxMoneyDelta":-80,"moodDelta":-5,"healthDelta":-8,"healthSensitive":true,"triggers":{"healthBelow":55},"followUps":[{"eventId":"flu_medicine","chance":0.65,"delayDays":1},{"eventId":"sick_leave","chance":0.35,"delayDays":1},{"eventId":"recover_from_flu","chance":0.45,"delayDays":3}]},
-  {"id":"stomach","name":"肠胃不舒服","category":"医疗","message":"肠胃闹脾气，清淡一点。","chance":0.018,"minMoneyDelta":-180,"maxMoneyDelta":-60,"moodDelta":-4,"healthDelta":-6,"healthSensitive":true,"triggers":{"healthBelow":58}},
-  {"id":"dental","name":"牙齿疼","category":"医疗","message":"牙疼起来真要命，去处理一下。","chance":0.008,"minMoneyDelta":-800,"maxMoneyDelta":-180,"moodDelta":-7,"healthDelta":-3,"healthSensitive":true},
-  {"id":"physical_exam","name":"体检","category":"医疗","message":"做了一次基础体检，心里踏实些。","chance":0.006,"minMoneyDelta":-420,"maxMoneyDelta":-180,"moodDelta":2,"healthDelta":4,"followUps":[{"eventId":"exercise_plan","chance":0.45,"delayDays":1},{"eventId":"diet_adjust","chance":0.35,"delayDays":1}]},
-  {"id":"allergy","name":"过敏","category":"医疗","message":"突然过敏，买了药。","chance":0.012,"minMoneyDelta":-160,"maxMoneyDelta":-40,"moodDelta":-3,"healthDelta":-4,"healthSensitive":true},
-  {"id":"sports_injury","name":"运动拉伤","category":"医疗","message":"运动时有点拉伤，需要休息。","chance":0.006,"minMoneyDelta":-260,"maxMoneyDelta":-80,"moodDelta":-4,"healthDelta":-5},
-  {"id":"late_sleep","name":"熬夜","category":"健康","message":"昨晚睡太晚，今天状态下滑。","chance":0.045,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-4,"healthDelta":-5,"triggers":{"moodBelow":35},"followUps":[{"eventId":"flu","chance":0.08,"delayDays":1},{"eventId":"pressure_insomnia","chance":0.25,"delayDays":1}]},
-  {"id":"good_sleep","name":"睡了个好觉","category":"健康","message":"睡眠质量不错，人精神了。","chance":0.04,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":4,"healthDelta":3},
-  {"id":"back_pain","name":"腰背酸痛","category":"健康","message":"久坐之后腰背有点酸。","chance":0.025,"minMoneyDelta":-80,"maxMoneyDelta":0,"moodDelta":-3,"healthDelta":-4,"healthSensitive":true},
-  {"id":"massage","name":"按摩放松","category":"健康","message":"做了个肩颈放松。","chance":0.01,"minMoneyDelta":-180,"maxMoneyDelta":-80,"moodDelta":5,"healthDelta":3},
-  {"id":"friend_wedding","name":"朋友结婚","category":"人情","message":"朋友结婚，随了一份礼。","chance":0.006,"minMoneyDelta":-1000,"maxMoneyDelta":-500,"moodDelta":3,"healthDelta":0},
-  {"id":"colleague_wedding","name":"同事结婚","category":"人情","message":"同事结婚，礼金安排上。","chance":0.006,"minMoneyDelta":-800,"maxMoneyDelta":-300,"moodDelta":1,"healthDelta":0},
-  {"id":"relative_visit","name":"亲戚来访","category":"人情","message":"亲戚来家里，招待了一下。","chance":0.012,"minMoneyDelta":-360,"maxMoneyDelta":-120,"moodDelta":1,"healthDelta":-1},
-  {"id":"birthday_gift","name":"朋友生日礼物","category":"人情","message":"给朋友准备了生日礼物。","chance":0.012,"minMoneyDelta":-300,"maxMoneyDelta":-80,"moodDelta":3,"healthDelta":0},
-  {"id":"red_packet","name":"节日红包","category":"人情","message":"发了几个节日红包。","chance":0.01,"minMoneyDelta":-500,"maxMoneyDelta":-100,"moodDelta":2,"healthDelta":0},
-  {"id":"dinner_invite","name":"请客吃饭","category":"人情","message":"请朋友吃了一顿饭。","chance":0.018,"minMoneyDelta":-450,"maxMoneyDelta":-120,"moodDelta":5,"healthDelta":-1},
-  {"id":"friend_treat","name":"朋友请客","category":"人情","message":"朋友请吃饭，今天省了一笔。","chance":0.014,"minMoneyDelta":40,"maxMoneyDelta":120,"moodDelta":5,"healthDelta":1},
-  {"id":"old_friend_call","name":"老友来电","category":"人情","message":"和老朋友聊了聊，心情轻了一些。","chance":0.025,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":4,"healthDelta":0},
-  {"id":"family_conflict","name":"家庭小争执","category":"家庭","message":"家里有点小争执，情绪被消耗。","chance":0.018,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-6,"healthDelta":-1,"followUps":[{"eventId":"family_talk","chance":0.55,"delayDays":1},{"eventId":"quiet_evening","chance":0.25,"delayDays":1}]},
-  {"id":"family_good_news","name":"家里有好消息","category":"家庭","message":"家里传来好消息，整个人都亮了。","chance":0.01,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":8,"healthDelta":1},
-  {"id":"child_tuition_extra","name":"孩子补课费","category":"教育","message":"孩子补课又交了一笔。","chance":0.012,"minMoneyDelta":-1200,"maxMoneyDelta":-300,"moodDelta":-4,"healthDelta":0,"followUps":[{"eventId":"study_plan","chance":0.5,"delayDays":1},{"eventId":"family_budget_talk","chance":0.35,"delayDays":1}]},
-  {"id":"school_trip","name":"孩子研学活动","category":"教育","message":"学校组织研学活动，交了费用。","chance":0.008,"minMoneyDelta":-600,"maxMoneyDelta":-180,"moodDelta":1,"healthDelta":0},
-  {"id":"child_award","name":"孩子获奖","category":"教育","message":"孩子拿了奖，值得高兴。","chance":0.008,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":8,"healthDelta":1,"followUps":[{"eventId":"family_celebration","chance":0.45,"delayDays":1}]},
-  {"id":"child_sick","name":"孩子生病","category":"家庭","message":"孩子身体不舒服，带去看了看。","chance":0.014,"minMoneyDelta":-500,"maxMoneyDelta":-120,"moodDelta":-6,"healthDelta":-1},
-  {"id":"school_supplies_big","name":"开学采购","category":"教育","message":"开学用品集中采购。","chance":0.006,"minMoneyDelta":-800,"maxMoneyDelta":-250,"moodDelta":-2,"healthDelta":0},
-  {"id":"parent_support","name":"给父母生活费","category":"家庭","message":"给父母转了一笔生活费。","chance":0.012,"minMoneyDelta":-1000,"maxMoneyDelta":-300,"moodDelta":2,"healthDelta":0},
-  {"id":"parent_sick","name":"父母看病支援","category":"家庭","message":"父母看病，需要帮一把。","chance":0.006,"minMoneyDelta":-2000,"maxMoneyDelta":-500,"moodDelta":-8,"healthDelta":-2},
-  {"id":"home_cooked_meal","name":"家里做了顿好饭","category":"家庭","message":"认真做了一顿饭，舒服。","chance":0.035,"minMoneyDelta":-80,"maxMoneyDelta":-30,"moodDelta":5,"healthDelta":2},
-  {"id":"family_walk","name":"饭后散步","category":"家庭","message":"饭后一起散步，身心都轻松。","chance":0.03,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":4,"healthDelta":3},
-  {"id":"child_toy","name":"给孩子买玩具","category":"家庭","message":"给孩子买了个小玩具。","chance":0.018,"minMoneyDelta":-180,"maxMoneyDelta":-40,"moodDelta":3,"healthDelta":0},
-  {"id":"bonus","name":"项目奖金","category":"工作","message":"拿到一笔项目奖金。","chance":0.006,"minMoneyDelta":800,"maxMoneyDelta":3000,"moodDelta":9,"healthDelta":0},
-  {"id":"overtime_pay","name":"加班补贴","category":"工作","message":"加班换来一点补贴。","chance":0.018,"minMoneyDelta":100,"maxMoneyDelta":500,"moodDelta":-2,"healthDelta":-2},
-  {"id":"salary_deduction","name":"绩效扣款","category":"工作","message":"绩效被扣了一点，心里不爽。","chance":0.006,"minMoneyDelta":-1000,"maxMoneyDelta":-200,"moodDelta":-8,"healthDelta":-1},
-  {"id":"promotion","name":"升职机会","category":"工作","message":"出现升职机会，动力上来了。","chance":0.004,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":10,"healthDelta":1},
-  {"id":"work_pressure","name":"工作压力大","category":"工作","message":"工作压力有点顶，今天挺累。","chance":0.04,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-6,"healthDelta":-3,"triggers":{"moodBelow":45},"followUps":[{"eventId":"late_sleep","chance":0.45,"delayDays":1},{"eventId":"pressure_insomnia","chance":0.35,"delayDays":1}]},
-  {"id":"smooth_workday","name":"工作顺利","category":"工作","message":"今天工作挺顺，少了很多内耗。","chance":0.035,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":5,"healthDelta":1},
-  {"id":"training_fee","name":"职业培训","category":"工作","message":"报名了职业培训。","chance":0.006,"minMoneyDelta":-1200,"maxMoneyDelta":-300,"moodDelta":3,"healthDelta":0,"followUps":[{"eventId":"course_started","chance":0.6,"delayDays":2},{"eventId":"study_fatigue","chance":0.25,"delayDays":3}]},
-  {"id":"side_job","name":"接了个小私活","category":"工作","message":"接了个小私活，赚点外快。","chance":0.01,"minMoneyDelta":300,"maxMoneyDelta":1500,"moodDelta":2,"healthDelta":-2,"triggers":{"moneyBelow":-10000}},
-  {"id":"commute_delay","name":"通勤延误","category":"交通","message":"通勤路上耽误很久。","chance":0.03,"minMoneyDelta":-30,"maxMoneyDelta":0,"moodDelta":-4,"healthDelta":-1,"followUps":[{"eventId":"adjust_commute","chance":0.35,"delayDays":1}]},
-  {"id":"team_lunch","name":"团队聚餐","category":"工作","message":"团队聚餐，AA 了一下。","chance":0.014,"minMoneyDelta":-180,"maxMoneyDelta":-60,"moodDelta":4,"healthDelta":-1},
-  {"id":"bus_card","name":"交通卡充值","category":"交通","message":"交通卡充值。","chance":0.018,"minMoneyDelta":-200,"maxMoneyDelta":-50,"moodDelta":0,"healthDelta":0},
-  {"id":"taxi_rain","name":"下雨打车","category":"交通","message":"下雨只好打车。","chance":0.025,"minMoneyDelta":-90,"maxMoneyDelta":-25,"moodDelta":-1,"healthDelta":0},
-  {"id":"bike_repair","name":"自行车维修","category":"交通","message":"车子小修了一下。","chance":0.006,"minMoneyDelta":-180,"maxMoneyDelta":-30,"moodDelta":-1,"healthDelta":0},
-  {"id":"car_maintenance","name":"车辆保养","category":"交通","message":"车辆保养到期。","chance":0.004,"minMoneyDelta":-1200,"maxMoneyDelta":-400,"moodDelta":-3,"healthDelta":0},
-  {"id":"parking_fee","name":"停车费","category":"交通","message":"今天多付了停车费。","chance":0.018,"minMoneyDelta":-60,"maxMoneyDelta":-10,"moodDelta":-1,"healthDelta":0},
-  {"id":"traffic_ticket","name":"交通罚单","category":"交通","message":"收到一张交通罚单。","chance":0.004,"minMoneyDelta":-300,"maxMoneyDelta":-100,"moodDelta":-6,"healthDelta":0},
-  {"id":"road_trip","name":"短途出行","category":"交通","message":"短途出行散散心。","chance":0.006,"minMoneyDelta":-800,"maxMoneyDelta":-200,"moodDelta":8,"healthDelta":2},
-  {"id":"subway_crowd","name":"地铁拥挤","category":"交通","message":"通勤太挤，身心疲惫。","chance":0.035,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-3,"healthDelta":-1},
-  {"id":"walk_to_work","name":"步行通勤","category":"交通","message":"今天多走了些路，身体还行。","chance":0.02,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":2,"healthDelta":3},
-  {"id":"water_bill","name":"水费补缴","category":"生活缴费","message":"补缴了水费。","chance":0.006,"minMoneyDelta":-180,"maxMoneyDelta":-40,"moodDelta":-1,"healthDelta":0},
-  {"id":"electric_bill_high","name":"电费偏高","category":"生活缴费","message":"这个月电费用得有点多。","chance":0.01,"minMoneyDelta":-260,"maxMoneyDelta":-80,"moodDelta":-2,"healthDelta":0},
-  {"id":"internet_plan","name":"宽带套餐续费","category":"生活缴费","message":"宽带套餐续费。","chance":0.004,"minMoneyDelta":-1200,"maxMoneyDelta":-300,"moodDelta":-1,"healthDelta":0},
-  {"id":"phone_bill","name":"话费充值","category":"生活缴费","message":"充了话费。","chance":0.018,"minMoneyDelta":-120,"maxMoneyDelta":-30,"moodDelta":0,"healthDelta":0},
-  {"id":"property_fee","name":"物业费","category":"住房","message":"交了一笔物业费。","chance":0.004,"minMoneyDelta":-1800,"maxMoneyDelta":-500,"moodDelta":-3,"healthDelta":0},
-  {"id":"rent_repair","name":"家里小修补","category":"住房","message":"家里有点小修补。","chance":0.012,"minMoneyDelta":-300,"maxMoneyDelta":-60,"moodDelta":-2,"healthDelta":0},
-  {"id":"cleaning_supplies","name":"清洁用品采购","category":"家庭维护","message":"买了清洁用品。","chance":0.018,"minMoneyDelta":-120,"maxMoneyDelta":-30,"moodDelta":1,"healthDelta":0},
-  {"id":"appliance_break","name":"小家电坏了","category":"家庭维护","message":"小家电突然坏了。","chance":0.006,"minMoneyDelta":-600,"maxMoneyDelta":-120,"moodDelta":-5,"healthDelta":0,"followUps":[{"eventId":"repair_quote","chance":0.65,"delayDays":1},{"eventId":"replace_appliance","chance":0.18,"delayDays":2}]},
-  {"id":"furniture_small","name":"添置小家具","category":"住房","message":"添置了一件小家具。","chance":0.005,"minMoneyDelta":-900,"maxMoneyDelta":-200,"moodDelta":3,"healthDelta":0},
-  {"id":"home_declutter","name":"整理房间","category":"住房","message":"整理了房间，心里也清爽。","chance":0.02,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":5,"healthDelta":1},
-  {"id":"grocery_sale","name":"超市折扣","category":"餐饮","message":"赶上超市折扣，省了一点。","chance":0.025,"minMoneyDelta":20,"maxMoneyDelta":80,"moodDelta":2,"healthDelta":0},
-  {"id":"fresh_fruit","name":"买水果","category":"餐饮","message":"买了些水果。","chance":0.035,"minMoneyDelta":-80,"maxMoneyDelta":-20,"moodDelta":2,"healthDelta":2},
-  {"id":"coffee","name":"买咖啡","category":"餐饮","message":"买了杯咖啡提神。","chance":0.03,"minMoneyDelta":-35,"maxMoneyDelta":-12,"moodDelta":2,"healthDelta":-1},
-  {"id":"late_snack","name":"夜宵","category":"餐饮","message":"忍不住吃了夜宵。","chance":0.02,"minMoneyDelta":-80,"maxMoneyDelta":-25,"moodDelta":3,"healthDelta":-3},
-  {"id":"healthy_meal","name":"健康餐","category":"餐饮","message":"吃了一顿健康餐。","chance":0.018,"minMoneyDelta":-60,"maxMoneyDelta":-25,"moodDelta":2,"healthDelta":4},
-  {"id":"bad_takeout","name":"外卖踩雷","category":"餐饮","message":"外卖不太行，心情打折。","chance":0.012,"minMoneyDelta":-60,"maxMoneyDelta":-25,"moodDelta":-4,"healthDelta":-2},
-  {"id":"cook_fail","name":"做饭翻车","category":"餐饮","message":"做饭翻车，只能补救一下。","chance":0.012,"minMoneyDelta":-80,"maxMoneyDelta":-20,"moodDelta":-3,"healthDelta":0},
-  {"id":"cheap_breakfast","name":"早餐实惠","category":"餐饮","message":"早餐吃得便宜又舒服。","chance":0.025,"minMoneyDelta":-15,"maxMoneyDelta":-5,"moodDelta":2,"healthDelta":1},
-  {"id":"snack_stock","name":"囤零食","category":"餐饮","message":"囤了一些零食。","chance":0.018,"minMoneyDelta":-120,"maxMoneyDelta":-35,"moodDelta":2,"healthDelta":-1},
-  {"id":"milk_order","name":"牛奶订购","category":"餐饮","message":"补充了牛奶。","chance":0.01,"minMoneyDelta":-180,"maxMoneyDelta":-60,"moodDelta":1,"healthDelta":2},
-  {"id":"movie","name":"看电影","category":"娱乐","message":"看了场电影，放松一下。","chance":0.012,"minMoneyDelta":-160,"maxMoneyDelta":-60,"moodDelta":7,"healthDelta":1},
-  {"id":"streaming_member","name":"视频会员续费","category":"娱乐","message":"视频会员续费了。","chance":0.006,"minMoneyDelta":-268,"maxMoneyDelta":-68,"moodDelta":2,"healthDelta":0},
-  {"id":"game_purchase","name":"游戏消费","category":"娱乐","message":"买了个游戏或道具。","chance":0.006,"minMoneyDelta":-300,"maxMoneyDelta":-30,"moodDelta":5,"healthDelta":-1},
-  {"id":"concert","name":"演出门票","category":"娱乐","message":"买了演出门票。","chance":0.002,"minMoneyDelta":-1200,"maxMoneyDelta":-300,"moodDelta":10,"healthDelta":1},
-  {"id":"park_walk","name":"公园散步","category":"娱乐","message":"去公园走了走。","chance":0.025,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":5,"healthDelta":4},
-  {"id":"board_game","name":"桌游局","category":"娱乐","message":"和朋友玩了桌游。","chance":0.01,"minMoneyDelta":-100,"maxMoneyDelta":-20,"moodDelta":6,"healthDelta":1},
-  {"id":"short_trip","name":"周边游","category":"娱乐","message":"短暂出门玩了一趟。","chance":0.003,"minMoneyDelta":-1800,"maxMoneyDelta":-500,"moodDelta":12,"healthDelta":2},
-  {"id":"book_purchase","name":"买书","category":"娱乐","message":"买了本想看的书。","chance":0.012,"minMoneyDelta":-120,"maxMoneyDelta":-30,"moodDelta":4,"healthDelta":0},
-  {"id":"music_member","name":"音乐会员","category":"娱乐","message":"音乐会员续费。","chance":0.006,"minMoneyDelta":-188,"maxMoneyDelta":-18,"moodDelta":2,"healthDelta":0},
-  {"id":"quiet_evening","name":"安静的晚上","category":"娱乐","message":"度过了一个安静的晚上。","chance":0.025,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":5,"healthDelta":2},
-  {"id":"clothes_basic","name":"买日常衣物","category":"服饰","message":"买了些日常衣物。","chance":0.01,"minMoneyDelta":-400,"maxMoneyDelta":-100,"moodDelta":3,"healthDelta":0},
-  {"id":"shoes","name":"换鞋","category":"服饰","message":"鞋该换了。","chance":0.005,"minMoneyDelta":-700,"maxMoneyDelta":-180,"moodDelta":2,"healthDelta":1},
-  {"id":"haircut","name":"理发","category":"形象","message":"理了个发，清爽不少。","chance":0.018,"minMoneyDelta":-80,"maxMoneyDelta":-25,"moodDelta":3,"healthDelta":0,"hairDelta":2},
-  {"id":"skin_care","name":"护肤品补货","category":"形象","message":"护肤品补货。","chance":0.006,"minMoneyDelta":-500,"maxMoneyDelta":-80,"moodDelta":3,"healthDelta":0},
-  {"id":"laundry","name":"洗衣护理","category":"服饰","message":"做了一次衣物护理。","chance":0.01,"minMoneyDelta":-80,"maxMoneyDelta":-20,"moodDelta":1,"healthDelta":0},
-  {"id":"phone_repair","name":"手机维修","category":"数码","message":"手机出了点问题，修了一下。","chance":0.004,"minMoneyDelta":-1200,"maxMoneyDelta":-150,"moodDelta":-5,"healthDelta":0},
-  {"id":"laptop_repair","name":"电脑维修","category":"数码","message":"电脑维修花了一笔。","chance":0.003,"minMoneyDelta":-1800,"maxMoneyDelta":-300,"moodDelta":-6,"healthDelta":0},
-  {"id":"cloud_storage","name":"云空间续费","category":"数码","message":"云空间续费。","chance":0.006,"minMoneyDelta":-198,"maxMoneyDelta":-18,"moodDelta":0,"healthDelta":0},
-  {"id":"new_keyboard","name":"买键盘鼠标","category":"数码","message":"换了个输入设备。","chance":0.004,"minMoneyDelta":-600,"maxMoneyDelta":-80,"moodDelta":4,"healthDelta":0},
-  {"id":"data_recovery","name":"数据恢复","category":"数码","message":"数据出问题，赶紧恢复。","chance":0.001,"minMoneyDelta":-2500,"maxMoneyDelta":-500,"moodDelta":-10,"healthDelta":-1},
-  {"id":"investment_gain","name":"理财小赚","category":"财务","message":"理财小赚一笔。","chance":0.008,"minMoneyDelta":50,"maxMoneyDelta":600,"moodDelta":5,"healthDelta":0,"triggers":{"moneyAbove":600000}},
-  {"id":"investment_loss","name":"理财亏损","category":"财务","message":"理财有点亏损。","chance":0.008,"minMoneyDelta":-800,"maxMoneyDelta":-50,"moodDelta":-6,"healthDelta":0,"triggers":{"moneyAbove":600000}},
-  {"id":"refund","name":"退款到账","category":"财务","message":"有一笔退款到账。","chance":0.01,"minMoneyDelta":30,"maxMoneyDelta":500,"moodDelta":3,"healthDelta":0},
-  {"id":"lost_cash","name":"丢了点钱","category":"财务","message":"不小心丢了点钱。","chance":0.004,"minMoneyDelta":-300,"maxMoneyDelta":-20,"moodDelta":-5,"healthDelta":0},
-  {"id":"coupon_save","name":"优惠券省钱","category":"财务","message":"用券省了一些钱。","chance":0.018,"minMoneyDelta":10,"maxMoneyDelta":80,"moodDelta":2,"healthDelta":0},
-  {"id":"bank_fee","name":"账户手续费","category":"财务","message":"账户扣了些手续费。","chance":0.006,"minMoneyDelta":-30,"maxMoneyDelta":-5,"moodDelta":-1,"healthDelta":0},
-  {"id":"insurance","name":"保险扣费","category":"财务","message":"保险扣费到账。","chance":0.004,"minMoneyDelta":-1800,"maxMoneyDelta":-300,"moodDelta":-2,"healthDelta":0},
-  {"id":"found_money","name":"意外小收入","category":"财务","message":"有一笔意外小收入。","chance":0.006,"minMoneyDelta":50,"maxMoneyDelta":800,"moodDelta":6,"healthDelta":0},
-  {"id":"borrow_friend","name":"朋友还钱","category":"财务","message":"朋友还了一笔之前借的钱。","chance":0.004,"minMoneyDelta":100,"maxMoneyDelta":1500,"moodDelta":5,"healthDelta":0},
-  {"id":"lend_money","name":"借钱给朋友","category":"财务","message":"朋友开口借钱，先帮一下。","chance":0.004,"minMoneyDelta":-1500,"maxMoneyDelta":-200,"moodDelta":-2,"healthDelta":0},
-  {"id":"rain_mood","name":"阴雨天","category":"心情","message":"阴雨天让人有点提不起劲。","chance":0.035,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-3,"healthDelta":0},
-  {"id":"sunny_day","name":"天气很好","category":"心情","message":"天气很好，心情也跟着变好。","chance":0.035,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":4,"healthDelta":1},
-  {"id":"compliment","name":"被夸奖","category":"心情","message":"被人真诚夸了一句。","chance":0.02,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":5,"healthDelta":0},
-  {"id":"argument","name":"和人争执","category":"心情","message":"和人争执了一下，心累。","chance":0.014,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-6,"healthDelta":-1,"triggers":{"moodBelow":30}},
-  {"id":"lost_item","name":"弄丢小物件","category":"心情","message":"弄丢了一个小物件。","chance":0.01,"minMoneyDelta":-120,"maxMoneyDelta":-10,"moodDelta":-4,"healthDelta":0},
-  {"id":"learn_skill","name":"学会一个小技巧","category":"成长","message":"学会了一个实用小技巧。","chance":0.012,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":5,"healthDelta":0},
-  {"id":"finish_chore","name":"完成家务","category":"成长","message":"把拖延的家务做完了。","chance":0.025,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":4,"healthDelta":1},
-  {"id":"minor_success","name":"小目标完成","category":"成长","message":"一个小目标完成了。","chance":0.014,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":7,"healthDelta":1},
-  {"id":"procrastination","name":"拖延了一天","category":"成长","message":"拖延让今天有点空转。","chance":0.018,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-4,"healthDelta":-1,"triggers":{"moodBelow":35}},
-  {"id":"flu_medicine","name":"买药休息","category":"医疗","message":"按时买药休息，身体在慢慢恢复。","chance":0.001,"minMoneyDelta":-180,"maxMoneyDelta":-60,"moodDelta":1,"healthDelta":5},
-  {"id":"sick_leave","name":"请假休息","category":"工作","message":"身体撑不住，请假休息了一天。","chance":0.001,"minMoneyDelta":-300,"maxMoneyDelta":0,"moodDelta":-2,"healthDelta":4},
-  {"id":"recover_from_flu","name":"感冒好转","category":"医疗","message":"前几天的不舒服终于缓过来了。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":4,"healthDelta":8},
-  {"id":"pressure_insomnia","name":"压力失眠","category":"健康","message":"脑子停不下来，睡眠质量明显下降。","chance":0.006,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-6,"healthDelta":-6,"triggers":{"moodBelow":40},"followUps":[{"eventId":"adjust_sleep","chance":0.45,"delayDays":1},{"eventId":"work_pressure","chance":0.2,"delayDays":1},{"eventId":"flu","chance":0.08,"delayDays":2}]},
-  {"id":"debt_anxiety","name":"负债焦虑","category":"财务","message":"余额为负让人有点焦虑，做事也没那么轻松。","chance":0.018,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-8,"healthDelta":-2,"triggers":{"moneyBelow":0,"debtLevel":"light"},"followUps":[{"eventId":"careful_budgeting","chance":0.55,"delayDays":1},{"eventId":"cut_spending","chance":0.5,"delayDays":1},{"eventId":"extra_side_job","chance":0.25,"delayDays":2}]},
-  {"id":"cut_spending","name":"削减开销","category":"财务","message":"认真压了一下非必要消费。","chance":0.001,"minMoneyDelta":80,"maxMoneyDelta":260,"moodDelta":1,"healthDelta":0,"followUps":[{"eventId":"cashflow_ease","chance":0.35,"delayDays":2}]},
-  {"id":"extra_side_job","name":"额外接活","category":"工作","message":"为了补现金流，多接了一个活。","chance":0.004,"minMoneyDelta":500,"maxMoneyDelta":2200,"moodDelta":1,"healthDelta":-4,"triggers":{"moneyBelow":-20000},"followUps":[{"eventId":"cashflow_ease","chance":0.45,"delayDays":2},{"eventId":"tired_after_side_job","chance":0.35,"delayDays":1}]},
-  {"id":"impulse_spending","name":"情绪性消费","category":"财务","message":"心情低落时冲动买了点东西。","chance":0.012,"minMoneyDelta":-500,"maxMoneyDelta":-80,"moodDelta":3,"healthDelta":0,"triggers":{"moodBelow":30}},
-  {"id":"careful_budgeting","name":"认真记账","category":"财务","message":"把账理了一遍，现金流清楚多了。","chance":0.01,"minMoneyDelta":50,"maxMoneyDelta":200,"moodDelta":4,"healthDelta":0,"triggers":{"moneyBelow":0},"followUps":[{"eventId":"cashflow_ease","chance":0.35,"delayDays":2}]},
-  {"id":"adjust_sleep","name":"调整作息","category":"健康","message":"刻意早睡了一晚，状态终于回了一点。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":3,"healthDelta":5},
-  {"id":"cashflow_ease","name":"现金流缓和","category":"财务","message":"这几天管住了开销，现金流稍微松了一口气。","chance":0.001,"minMoneyDelta":120,"maxMoneyDelta":420,"moodDelta":5,"healthDelta":1},
-  {"id":"tired_after_side_job","name":"接活后疲惫","category":"健康","message":"多接活确实补了钱，但身体也有点累。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-2,"healthDelta":-4},
-  {"id":"family_talk","name":"家里聊开了","category":"家庭","message":"把话说开之后，家里的气氛缓和了一些。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":5,"healthDelta":1,"followUps":[{"eventId":"family_walk","chance":0.35,"delayDays":1}]},
-  {"id":"family_budget_talk","name":"家庭预算讨论","category":"家庭","message":"一家人把最近的开销重新盘了盘。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":1,"healthDelta":0,"followUps":[{"eventId":"cut_spending","chance":0.4,"delayDays":1},{"eventId":"cashflow_ease","chance":0.25,"delayDays":3}]},
-  {"id":"study_plan","name":"学习计划","category":"教育","message":"给孩子重新排了学习计划，压力稍微有了方向。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":2,"healthDelta":0,"followUps":[{"eventId":"child_progress","chance":0.45,"delayDays":4},{"eventId":"parent_child_tension","chance":0.18,"delayDays":2}]},
-  {"id":"child_progress","name":"孩子有进步","category":"教育","message":"孩子最近有一点进步，前面的投入有了回声。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":7,"healthDelta":1,"followUps":[{"eventId":"family_celebration","chance":0.35,"delayDays":1}]},
-  {"id":"parent_child_tension","name":"亲子小摩擦","category":"家庭","message":"学习计划推进得不轻松，亲子之间有点别扭。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-4,"healthDelta":-1,"followUps":[{"eventId":"family_talk","chance":0.5,"delayDays":1}]},
-  {"id":"family_celebration","name":"家庭小庆祝","category":"家庭","message":"一家人小小庆祝了一下，花得不多但很开心。","chance":0.001,"minMoneyDelta":-220,"maxMoneyDelta":-60,"moodDelta":8,"healthDelta":1},
-  {"id":"course_started","name":"课程开课","category":"工作","message":"职业课程正式开始了，下班后还要挤时间学习。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":2,"healthDelta":-2,"followUps":[{"eventId":"skill_practice","chance":0.55,"delayDays":3},{"eventId":"study_fatigue","chance":0.28,"delayDays":2}]},
-  {"id":"skill_practice","name":"技能练习","category":"成长","message":"抽时间练了新技能，虽然累但能看见一点进步。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":5,"healthDelta":-1,"followUps":[{"eventId":"skill_improved","chance":0.42,"delayDays":5}]},
-  {"id":"skill_improved","name":"技能提升","category":"成长","message":"最近学的东西开始能用上了，心里踏实不少。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":8,"healthDelta":1,"followUps":[{"eventId":"side_job","chance":0.25,"delayDays":3},{"eventId":"promotion","chance":0.12,"delayDays":7}]},
-  {"id":"study_fatigue","name":"学习疲惫","category":"健康","message":"下班后学习有点透支，身体提醒该缓一缓。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":-3,"healthDelta":-4,"followUps":[{"eventId":"adjust_sleep","chance":0.45,"delayDays":1}]},
-  {"id":"adjust_commute","name":"调整通勤","category":"交通","message":"换了个出门时间，通勤没那么折腾了。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":3,"healthDelta":1,"followUps":[{"eventId":"walk_to_work","chance":0.28,"delayDays":2}]},
-  {"id":"repair_quote","name":"维修报价","category":"家庭维护","message":"问了维修报价，比想象中贵一点。","chance":0.001,"minMoneyDelta":-80,"maxMoneyDelta":0,"moodDelta":-2,"healthDelta":0,"followUps":[{"eventId":"fixed_appliance","chance":0.55,"delayDays":2},{"eventId":"replace_appliance","chance":0.22,"delayDays":2}]},
-  {"id":"fixed_appliance","name":"家电修好了","category":"家庭维护","message":"小家电终于修好了，家里少了一件烦心事。","chance":0.001,"minMoneyDelta":-360,"maxMoneyDelta":-120,"moodDelta":5,"healthDelta":0},
-  {"id":"replace_appliance","name":"换了小家电","category":"家庭维护","message":"最后还是换了新的，花钱肉疼但省心。","chance":0.001,"minMoneyDelta":-900,"maxMoneyDelta":-260,"moodDelta":3,"healthDelta":0,"followUps":[{"eventId":"cashflow_ease","chance":0.18,"delayDays":4}]},
-  {"id":"exercise_plan","name":"运动计划","category":"健康","message":"体检之后定了个轻量运动计划。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":2,"healthDelta":3,"followUps":[{"eventId":"health_improved","chance":0.45,"delayDays":4},{"eventId":"sports_injury","chance":0.08,"delayDays":2}]},
-  {"id":"diet_adjust","name":"饮食调整","category":"餐饮","message":"这几天吃得清淡些，身体负担小了点。","chance":0.001,"minMoneyDelta":-80,"maxMoneyDelta":-20,"moodDelta":1,"healthDelta":4,"followUps":[{"eventId":"health_improved","chance":0.35,"delayDays":3}]},
-  {"id":"health_improved","name":"状态改善","category":"健康","message":"坚持调整后，身体状态确实比前几天好了。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":5,"healthDelta":7},
-  {"id":"online_budget_glance","name":"看了一眼账本","category":"在线插曲","message":"想起最近的现金流，顺手看了一眼账本。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":1,"healthDelta":0,"interludeFor":["debt_anxiety","careful_budgeting","cut_spending","extra_side_job"]},
-  {"id":"online_deep_breath","name":"深呼吸一下","category":"在线插曲","message":"工作压力冒头的时候，停下来深呼吸了一下。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":2,"healthDelta":1,"interludeFor":["work_pressure","pressure_insomnia","late_sleep"]},
-  {"id":"online_take_medicine","name":"想起吃药喝水","category":"在线插曲","message":"身体不舒服时，提醒自己喝水休息一下。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":1,"healthDelta":2,"interludeFor":["flu","flu_medicine","sick_leave","stomach"]},
-  {"id":"online_family_message","name":"回了家里消息","category":"在线插曲","message":"抽空回了家里消息，关系没有一直悬着。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":2,"healthDelta":0,"interludeFor":["family_conflict","family_talk","parent_child_tension","study_plan"]},
-  {"id":"online_study_note","name":"记下一条学习笔记","category":"在线插曲","message":"趁着记忆还热，写下了一条学习笔记。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":2,"healthDelta":0,"interludeFor":["training_fee","course_started","skill_practice","study_fatigue"]},
-  {"id":"online_repair_search","name":"查了维修方案","category":"在线插曲","message":"顺手查了下维修方案，心里有了点底。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":1,"healthDelta":0,"interludeFor":["appliance_break","repair_quote","replace_appliance"]},
-  {"id":"online_commute_note","name":"记下通勤时间","category":"在线插曲","message":"留意了一下通勤时间，准备下次错峰试试。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":1,"healthDelta":0,"interludeFor":["commute_delay","adjust_commute"]},
-  {"id":"daily_water","name":"喝水及时","category":"轻日常","message":"今天喝水还算及时，身体没掉链子。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":1,"healthDelta":1},
-  {"id":"commute_music","name":"通勤听歌","category":"轻日常","message":"路上听了会儿歌，情绪平稳了些。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":2,"healthDelta":0},
-  {"id":"tiny_cleanup","name":"随手收拾","category":"轻日常","message":"随手收拾了一点，房间看起来清爽些。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":2,"healthDelta":0},
-  {"id":"quiet_lunch","name":"安静午饭","category":"轻日常","message":"午饭吃得安静踏实，没什么大起伏。","chance":0.001,"minMoneyDelta":-35,"maxMoneyDelta":-12,"moodDelta":1,"healthDelta":1},
-  {"id":"stretch_break","name":"伸展休息","category":"轻日常","message":"抽空伸展了一下，久坐的僵硬缓了点。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":1,"healthDelta":2},
-  {"id":"nothing_big","name":"平稳的一天","category":"轻日常","message":"今天没有什么大事，日子稳稳过去了。","chance":0.001,"minMoneyDelta":0,"maxMoneyDelta":0,"moodDelta":1,"healthDelta":0}
+  {
+    "id": "flu",
+    "name": "感冒发烧",
+    "category": "医疗",
+    "message": "有点发烧，去买药看医生。",
+    "chance": 0.025,
+    "minMoneyDelta": -220,
+    "maxMoneyDelta": -80,
+    "moodDelta": -5,
+    "healthDelta": -8,
+    "healthSensitive": true,
+    "triggers": {
+      "healthBelow": 55
+    },
+    "followUps": [
+      {
+        "eventId": "flu_medicine",
+        "chance": 0.65,
+        "delayDays": 1
+      },
+      {
+        "eventId": "sick_leave",
+        "chance": 0.35,
+        "delayDays": 1
+      },
+      {
+        "eventId": "recover_from_flu",
+        "chance": 0.45,
+        "delayDays": 3
+      }
+    ]
+  },
+  {
+    "id": "stomach",
+    "name": "肠胃不舒服",
+    "category": "医疗",
+    "message": "肠胃闹脾气，清淡一点。",
+    "chance": 0.018,
+    "minMoneyDelta": -180,
+    "maxMoneyDelta": -60,
+    "moodDelta": -4,
+    "healthDelta": -6,
+    "healthSensitive": true,
+    "triggers": {
+      "healthBelow": 58
+    }
+  },
+  {
+    "id": "dental",
+    "name": "牙齿疼",
+    "category": "医疗",
+    "message": "牙疼起来真要命，去处理一下。",
+    "chance": 0.008,
+    "minMoneyDelta": -800,
+    "maxMoneyDelta": -180,
+    "moodDelta": -7,
+    "healthDelta": -3,
+    "healthSensitive": true
+  },
+  {
+    "id": "physical_exam",
+    "name": "体检",
+    "category": "医疗",
+    "message": "做了一次基础体检，心里踏实些。",
+    "chance": 0.006,
+    "minMoneyDelta": -420,
+    "maxMoneyDelta": -180,
+    "moodDelta": 2,
+    "healthDelta": 4,
+    "followUps": [
+      {
+        "eventId": "exercise_plan",
+        "chance": 0.45,
+        "delayDays": 1
+      },
+      {
+        "eventId": "diet_adjust",
+        "chance": 0.35,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "allergy",
+    "name": "过敏",
+    "category": "医疗",
+    "message": "突然过敏，买了药。",
+    "chance": 0.012,
+    "minMoneyDelta": -160,
+    "maxMoneyDelta": -40,
+    "moodDelta": -3,
+    "healthDelta": -4,
+    "healthSensitive": true
+  },
+  {
+    "id": "sports_injury",
+    "name": "运动拉伤",
+    "category": "医疗",
+    "message": "运动时有点拉伤，需要休息。",
+    "chance": 0.006,
+    "minMoneyDelta": -260,
+    "maxMoneyDelta": -80,
+    "moodDelta": -4,
+    "healthDelta": -5
+  },
+  {
+    "id": "late_sleep",
+    "name": "熬夜",
+    "category": "健康",
+    "message": "昨晚睡太晚，今天状态下滑。",
+    "chance": 0.045,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -4,
+    "healthDelta": -5,
+    "triggers": {
+      "moodBelow": 35
+    },
+    "followUps": [
+      {
+        "eventId": "flu",
+        "chance": 0.08,
+        "delayDays": 1
+      },
+      {
+        "eventId": "pressure_insomnia",
+        "chance": 0.25,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "good_sleep",
+    "name": "睡了个好觉",
+    "category": "健康",
+    "message": "睡眠质量不错，人精神了。",
+    "chance": 0.04,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 3
+  },
+  {
+    "id": "back_pain",
+    "name": "腰背酸痛",
+    "category": "健康",
+    "message": "久坐之后腰背有点酸。",
+    "chance": 0.025,
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": 0,
+    "moodDelta": -3,
+    "healthDelta": -4,
+    "healthSensitive": true
+  },
+  {
+    "id": "massage",
+    "name": "按摩放松",
+    "category": "健康",
+    "message": "做了个肩颈放松。",
+    "chance": 0.01,
+    "minMoneyDelta": -180,
+    "maxMoneyDelta": -80,
+    "moodDelta": 5,
+    "healthDelta": 3
+  },
+  {
+    "id": "friend_wedding",
+    "name": "朋友结婚",
+    "category": "人情",
+    "message": "朋友结婚，随了一份礼。",
+    "chance": 0.006,
+    "minMoneyDelta": -1000,
+    "maxMoneyDelta": -500,
+    "moodDelta": 3,
+    "healthDelta": 0
+  },
+  {
+    "id": "colleague_wedding",
+    "name": "同事结婚",
+    "category": "人情",
+    "message": "同事结婚，礼金安排上。",
+    "chance": 0.006,
+    "minMoneyDelta": -800,
+    "maxMoneyDelta": -300,
+    "moodDelta": 1,
+    "healthDelta": 0
+  },
+  {
+    "id": "relative_visit",
+    "name": "亲戚来访",
+    "category": "人情",
+    "message": "亲戚来家里，招待了一下。",
+    "chance": 0.012,
+    "minMoneyDelta": -360,
+    "maxMoneyDelta": -120,
+    "moodDelta": 1,
+    "healthDelta": -1
+  },
+  {
+    "id": "birthday_gift",
+    "name": "朋友生日礼物",
+    "category": "人情",
+    "message": "给朋友准备了生日礼物。",
+    "chance": 0.012,
+    "minMoneyDelta": -300,
+    "maxMoneyDelta": -80,
+    "moodDelta": 3,
+    "healthDelta": 0
+  },
+  {
+    "id": "red_packet",
+    "name": "节日红包",
+    "category": "人情",
+    "message": "发了几个节日红包。",
+    "chance": 0.01,
+    "minMoneyDelta": -500,
+    "maxMoneyDelta": -100,
+    "moodDelta": 2,
+    "healthDelta": 0
+  },
+  {
+    "id": "dinner_invite",
+    "name": "请客吃饭",
+    "category": "人情",
+    "message": "请朋友吃了一顿饭。",
+    "chance": 0.018,
+    "minMoneyDelta": -450,
+    "maxMoneyDelta": -120,
+    "moodDelta": 5,
+    "healthDelta": -1
+  },
+  {
+    "id": "friend_treat",
+    "name": "朋友请客",
+    "category": "人情",
+    "message": "朋友请吃饭，今天省了一笔。",
+    "chance": 0.014,
+    "minMoneyDelta": 40,
+    "maxMoneyDelta": 120,
+    "moodDelta": 5,
+    "healthDelta": 1
+  },
+  {
+    "id": "old_friend_call",
+    "name": "老友来电",
+    "category": "人情",
+    "message": "和老朋友聊了聊，心情轻了一些。",
+    "chance": 0.025,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 0
+  },
+  {
+    "id": "family_conflict",
+    "name": "家庭小争执",
+    "category": "家庭",
+    "message": "家里有点小争执，情绪被消耗。",
+    "chance": 0.018,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -6,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "family_talk",
+        "chance": 0.55,
+        "delayDays": 1
+      },
+      {
+        "eventId": "quiet_evening",
+        "chance": 0.25,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "family_good_news",
+    "name": "家里有好消息",
+    "category": "家庭",
+    "message": "家里传来好消息，整个人都亮了。",
+    "chance": 0.01,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 8,
+    "healthDelta": 1
+  },
+  {
+    "id": "child_tuition_extra",
+    "name": "孩子补课费",
+    "category": "教育",
+    "message": "孩子补课又交了一笔。",
+    "chance": 0.012,
+    "minMoneyDelta": -1200,
+    "maxMoneyDelta": -300,
+    "moodDelta": -4,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "study_plan",
+        "chance": 0.5,
+        "delayDays": 1
+      },
+      {
+        "eventId": "family_budget_talk",
+        "chance": 0.35,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "school_trip",
+    "name": "孩子研学活动",
+    "category": "教育",
+    "message": "学校组织研学活动，交了费用。",
+    "chance": 0.008,
+    "minMoneyDelta": -600,
+    "maxMoneyDelta": -180,
+    "moodDelta": 1,
+    "healthDelta": 0
+  },
+  {
+    "id": "child_award",
+    "name": "孩子获奖",
+    "category": "教育",
+    "message": "孩子拿了奖，值得高兴。",
+    "chance": 0.008,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 8,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "family_celebration",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "child_sick",
+    "name": "孩子生病",
+    "category": "家庭",
+    "message": "孩子身体不舒服，带去看了看。",
+    "chance": 0.014,
+    "minMoneyDelta": -500,
+    "maxMoneyDelta": -120,
+    "moodDelta": -6,
+    "healthDelta": -1
+  },
+  {
+    "id": "school_supplies_big",
+    "name": "开学采购",
+    "category": "教育",
+    "message": "开学用品集中采购。",
+    "chance": 0.006,
+    "minMoneyDelta": -800,
+    "maxMoneyDelta": -250,
+    "moodDelta": -2,
+    "healthDelta": 0
+  },
+  {
+    "id": "parent_support",
+    "name": "给父母生活费",
+    "category": "家庭",
+    "message": "给父母转了一笔生活费。",
+    "chance": 0.012,
+    "minMoneyDelta": -1000,
+    "maxMoneyDelta": -300,
+    "moodDelta": 2,
+    "healthDelta": 0
+  },
+  {
+    "id": "parent_sick",
+    "name": "父母看病支援",
+    "category": "家庭",
+    "message": "父母看病，需要帮一把。",
+    "chance": 0.006,
+    "minMoneyDelta": -2000,
+    "maxMoneyDelta": -500,
+    "moodDelta": -8,
+    "healthDelta": -2
+  },
+  {
+    "id": "home_cooked_meal",
+    "name": "家里做了顿好饭",
+    "category": "家庭",
+    "message": "认真做了一顿饭，舒服。",
+    "chance": 0.035,
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": -30,
+    "moodDelta": 5,
+    "healthDelta": 2
+  },
+  {
+    "id": "family_walk",
+    "name": "饭后散步",
+    "category": "家庭",
+    "message": "饭后一起散步，身心都轻松。",
+    "chance": 0.03,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 3
+  },
+  {
+    "id": "child_toy",
+    "name": "给孩子买玩具",
+    "category": "家庭",
+    "message": "给孩子买了个小玩具。",
+    "chance": 0.018,
+    "minMoneyDelta": -180,
+    "maxMoneyDelta": -40,
+    "moodDelta": 3,
+    "healthDelta": 0
+  },
+  {
+    "id": "bonus",
+    "name": "项目奖金",
+    "category": "工作",
+    "message": "拿到一笔项目奖金。",
+    "chance": 0.006,
+    "minMoneyDelta": 800,
+    "maxMoneyDelta": 3000,
+    "moodDelta": 9,
+    "healthDelta": 0
+  },
+  {
+    "id": "overtime_pay",
+    "name": "加班补贴",
+    "category": "工作",
+    "message": "加班换来一点补贴。",
+    "chance": 0.018,
+    "minMoneyDelta": 100,
+    "maxMoneyDelta": 500,
+    "moodDelta": -2,
+    "healthDelta": -2
+  },
+  {
+    "id": "salary_deduction",
+    "name": "绩效扣款",
+    "category": "工作",
+    "message": "绩效被扣了一点，心里不爽。",
+    "chance": 0.006,
+    "minMoneyDelta": -1000,
+    "maxMoneyDelta": -200,
+    "moodDelta": -8,
+    "healthDelta": -1
+  },
+  {
+    "id": "promotion",
+    "name": "升职机会",
+    "category": "工作",
+    "message": "出现升职机会，动力上来了。",
+    "chance": 0.004,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 10,
+    "healthDelta": 1
+  },
+  {
+    "id": "work_pressure",
+    "name": "工作压力大",
+    "category": "工作",
+    "message": "工作压力有点顶，今天挺累。",
+    "chance": 0.04,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -6,
+    "healthDelta": -3,
+    "triggers": {
+      "moodBelow": 45
+    },
+    "followUps": [
+      {
+        "eventId": "late_sleep",
+        "chance": 0.45,
+        "delayDays": 1
+      },
+      {
+        "eventId": "pressure_insomnia",
+        "chance": 0.35,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "smooth_workday",
+    "name": "工作顺利",
+    "category": "工作",
+    "message": "今天工作挺顺，少了很多内耗。",
+    "chance": 0.035,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 1
+  },
+  {
+    "id": "training_fee",
+    "name": "职业培训",
+    "category": "工作",
+    "message": "报名了职业培训。",
+    "chance": 0.006,
+    "minMoneyDelta": -1200,
+    "maxMoneyDelta": -300,
+    "moodDelta": 3,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "course_started",
+        "chance": 0.6,
+        "delayDays": 2
+      },
+      {
+        "eventId": "study_fatigue",
+        "chance": 0.25,
+        "delayDays": 3
+      }
+    ]
+  },
+  {
+    "id": "side_job",
+    "name": "接了个小私活",
+    "category": "工作",
+    "message": "接了个小私活，赚点外快。",
+    "chance": 0.01,
+    "minMoneyDelta": 300,
+    "maxMoneyDelta": 1500,
+    "moodDelta": 2,
+    "healthDelta": -2,
+    "triggers": {
+      "moneyBelow": -10000
+    }
+  },
+  {
+    "id": "commute_delay",
+    "name": "通勤延误",
+    "category": "交通",
+    "message": "通勤路上耽误很久。",
+    "chance": 0.03,
+    "minMoneyDelta": -30,
+    "maxMoneyDelta": 0,
+    "moodDelta": -4,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "adjust_commute",
+        "chance": 0.35,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "team_lunch",
+    "name": "团队聚餐",
+    "category": "工作",
+    "message": "团队聚餐，AA 了一下。",
+    "chance": 0.014,
+    "minMoneyDelta": -180,
+    "maxMoneyDelta": -60,
+    "moodDelta": 4,
+    "healthDelta": -1
+  },
+  {
+    "id": "bus_card",
+    "name": "交通卡充值",
+    "category": "交通",
+    "message": "交通卡充值。",
+    "chance": 0.018,
+    "minMoneyDelta": -200,
+    "maxMoneyDelta": -50,
+    "moodDelta": 0,
+    "healthDelta": 0
+  },
+  {
+    "id": "taxi_rain",
+    "name": "下雨打车",
+    "category": "交通",
+    "message": "下雨只好打车。",
+    "chance": 0.025,
+    "minMoneyDelta": -90,
+    "maxMoneyDelta": -25,
+    "moodDelta": -1,
+    "healthDelta": 0
+  },
+  {
+    "id": "bike_repair",
+    "name": "自行车维修",
+    "category": "交通",
+    "message": "车子小修了一下。",
+    "chance": 0.006,
+    "minMoneyDelta": -180,
+    "maxMoneyDelta": -30,
+    "moodDelta": -1,
+    "healthDelta": 0
+  },
+  {
+    "id": "car_maintenance",
+    "name": "车辆保养",
+    "category": "交通",
+    "message": "车辆保养到期。",
+    "chance": 0.004,
+    "minMoneyDelta": -1200,
+    "maxMoneyDelta": -400,
+    "moodDelta": -3,
+    "healthDelta": 0
+  },
+  {
+    "id": "parking_fee",
+    "name": "停车费",
+    "category": "交通",
+    "message": "今天多付了停车费。",
+    "chance": 0.018,
+    "minMoneyDelta": -60,
+    "maxMoneyDelta": -10,
+    "moodDelta": -1,
+    "healthDelta": 0
+  },
+  {
+    "id": "traffic_ticket",
+    "name": "交通罚单",
+    "category": "交通",
+    "message": "收到一张交通罚单。",
+    "chance": 0.004,
+    "minMoneyDelta": -300,
+    "maxMoneyDelta": -100,
+    "moodDelta": -6,
+    "healthDelta": 0
+  },
+  {
+    "id": "road_trip",
+    "name": "短途出行",
+    "category": "交通",
+    "message": "短途出行散散心。",
+    "chance": 0.006,
+    "minMoneyDelta": -800,
+    "maxMoneyDelta": -200,
+    "moodDelta": 8,
+    "healthDelta": 2
+  },
+  {
+    "id": "subway_crowd",
+    "name": "地铁拥挤",
+    "category": "交通",
+    "message": "通勤太挤，身心疲惫。",
+    "chance": 0.035,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -3,
+    "healthDelta": -1
+  },
+  {
+    "id": "walk_to_work",
+    "name": "步行通勤",
+    "category": "交通",
+    "message": "今天多走了些路，身体还行。",
+    "chance": 0.02,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": 3
+  },
+  {
+    "id": "water_bill",
+    "name": "水费补缴",
+    "category": "生活缴费",
+    "message": "补缴了水费。",
+    "chance": 0.006,
+    "minMoneyDelta": -180,
+    "maxMoneyDelta": -40,
+    "moodDelta": -1,
+    "healthDelta": 0
+  },
+  {
+    "id": "electric_bill_high",
+    "name": "电费偏高",
+    "category": "生活缴费",
+    "message": "这个月电费用得有点多。",
+    "chance": 0.01,
+    "minMoneyDelta": -260,
+    "maxMoneyDelta": -80,
+    "moodDelta": -2,
+    "healthDelta": 0
+  },
+  {
+    "id": "internet_plan",
+    "name": "宽带套餐续费",
+    "category": "生活缴费",
+    "message": "宽带套餐续费。",
+    "chance": 0.004,
+    "minMoneyDelta": -1200,
+    "maxMoneyDelta": -300,
+    "moodDelta": -1,
+    "healthDelta": 0
+  },
+  {
+    "id": "phone_bill",
+    "name": "话费充值",
+    "category": "生活缴费",
+    "message": "充了话费。",
+    "chance": 0.018,
+    "minMoneyDelta": -120,
+    "maxMoneyDelta": -30,
+    "moodDelta": 0,
+    "healthDelta": 0
+  },
+  {
+    "id": "property_fee",
+    "name": "物业费",
+    "category": "住房",
+    "message": "交了一笔物业费。",
+    "chance": 0.004,
+    "minMoneyDelta": -1800,
+    "maxMoneyDelta": -500,
+    "moodDelta": -3,
+    "healthDelta": 0
+  },
+  {
+    "id": "rent_repair",
+    "name": "家里小修补",
+    "category": "住房",
+    "message": "家里有点小修补。",
+    "chance": 0.012,
+    "minMoneyDelta": -300,
+    "maxMoneyDelta": -60,
+    "moodDelta": -2,
+    "healthDelta": 0
+  },
+  {
+    "id": "cleaning_supplies",
+    "name": "清洁用品采购",
+    "category": "家庭维护",
+    "message": "买了清洁用品。",
+    "chance": 0.018,
+    "minMoneyDelta": -120,
+    "maxMoneyDelta": -30,
+    "moodDelta": 1,
+    "healthDelta": 0
+  },
+  {
+    "id": "appliance_break",
+    "name": "小家电坏了",
+    "category": "家庭维护",
+    "message": "小家电突然坏了。",
+    "chance": 0.006,
+    "minMoneyDelta": -600,
+    "maxMoneyDelta": -120,
+    "moodDelta": -5,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "repair_quote",
+        "chance": 0.65,
+        "delayDays": 1
+      },
+      {
+        "eventId": "replace_appliance",
+        "chance": 0.18,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "furniture_small",
+    "name": "添置小家具",
+    "category": "住房",
+    "message": "添置了一件小家具。",
+    "chance": 0.005,
+    "minMoneyDelta": -900,
+    "maxMoneyDelta": -200,
+    "moodDelta": 3,
+    "healthDelta": 0
+  },
+  {
+    "id": "home_declutter",
+    "name": "整理房间",
+    "category": "住房",
+    "message": "整理了房间，心里也清爽。",
+    "chance": 0.02,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 1
+  },
+  {
+    "id": "grocery_sale",
+    "name": "超市折扣",
+    "category": "餐饮",
+    "message": "赶上超市折扣，省了一点。",
+    "chance": 0.025,
+    "minMoneyDelta": 20,
+    "maxMoneyDelta": 80,
+    "moodDelta": 2,
+    "healthDelta": 0
+  },
+  {
+    "id": "fresh_fruit",
+    "name": "买水果",
+    "category": "餐饮",
+    "message": "买了些水果。",
+    "chance": 0.035,
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": -20,
+    "moodDelta": 2,
+    "healthDelta": 2
+  },
+  {
+    "id": "coffee",
+    "name": "买咖啡",
+    "category": "餐饮",
+    "message": "买了杯咖啡提神。",
+    "chance": 0.03,
+    "minMoneyDelta": -35,
+    "maxMoneyDelta": -12,
+    "moodDelta": 2,
+    "healthDelta": -1
+  },
+  {
+    "id": "late_snack",
+    "name": "夜宵",
+    "category": "餐饮",
+    "message": "忍不住吃了夜宵。",
+    "chance": 0.02,
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": -25,
+    "moodDelta": 3,
+    "healthDelta": -3
+  },
+  {
+    "id": "healthy_meal",
+    "name": "健康餐",
+    "category": "餐饮",
+    "message": "吃了一顿健康餐。",
+    "chance": 0.018,
+    "minMoneyDelta": -60,
+    "maxMoneyDelta": -25,
+    "moodDelta": 2,
+    "healthDelta": 4
+  },
+  {
+    "id": "bad_takeout",
+    "name": "外卖踩雷",
+    "category": "餐饮",
+    "message": "外卖不太行，心情打折。",
+    "chance": 0.012,
+    "minMoneyDelta": -60,
+    "maxMoneyDelta": -25,
+    "moodDelta": -4,
+    "healthDelta": -2
+  },
+  {
+    "id": "cook_fail",
+    "name": "做饭翻车",
+    "category": "餐饮",
+    "message": "做饭翻车，只能补救一下。",
+    "chance": 0.012,
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": -20,
+    "moodDelta": -3,
+    "healthDelta": 0
+  },
+  {
+    "id": "cheap_breakfast",
+    "name": "早餐实惠",
+    "category": "餐饮",
+    "message": "早餐吃得便宜又舒服。",
+    "chance": 0.025,
+    "minMoneyDelta": -15,
+    "maxMoneyDelta": -5,
+    "moodDelta": 2,
+    "healthDelta": 1
+  },
+  {
+    "id": "snack_stock",
+    "name": "囤零食",
+    "category": "餐饮",
+    "message": "囤了一些零食。",
+    "chance": 0.018,
+    "minMoneyDelta": -120,
+    "maxMoneyDelta": -35,
+    "moodDelta": 2,
+    "healthDelta": -1
+  },
+  {
+    "id": "milk_order",
+    "name": "牛奶订购",
+    "category": "餐饮",
+    "message": "补充了牛奶。",
+    "chance": 0.01,
+    "minMoneyDelta": -180,
+    "maxMoneyDelta": -60,
+    "moodDelta": 1,
+    "healthDelta": 2
+  },
+  {
+    "id": "movie",
+    "name": "看电影",
+    "category": "娱乐",
+    "message": "看了场电影，放松一下。",
+    "chance": 0.012,
+    "minMoneyDelta": -160,
+    "maxMoneyDelta": -60,
+    "moodDelta": 7,
+    "healthDelta": 1
+  },
+  {
+    "id": "streaming_member",
+    "name": "视频会员续费",
+    "category": "娱乐",
+    "message": "视频会员续费了。",
+    "chance": 0.006,
+    "minMoneyDelta": -268,
+    "maxMoneyDelta": -68,
+    "moodDelta": 2,
+    "healthDelta": 0
+  },
+  {
+    "id": "game_purchase",
+    "name": "游戏消费",
+    "category": "娱乐",
+    "message": "买了个游戏或道具。",
+    "chance": 0.006,
+    "minMoneyDelta": -300,
+    "maxMoneyDelta": -30,
+    "moodDelta": 5,
+    "healthDelta": -1
+  },
+  {
+    "id": "concert",
+    "name": "演出门票",
+    "category": "娱乐",
+    "message": "买了演出门票。",
+    "chance": 0.002,
+    "minMoneyDelta": -1200,
+    "maxMoneyDelta": -300,
+    "moodDelta": 10,
+    "healthDelta": 1
+  },
+  {
+    "id": "park_walk",
+    "name": "公园散步",
+    "category": "娱乐",
+    "message": "去公园走了走。",
+    "chance": 0.025,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 4
+  },
+  {
+    "id": "board_game",
+    "name": "桌游局",
+    "category": "娱乐",
+    "message": "和朋友玩了桌游。",
+    "chance": 0.01,
+    "minMoneyDelta": -100,
+    "maxMoneyDelta": -20,
+    "moodDelta": 6,
+    "healthDelta": 1
+  },
+  {
+    "id": "short_trip",
+    "name": "周边游",
+    "category": "娱乐",
+    "message": "短暂出门玩了一趟。",
+    "chance": 0.003,
+    "minMoneyDelta": -1800,
+    "maxMoneyDelta": -500,
+    "moodDelta": 12,
+    "healthDelta": 2
+  },
+  {
+    "id": "book_purchase",
+    "name": "买书",
+    "category": "娱乐",
+    "message": "买了本想看的书。",
+    "chance": 0.012,
+    "minMoneyDelta": -120,
+    "maxMoneyDelta": -30,
+    "moodDelta": 4,
+    "healthDelta": 0
+  },
+  {
+    "id": "music_member",
+    "name": "音乐会员",
+    "category": "娱乐",
+    "message": "音乐会员续费。",
+    "chance": 0.006,
+    "minMoneyDelta": -188,
+    "maxMoneyDelta": -18,
+    "moodDelta": 2,
+    "healthDelta": 0
+  },
+  {
+    "id": "quiet_evening",
+    "name": "安静的晚上",
+    "category": "娱乐",
+    "message": "度过了一个安静的晚上。",
+    "chance": 0.025,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 2
+  },
+  {
+    "id": "clothes_basic",
+    "name": "买日常衣物",
+    "category": "服饰",
+    "message": "买了些日常衣物。",
+    "chance": 0.01,
+    "minMoneyDelta": -400,
+    "maxMoneyDelta": -100,
+    "moodDelta": 3,
+    "healthDelta": 0
+  },
+  {
+    "id": "shoes",
+    "name": "换鞋",
+    "category": "服饰",
+    "message": "鞋该换了。",
+    "chance": 0.005,
+    "minMoneyDelta": -700,
+    "maxMoneyDelta": -180,
+    "moodDelta": 2,
+    "healthDelta": 1
+  },
+  {
+    "id": "haircut",
+    "name": "理发",
+    "category": "形象",
+    "message": "理了个发，清爽不少。",
+    "chance": 0.018,
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": -25,
+    "moodDelta": 3,
+    "healthDelta": 0,
+    "hairDelta": 2
+  },
+  {
+    "id": "skin_care",
+    "name": "护肤品补货",
+    "category": "形象",
+    "message": "护肤品补货。",
+    "chance": 0.006,
+    "minMoneyDelta": -500,
+    "maxMoneyDelta": -80,
+    "moodDelta": 3,
+    "healthDelta": 0
+  },
+  {
+    "id": "laundry",
+    "name": "洗衣护理",
+    "category": "服饰",
+    "message": "做了一次衣物护理。",
+    "chance": 0.01,
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": -20,
+    "moodDelta": 1,
+    "healthDelta": 0
+  },
+  {
+    "id": "phone_repair",
+    "name": "手机维修",
+    "category": "数码",
+    "message": "手机出了点问题，修了一下。",
+    "chance": 0.004,
+    "minMoneyDelta": -1200,
+    "maxMoneyDelta": -150,
+    "moodDelta": -5,
+    "healthDelta": 0
+  },
+  {
+    "id": "laptop_repair",
+    "name": "电脑维修",
+    "category": "数码",
+    "message": "电脑维修花了一笔。",
+    "chance": 0.003,
+    "minMoneyDelta": -1800,
+    "maxMoneyDelta": -300,
+    "moodDelta": -6,
+    "healthDelta": 0
+  },
+  {
+    "id": "cloud_storage",
+    "name": "云空间续费",
+    "category": "数码",
+    "message": "云空间续费。",
+    "chance": 0.006,
+    "minMoneyDelta": -198,
+    "maxMoneyDelta": -18,
+    "moodDelta": 0,
+    "healthDelta": 0
+  },
+  {
+    "id": "new_keyboard",
+    "name": "买键盘鼠标",
+    "category": "数码",
+    "message": "换了个输入设备。",
+    "chance": 0.004,
+    "minMoneyDelta": -600,
+    "maxMoneyDelta": -80,
+    "moodDelta": 4,
+    "healthDelta": 0
+  },
+  {
+    "id": "data_recovery",
+    "name": "数据恢复",
+    "category": "数码",
+    "message": "数据出问题，赶紧恢复。",
+    "chance": 0.001,
+    "minMoneyDelta": -2500,
+    "maxMoneyDelta": -500,
+    "moodDelta": -10,
+    "healthDelta": -1
+  },
+  {
+    "id": "investment_gain",
+    "name": "理财小赚",
+    "category": "财务",
+    "message": "理财小赚一笔。",
+    "chance": 0.008,
+    "minMoneyDelta": 50,
+    "maxMoneyDelta": 600,
+    "moodDelta": 5,
+    "healthDelta": 0,
+    "triggers": {
+      "moneyAbove": 600000
+    }
+  },
+  {
+    "id": "investment_loss",
+    "name": "理财亏损",
+    "category": "财务",
+    "message": "理财有点亏损。",
+    "chance": 0.008,
+    "minMoneyDelta": -800,
+    "maxMoneyDelta": -50,
+    "moodDelta": -6,
+    "healthDelta": 0,
+    "triggers": {
+      "moneyAbove": 600000
+    }
+  },
+  {
+    "id": "refund",
+    "name": "退款到账",
+    "category": "财务",
+    "message": "有一笔退款到账。",
+    "chance": 0.01,
+    "minMoneyDelta": 30,
+    "maxMoneyDelta": 500,
+    "moodDelta": 3,
+    "healthDelta": 0
+  },
+  {
+    "id": "lost_cash",
+    "name": "丢了点钱",
+    "category": "财务",
+    "message": "不小心丢了点钱。",
+    "chance": 0.004,
+    "minMoneyDelta": -300,
+    "maxMoneyDelta": -20,
+    "moodDelta": -5,
+    "healthDelta": 0
+  },
+  {
+    "id": "coupon_save",
+    "name": "优惠券省钱",
+    "category": "财务",
+    "message": "用券省了一些钱。",
+    "chance": 0.018,
+    "minMoneyDelta": 10,
+    "maxMoneyDelta": 80,
+    "moodDelta": 2,
+    "healthDelta": 0
+  },
+  {
+    "id": "bank_fee",
+    "name": "账户手续费",
+    "category": "财务",
+    "message": "账户扣了些手续费。",
+    "chance": 0.006,
+    "minMoneyDelta": -30,
+    "maxMoneyDelta": -5,
+    "moodDelta": -1,
+    "healthDelta": 0
+  },
+  {
+    "id": "insurance",
+    "name": "保险扣费",
+    "category": "财务",
+    "message": "保险扣费到账。",
+    "chance": 0.004,
+    "minMoneyDelta": -1800,
+    "maxMoneyDelta": -300,
+    "moodDelta": -2,
+    "healthDelta": 0
+  },
+  {
+    "id": "found_money",
+    "name": "意外小收入",
+    "category": "财务",
+    "message": "有一笔意外小收入。",
+    "chance": 0.006,
+    "minMoneyDelta": 50,
+    "maxMoneyDelta": 800,
+    "moodDelta": 6,
+    "healthDelta": 0
+  },
+  {
+    "id": "borrow_friend",
+    "name": "朋友还钱",
+    "category": "财务",
+    "message": "朋友还了一笔之前借的钱。",
+    "chance": 0.004,
+    "minMoneyDelta": 100,
+    "maxMoneyDelta": 1500,
+    "moodDelta": 5,
+    "healthDelta": 0
+  },
+  {
+    "id": "lend_money",
+    "name": "借钱给朋友",
+    "category": "财务",
+    "message": "朋友开口借钱，先帮一下。",
+    "chance": 0.004,
+    "minMoneyDelta": -1500,
+    "maxMoneyDelta": -200,
+    "moodDelta": -2,
+    "healthDelta": 0
+  },
+  {
+    "id": "rain_mood",
+    "name": "阴雨天",
+    "category": "心情",
+    "message": "阴雨天让人有点提不起劲。",
+    "chance": 0.035,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -3,
+    "healthDelta": 0
+  },
+  {
+    "id": "sunny_day",
+    "name": "天气很好",
+    "category": "心情",
+    "message": "天气很好，心情也跟着变好。",
+    "chance": 0.035,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 1
+  },
+  {
+    "id": "compliment",
+    "name": "被夸奖",
+    "category": "心情",
+    "message": "被人真诚夸了一句。",
+    "chance": 0.02,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 0
+  },
+  {
+    "id": "argument",
+    "name": "和人争执",
+    "category": "心情",
+    "message": "和人争执了一下，心累。",
+    "chance": 0.014,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -6,
+    "healthDelta": -1,
+    "triggers": {
+      "moodBelow": 30
+    }
+  },
+  {
+    "id": "lost_item",
+    "name": "弄丢小物件",
+    "category": "心情",
+    "message": "弄丢了一个小物件。",
+    "chance": 0.01,
+    "minMoneyDelta": -120,
+    "maxMoneyDelta": -10,
+    "moodDelta": -4,
+    "healthDelta": 0
+  },
+  {
+    "id": "learn_skill",
+    "name": "学会一个小技巧",
+    "category": "成长",
+    "message": "学会了一个实用小技巧。",
+    "chance": 0.012,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 0
+  },
+  {
+    "id": "finish_chore",
+    "name": "完成家务",
+    "category": "成长",
+    "message": "把拖延的家务做完了。",
+    "chance": 0.025,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 1
+  },
+  {
+    "id": "minor_success",
+    "name": "小目标完成",
+    "category": "成长",
+    "message": "一个小目标完成了。",
+    "chance": 0.014,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 7,
+    "healthDelta": 1
+  },
+  {
+    "id": "procrastination",
+    "name": "拖延了一天",
+    "category": "成长",
+    "message": "拖延让今天有点空转。",
+    "chance": 0.018,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -4,
+    "healthDelta": -1,
+    "triggers": {
+      "moodBelow": 35
+    }
+  },
+  {
+    "id": "flu_medicine",
+    "name": "买药休息",
+    "category": "医疗",
+    "message": "按时买药休息，身体在慢慢恢复。",
+    "chance": 0.001,
+    "minMoneyDelta": -180,
+    "maxMoneyDelta": -60,
+    "moodDelta": 1,
+    "healthDelta": 5
+  },
+  {
+    "id": "sick_leave",
+    "name": "请假休息",
+    "category": "工作",
+    "message": "身体撑不住，请假休息了一天。",
+    "chance": 0.001,
+    "minMoneyDelta": -300,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": 4
+  },
+  {
+    "id": "recover_from_flu",
+    "name": "感冒好转",
+    "category": "医疗",
+    "message": "前几天的不舒服终于缓过来了。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 8
+  },
+  {
+    "id": "pressure_insomnia",
+    "name": "压力失眠",
+    "category": "健康",
+    "message": "脑子停不下来，睡眠质量明显下降。",
+    "chance": 0.006,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -6,
+    "healthDelta": -6,
+    "triggers": {
+      "moodBelow": 40
+    },
+    "followUps": [
+      {
+        "eventId": "adjust_sleep",
+        "chance": 0.45,
+        "delayDays": 1
+      },
+      {
+        "eventId": "work_pressure",
+        "chance": 0.2,
+        "delayDays": 1
+      },
+      {
+        "eventId": "flu",
+        "chance": 0.08,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "debt_anxiety",
+    "name": "负债焦虑",
+    "category": "财务",
+    "message": "余额为负让人有点焦虑，做事也没那么轻松。",
+    "chance": 0.018,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -8,
+    "healthDelta": -2,
+    "triggers": {
+      "moneyBelow": 0,
+      "debtLevel": "light"
+    },
+    "followUps": [
+      {
+        "eventId": "careful_budgeting",
+        "chance": 0.55,
+        "delayDays": 1
+      },
+      {
+        "eventId": "cut_spending",
+        "chance": 0.5,
+        "delayDays": 1
+      },
+      {
+        "eventId": "extra_side_job",
+        "chance": 0.25,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "cut_spending",
+    "name": "削减开销",
+    "category": "财务",
+    "message": "认真压了一下非必要消费。",
+    "chance": 0.001,
+    "minMoneyDelta": 80,
+    "maxMoneyDelta": 260,
+    "moodDelta": 1,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "cashflow_ease",
+        "chance": 0.35,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "extra_side_job",
+    "name": "额外接活",
+    "category": "工作",
+    "message": "为了补现金流，多接了一个活。",
+    "chance": 0.004,
+    "minMoneyDelta": 500,
+    "maxMoneyDelta": 2200,
+    "moodDelta": 1,
+    "healthDelta": -4,
+    "triggers": {
+      "moneyBelow": -20000
+    },
+    "followUps": [
+      {
+        "eventId": "cashflow_ease",
+        "chance": 0.45,
+        "delayDays": 2
+      },
+      {
+        "eventId": "tired_after_side_job",
+        "chance": 0.35,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "impulse_spending",
+    "name": "情绪性消费",
+    "category": "财务",
+    "message": "心情低落时冲动买了点东西。",
+    "chance": 0.012,
+    "minMoneyDelta": -500,
+    "maxMoneyDelta": -80,
+    "moodDelta": 3,
+    "healthDelta": 0,
+    "triggers": {
+      "moodBelow": 30
+    }
+  },
+  {
+    "id": "careful_budgeting",
+    "name": "认真记账",
+    "category": "财务",
+    "message": "把账理了一遍，现金流清楚多了。",
+    "chance": 0.01,
+    "minMoneyDelta": 50,
+    "maxMoneyDelta": 200,
+    "moodDelta": 4,
+    "healthDelta": 0,
+    "triggers": {
+      "moneyBelow": 0
+    },
+    "followUps": [
+      {
+        "eventId": "cashflow_ease",
+        "chance": 0.35,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "adjust_sleep",
+    "name": "调整作息",
+    "category": "健康",
+    "message": "刻意早睡了一晚，状态终于回了一点。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 3,
+    "healthDelta": 5
+  },
+  {
+    "id": "cashflow_ease",
+    "name": "现金流缓和",
+    "category": "财务",
+    "message": "这几天管住了开销，现金流稍微松了一口气。",
+    "chance": 0.001,
+    "minMoneyDelta": 120,
+    "maxMoneyDelta": 420,
+    "moodDelta": 5,
+    "healthDelta": 1
+  },
+  {
+    "id": "tired_after_side_job",
+    "name": "接活后疲惫",
+    "category": "健康",
+    "message": "多接活确实补了钱，但身体也有点累。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": -4
+  },
+  {
+    "id": "family_talk",
+    "name": "家里聊开了",
+    "category": "家庭",
+    "message": "把话说开之后，家里的气氛缓和了一些。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "family_walk",
+        "chance": 0.35,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "family_budget_talk",
+    "name": "家庭预算讨论",
+    "category": "家庭",
+    "message": "一家人把最近的开销重新盘了盘。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "cut_spending",
+        "chance": 0.4,
+        "delayDays": 1
+      },
+      {
+        "eventId": "cashflow_ease",
+        "chance": 0.25,
+        "delayDays": 3
+      }
+    ]
+  },
+  {
+    "id": "study_plan",
+    "name": "学习计划",
+    "category": "教育",
+    "message": "给孩子重新排了学习计划，压力稍微有了方向。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "child_progress",
+        "chance": 0.45,
+        "delayDays": 4
+      },
+      {
+        "eventId": "parent_child_tension",
+        "chance": 0.18,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "child_progress",
+    "name": "孩子有进步",
+    "category": "教育",
+    "message": "孩子最近有一点进步，前面的投入有了回声。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 7,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "family_celebration",
+        "chance": 0.35,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "parent_child_tension",
+    "name": "亲子小摩擦",
+    "category": "家庭",
+    "message": "学习计划推进得不轻松，亲子之间有点别扭。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -4,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "family_talk",
+        "chance": 0.5,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "family_celebration",
+    "name": "家庭小庆祝",
+    "category": "家庭",
+    "message": "一家人小小庆祝了一下，花得不多但很开心。",
+    "chance": 0.001,
+    "minMoneyDelta": -220,
+    "maxMoneyDelta": -60,
+    "moodDelta": 8,
+    "healthDelta": 1
+  },
+  {
+    "id": "course_started",
+    "name": "课程开课",
+    "category": "工作",
+    "message": "职业课程正式开始了，下班后还要挤时间学习。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": -2,
+    "followUps": [
+      {
+        "eventId": "skill_practice",
+        "chance": 0.55,
+        "delayDays": 3
+      },
+      {
+        "eventId": "study_fatigue",
+        "chance": 0.28,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "skill_practice",
+    "name": "技能练习",
+    "category": "成长",
+    "message": "抽时间练了新技能，虽然累但能看见一点进步。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "skill_improved",
+        "chance": 0.42,
+        "delayDays": 5
+      }
+    ]
+  },
+  {
+    "id": "skill_improved",
+    "name": "技能提升",
+    "category": "成长",
+    "message": "最近学的东西开始能用上了，心里踏实不少。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 8,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "side_job",
+        "chance": 0.25,
+        "delayDays": 3
+      },
+      {
+        "eventId": "promotion",
+        "chance": 0.12,
+        "delayDays": 7
+      }
+    ]
+  },
+  {
+    "id": "study_fatigue",
+    "name": "学习疲惫",
+    "category": "健康",
+    "message": "下班后学习有点透支，身体提醒该缓一缓。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -3,
+    "healthDelta": -4,
+    "followUps": [
+      {
+        "eventId": "adjust_sleep",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "adjust_commute",
+    "name": "调整通勤",
+    "category": "交通",
+    "message": "换了个出门时间，通勤没那么折腾了。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 3,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "walk_to_work",
+        "chance": 0.28,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "repair_quote",
+    "name": "维修报价",
+    "category": "家庭维护",
+    "message": "问了维修报价，比想象中贵一点。",
+    "chance": 0.001,
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "fixed_appliance",
+        "chance": 0.55,
+        "delayDays": 2
+      },
+      {
+        "eventId": "replace_appliance",
+        "chance": 0.22,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "fixed_appliance",
+    "name": "家电修好了",
+    "category": "家庭维护",
+    "message": "小家电终于修好了，家里少了一件烦心事。",
+    "chance": 0.001,
+    "minMoneyDelta": -360,
+    "maxMoneyDelta": -120,
+    "moodDelta": 5,
+    "healthDelta": 0
+  },
+  {
+    "id": "replace_appliance",
+    "name": "换了小家电",
+    "category": "家庭维护",
+    "message": "最后还是换了新的，花钱肉疼但省心。",
+    "chance": 0.001,
+    "minMoneyDelta": -900,
+    "maxMoneyDelta": -260,
+    "moodDelta": 3,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "cashflow_ease",
+        "chance": 0.18,
+        "delayDays": 4
+      }
+    ]
+  },
+  {
+    "id": "exercise_plan",
+    "name": "运动计划",
+    "category": "健康",
+    "message": "体检之后定了个轻量运动计划。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": 3,
+    "followUps": [
+      {
+        "eventId": "health_improved",
+        "chance": 0.45,
+        "delayDays": 4
+      },
+      {
+        "eventId": "sports_injury",
+        "chance": 0.08,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "diet_adjust",
+    "name": "饮食调整",
+    "category": "餐饮",
+    "message": "这几天吃得清淡些，身体负担小了点。",
+    "chance": 0.001,
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": -20,
+    "moodDelta": 1,
+    "healthDelta": 4,
+    "followUps": [
+      {
+        "eventId": "health_improved",
+        "chance": 0.35,
+        "delayDays": 3
+      }
+    ]
+  },
+  {
+    "id": "health_improved",
+    "name": "状态改善",
+    "category": "健康",
+    "message": "坚持调整后，身体状态确实比前几天好了。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 7
+  },
+  {
+    "id": "online_budget_glance",
+    "name": "看了一眼账本",
+    "category": "在线插曲",
+    "message": "想起最近的现金流，顺手看了一眼账本。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": 0,
+    "interludeFor": [
+      "debt_anxiety",
+      "careful_budgeting",
+      "cut_spending",
+      "extra_side_job"
+    ]
+  },
+  {
+    "id": "online_deep_breath",
+    "name": "深呼吸一下",
+    "category": "在线插曲",
+    "message": "工作压力冒头的时候，停下来深呼吸了一下。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": 1,
+    "interludeFor": [
+      "work_pressure",
+      "pressure_insomnia",
+      "late_sleep"
+    ]
+  },
+  {
+    "id": "online_take_medicine",
+    "name": "想起吃药喝水",
+    "category": "在线插曲",
+    "message": "身体不舒服时，提醒自己喝水休息一下。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": 2,
+    "interludeFor": [
+      "flu",
+      "flu_medicine",
+      "sick_leave",
+      "stomach"
+    ]
+  },
+  {
+    "id": "online_family_message",
+    "name": "回了家里消息",
+    "category": "在线插曲",
+    "message": "抽空回了家里消息，关系没有一直悬着。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": 0,
+    "interludeFor": [
+      "family_conflict",
+      "family_talk",
+      "parent_child_tension",
+      "study_plan"
+    ]
+  },
+  {
+    "id": "online_study_note",
+    "name": "记下一条学习笔记",
+    "category": "在线插曲",
+    "message": "趁着记忆还热，写下了一条学习笔记。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": 0,
+    "interludeFor": [
+      "training_fee",
+      "course_started",
+      "skill_practice",
+      "study_fatigue"
+    ]
+  },
+  {
+    "id": "online_repair_search",
+    "name": "查了维修方案",
+    "category": "在线插曲",
+    "message": "顺手查了下维修方案，心里有了点底。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": 0,
+    "interludeFor": [
+      "appliance_break",
+      "repair_quote",
+      "replace_appliance"
+    ]
+  },
+  {
+    "id": "online_commute_note",
+    "name": "记下通勤时间",
+    "category": "在线插曲",
+    "message": "留意了一下通勤时间，准备下次错峰试试。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": 0,
+    "interludeFor": [
+      "commute_delay",
+      "adjust_commute"
+    ]
+  },
+  {
+    "id": "daily_water",
+    "name": "喝水及时",
+    "category": "轻日常",
+    "message": "今天喝水还算及时，身体没掉链子。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": 1
+  },
+  {
+    "id": "commute_music",
+    "name": "通勤听歌",
+    "category": "轻日常",
+    "message": "路上听了会儿歌，情绪平稳了些。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": 0
+  },
+  {
+    "id": "tiny_cleanup",
+    "name": "随手收拾",
+    "category": "轻日常",
+    "message": "随手收拾了一点，房间看起来清爽些。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": 0
+  },
+  {
+    "id": "quiet_lunch",
+    "name": "安静午饭",
+    "category": "轻日常",
+    "message": "午饭吃得安静踏实，没什么大起伏。",
+    "chance": 0.001,
+    "minMoneyDelta": -35,
+    "maxMoneyDelta": -12,
+    "moodDelta": 1,
+    "healthDelta": 1
+  },
+  {
+    "id": "stretch_break",
+    "name": "伸展休息",
+    "category": "轻日常",
+    "message": "抽空伸展了一下，久坐的僵硬缓了点。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": 2
+  },
+  {
+    "id": "nothing_big",
+    "name": "平稳的一天",
+    "category": "轻日常",
+    "message": "今天没有什么大事，日子稳稳过去了。",
+    "chance": 0.001,
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": 0
+  },
+  {
+    "id": "act_guandan_adou_arrives",
+    "name": "阿杜准点上线",
+    "category": "阿杜掼蛋局",
+    "message": "阿杜发来消息：今晚掼两把？牌局还没开，气氛已经起来了。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_adou_partner",
+        "chance": 0.45,
+        "delayDays": 1
+      },
+      {
+        "eventId": "act_guandan_three_a_failed",
+        "chance": 0.45,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_adou_partner",
+    "name": "和阿杜搭档",
+    "category": "阿杜掼蛋局",
+    "message": "这把和阿杜搭档，开局互相试探牌风，嘴上都说稳一点。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_adou_signal",
+        "chance": 0.45,
+        "delayDays": 1
+      },
+      {
+        "eventId": "act_guandan_win_small",
+        "chance": 0.45,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_adou_signal",
+    "name": "阿杜一个眼神",
+    "category": "阿杜掼蛋局",
+    "message": "阿杜一个眼神像是在说：别急，等我炸。结果你真的忍住了。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 6,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_bomb_saved",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_adou_misread",
+    "name": "误会阿杜牌意",
+    "category": "阿杜掼蛋局",
+    "message": "你以为阿杜要接，结果他手里全是散牌。两个人沉默了三秒。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -5,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_postgame_review",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_adou_teasing",
+    "name": "阿杜开始调侃",
+    "category": "阿杜掼蛋局",
+    "message": "阿杜笑着说这牌都能打成这样，也是另一种稳定发挥。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_postgame_review",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_three_a_failed",
+    "name": "三冲 A 未果",
+    "category": "掼蛋冲级线",
+    "message": "冲了三次 A 都没冲过去，又被打回 2，好气啊。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": -30,
+    "maxMoneyDelta": 0,
+    "moodDelta": -9,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "act_guandan_revenge_queue",
+        "chance": 0.45,
+        "delayDays": 1
+      },
+      {
+        "eventId": "act_guandan_calm_down_tea",
+        "chance": 0.45,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_back_to_two",
+    "name": "被打回 2",
+    "category": "掼蛋冲级线",
+    "message": "好不容易摸到门口，一把牌直接被打回 2，心态差点碎了。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -8,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "act_guandan_revenge_queue",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_revenge_queue",
+    "name": "排队复仇",
+    "category": "掼蛋冲级线",
+    "message": "嘴上说最后一把，手却已经点了继续。今天必须把面子找回来。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": -20,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "act_guandan_late_night",
+        "chance": 0.45,
+        "delayDays": 1
+      },
+      {
+        "eventId": "act_guandan_win_promotion",
+        "chance": 0.45,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_win_promotion",
+    "name": "终于冲级成功",
+    "category": "掼蛋冲级线",
+    "message": "一把关键牌打得很顺，终于冲过去了，刚才的郁闷瞬间散了一半。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 50,
+    "moodDelta": 10,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "act_guandan_adou_praise",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_adou_praise",
+    "name": "阿杜夸了一句",
+    "category": "阿杜掼蛋局",
+    "message": "阿杜难得夸了一句：这把你打得可以。快乐值直接拉满。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 8,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_late_night",
+    "name": "牌局打到很晚",
+    "category": "掼蛋冲级线",
+    "message": "说好的最后一把变成了最后三把，眼睛有点干，但脑子还在复盘。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -3,
+    "healthDelta": -5,
+    "followUps": [
+      {
+        "eventId": "act_guandan_sleep_debt",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_sleep_debt",
+    "name": "掼蛋后遗症",
+    "category": "掼蛋冲级线",
+    "message": "昨晚牌局太晚，今天起床像少加载了半个系统。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -4,
+    "healthDelta": -6,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_calm_down_tea",
+    "name": "泡茶冷静",
+    "category": "掼蛋冲级线",
+    "message": "输了之后泡了杯茶，告诉自己：牌局输了，格局不能输。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": -12,
+    "maxMoneyDelta": -6,
+    "moodDelta": 3,
+    "healthDelta": 1,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_win_small",
+    "name": "小赢一把",
+    "category": "掼蛋冲级线",
+    "message": "小赢一把，不多，但足够让人觉得今晚还有机会。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 10,
+    "maxMoneyDelta": 40,
+    "moodDelta": 6,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_greedy_next",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_greedy_next",
+    "name": "赢了还想赢",
+    "category": "掼蛋冲级线",
+    "message": "刚赢一把就想乘胜追击，理智和手指正在拔河。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "act_guandan_back_to_two",
+        "chance": 0.45,
+        "delayDays": 1
+      },
+      {
+        "eventId": "act_guandan_win_promotion",
+        "chance": 0.45,
+        "delayDays": 2
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_bomb_saved",
+    "name": "炸弹留到关键时刻",
+    "category": "掼蛋战术复盘",
+    "message": "手里的炸弹忍了很久，最后一炸刚好卡住对面节奏。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_tactics",
+    "storyTitle": "掼蛋战术复盘",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 8,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_postgame_review",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_bomb_wasted",
+    "name": "炸弹交早了",
+    "category": "掼蛋战术复盘",
+    "message": "炸弹交早了，后面只能看对面一路起飞，心里非常不服。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_tactics",
+    "storyTitle": "掼蛋战术复盘",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -7,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_postgame_review",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_pair_blocked",
+    "name": "对子被卡死",
+    "category": "掼蛋冲级线",
+    "message": "一手对子看起来很美，结果被连续卡住，越打越憋屈。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -5,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_single_escape",
+    "name": "单牌惊险跑掉",
+    "category": "掼蛋冲级线",
+    "message": "最后一张单牌惊险跑掉，差一点就被按在手里。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 6,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_bad_shuffle",
+    "name": "牌型太散",
+    "category": "掼蛋冲级线",
+    "message": "这把牌像被风吹过，散得让人无从下手。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -6,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_calm_down_tea",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_god_hand",
+    "name": "天胡起手",
+    "category": "掼蛋冲级线",
+    "message": "起手牌好到想截图，连阿杜都说这把不赢说不过去。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 9,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_win_promotion",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_teammate_save",
+    "name": "阿杜救场",
+    "category": "阿杜掼蛋局",
+    "message": "关键时刻阿杜接住了压力，把局面从悬崖边拉回来。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 7,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_teammate_drop",
+    "name": "阿杜手滑",
+    "category": "阿杜掼蛋局",
+    "message": "阿杜一张牌打出去，空气突然安静。复盘时他坚持说是战术。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -4,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_postgame_review",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_postgame_review",
+    "name": "牌后复盘",
+    "category": "掼蛋冲级线",
+    "message": "打完以后认真复盘，发现输赢之外，嘴硬也是牌局的一部分。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 3,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_snack_order",
+    "name": "牌局点了夜宵",
+    "category": "掼蛋冲级线",
+    "message": "阿杜说边打边吃才有状态，于是点了夜宵，快乐和热量一起到账。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": -90,
+    "maxMoneyDelta": -35,
+    "moodDelta": 5,
+    "healthDelta": -2,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_phone_hot",
+    "name": "手机打热了",
+    "category": "掼蛋冲级线",
+    "message": "连打几局手机都发热了，像你的胜负心一样烫。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -1,
+    "healthDelta": -1,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_connection_drop",
+    "name": "网络突然卡住",
+    "category": "掼蛋冲级线",
+    "message": "关键回合网络卡了一下，回来时局面已经不认识你了。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -7,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_lucky_pass",
+    "name": "侥幸过关",
+    "category": "掼蛋冲级线",
+    "message": "一把牌打得跌跌撞撞，最后竟然过了，像捡到一口气。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 6,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_adu_silent",
+    "name": "阿杜沉默了",
+    "category": "阿杜掼蛋局",
+    "message": "阿杜突然沉默，说明这把要么很有牌，要么很没牌。结果是后者。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -3,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_adu_revenge",
+    "name": "阿杜喊复仇",
+    "category": "阿杜掼蛋局",
+    "message": "阿杜说刚才那把不算，再来。你们俩的胜负欲开始互相加油。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "act_guandan_revenge_queue",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_rank_checkpoint",
+    "name": "卡在关口",
+    "category": "掼蛋冲级线",
+    "message": "离升级就差一点点，偏偏在关口反复横跳。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -5,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_three_a_failed",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_clean_finish",
+    "name": "干净收尾",
+    "category": "掼蛋战术复盘",
+    "message": "最后几手牌处理得很干净，像把桌面擦亮了一下。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_tactics",
+    "storyTitle": "掼蛋战术复盘",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 7,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_wrong_memory",
+    "name": "记牌记错",
+    "category": "掼蛋战术复盘",
+    "message": "以为外面还有一张关键牌，结果记错了，计划当场散架。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_tactics",
+    "storyTitle": "掼蛋战术复盘",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -6,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_guandan_postgame_review",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_comeback",
+    "name": "逆风翻盘",
+    "category": "掼蛋冲级线",
+    "message": "前半局看着没希望，后半局突然连上节奏，逆风翻盘很解气。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 10,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "act_guandan_adou_praise",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_tilt_control",
+    "name": "忍住没上头",
+    "category": "掼蛋冲级线",
+    "message": "连续不顺时忍住没乱打，这比赢一把还难。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_end_on_win",
+    "name": "赢了就收",
+    "category": "掼蛋冲级线",
+    "message": "难得理智一次，赢了就收，给今晚留了一个好结尾。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 7,
+    "healthDelta": 2,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_end_on_loss",
+    "name": "输了还收",
+    "category": "掼蛋冲级线",
+    "message": "虽然输了，但你决定收手。心情不服，身体感谢。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": 3,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_adu_voice",
+    "name": "阿杜语音复盘",
+    "category": "阿杜掼蛋局",
+    "message": "阿杜发来语音复盘，前 20 秒讲牌，后 40 秒讲气势。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_adou",
+    "storyTitle": "阿杜掼蛋局",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 3,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_guandan_final_push",
+    "name": "最后一冲",
+    "category": "掼蛋冲级线",
+    "message": "最后一冲 A，手心有点热。结果这次真冲过去了。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 11,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "act_guandan_end_on_win",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_guandan_final_fail",
+    "name": "最后一冲失败",
+    "category": "掼蛋冲级线",
+    "message": "最后一冲又失败，今天的 A 像有门禁。",
+    "chance": 0.001,
+    "actionChance": 0.32,
+    "actionTriggers": [
+      "guandan"
+    ],
+    "storyId": "guandan_rank",
+    "storyTitle": "掼蛋冲级线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -9,
+    "healthDelta": -1,
+    "followUps": [
+      {
+        "eventId": "act_guandan_end_on_loss",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_badminton_buy_shuttle",
+    "name": "需要买球了",
+    "category": "羽毛球补给线",
+    "message": "打到一半发现球毛都散了，只能补一筒新球。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_supply",
+    "storyTitle": "羽毛球补给线",
+    "minMoneyDelta": -88,
+    "maxMoneyDelta": -36,
+    "moodDelta": -1,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_badminton_good_shuttle",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_badminton_good_shuttle",
+    "name": "新球手感不错",
+    "category": "羽毛球补给线",
+    "message": "新买的球飞行稳定，扣杀时声音都更清脆。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_supply",
+    "storyTitle": "羽毛球补给线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 6,
+    "healthDelta": 1,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_string_loose",
+    "name": "拍线松了",
+    "category": "羽毛球补给线",
+    "message": "拍线有点松，杀球像没睡醒，得找时间换线。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_supply",
+    "storyTitle": "羽毛球补给线",
+    "minMoneyDelta": -120,
+    "maxMoneyDelta": -60,
+    "moodDelta": -4,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_badminton_new_string",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_badminton_new_string",
+    "name": "换了新拍线",
+    "category": "羽毛球补给线",
+    "message": "换线之后手感回来了，像给球拍续了一口气。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_supply",
+    "storyTitle": "羽毛球补给线",
+    "minMoneyDelta": -95,
+    "maxMoneyDelta": -55,
+    "moodDelta": 5,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_grip_worn",
+    "name": "手胶该换了",
+    "category": "羽毛球补给线",
+    "message": "手胶磨得发亮，握拍开始打滑，顺手买了两卷。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_supply",
+    "storyTitle": "羽毛球补给线",
+    "minMoneyDelta": -38,
+    "maxMoneyDelta": -18,
+    "moodDelta": 1,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_court_fee",
+    "name": "场地费结账",
+    "category": "羽毛球补给线",
+    "message": "今天场地费 AA，运动快乐也有账单。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_supply",
+    "storyTitle": "羽毛球补给线",
+    "minMoneyDelta": -60,
+    "maxMoneyDelta": -25,
+    "moodDelta": 3,
+    "healthDelta": 1,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_partner_late",
+    "name": "球友迟到",
+    "category": "羽毛球对战线",
+    "message": "球友迟到了十分钟，热身热成了等待。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -3,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_long_rally",
+    "name": "多拍拉锯",
+    "category": "羽毛球对战线",
+    "message": "一分打了十几个回合，最后赢下来的瞬间，腿都在鼓掌。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 8,
+    "healthDelta": 2,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_smash_win",
+    "name": "扣杀得分",
+    "category": "羽毛球对战线",
+    "message": "一记扣杀打得很干净，对面只来得及回头看球。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 9,
+    "healthDelta": 1,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_smash_air",
+    "name": "扣杀抡空",
+    "category": "羽毛球对战线",
+    "message": "准备了半天的重杀抡空了，气势倒是杀出去了。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -5,
+    "healthDelta": 0,
+    "followUps": [
+      {
+        "eventId": "act_badminton_laugh_it_off",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_badminton_laugh_it_off",
+    "name": "笑着翻篇",
+    "category": "羽毛球对战线",
+    "message": "大家笑了一下，尴尬被汗水冲淡，继续打。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_ankle_warning",
+    "name": "脚踝提醒",
+    "category": "羽毛球健康线",
+    "message": "落地时脚踝提醒了一下，今天不能太莽。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_health",
+    "storyTitle": "羽毛球健康线",
+    "minMoneyDelta": -60,
+    "maxMoneyDelta": 0,
+    "moodDelta": -4,
+    "healthDelta": -4,
+    "followUps": [
+      {
+        "eventId": "act_badminton_rest_ice",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_badminton_rest_ice",
+    "name": "冰敷休息",
+    "category": "羽毛球健康线",
+    "message": "回家冰敷了一会儿，身体说这才像话。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_health",
+    "storyTitle": "羽毛球健康线",
+    "minMoneyDelta": -25,
+    "maxMoneyDelta": -8,
+    "moodDelta": 1,
+    "healthDelta": 4,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_shoulder_sore",
+    "name": "肩膀酸",
+    "category": "羽毛球健康线",
+    "message": "连续杀球后肩膀有点酸，爽是爽，代价也真实。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_health",
+    "storyTitle": "羽毛球健康线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": -3,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_sweat_good",
+    "name": "出汗很爽",
+    "category": "羽毛球健康线",
+    "message": "打到全身出汗，压力像顺着汗一起流走了。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_health",
+    "storyTitle": "羽毛球健康线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 8,
+    "healthDelta": 6,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_drink_water",
+    "name": "补水及时",
+    "category": "羽毛球健康线",
+    "message": "中途及时补水，后半场没有掉太多状态。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_health",
+    "storyTitle": "羽毛球健康线",
+    "minMoneyDelta": -12,
+    "maxMoneyDelta": -6,
+    "moodDelta": 2,
+    "healthDelta": 3,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_forget_towel",
+    "name": "忘带毛巾",
+    "category": "羽毛球补给线",
+    "message": "忘带毛巾，只能临时买一条，记性又交学费。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_supply",
+    "storyTitle": "羽毛球补给线",
+    "minMoneyDelta": -35,
+    "maxMoneyDelta": -15,
+    "moodDelta": -1,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_new_partner",
+    "name": "遇到新球友",
+    "category": "羽毛球对战线",
+    "message": "遇到一个新球友，节奏很合，打起来比预想更开心。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 7,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "act_badminton_group_invite",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_badminton_group_invite",
+    "name": "被拉进球群",
+    "category": "羽毛球对战线",
+    "message": "新球友把你拉进球群，下次约球更方便了。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_close_loss",
+    "name": "惜败两分",
+    "category": "羽毛球对战线",
+    "message": "最后只差两分，输得不服，但也知道自己今天状态还可以。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -3,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "act_badminton_rematch_plan",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_badminton_rematch_plan",
+    "name": "约好再战",
+    "category": "羽毛球对战线",
+    "message": "约好下次再战，嘴上平静，心里已经开始排兵布阵。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_clear_winner",
+    "name": "高远球救场",
+    "category": "羽毛球对战线",
+    "message": "一个高远球把对面调开，终于给自己抢回呼吸。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 6,
+    "healthDelta": 1,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_net_touch",
+    "name": "网前小球失误",
+    "category": "羽毛球对战线",
+    "message": "网前小球差一点就过，结果轻轻挂网，心也跟着挂了一下。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -4,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_backhand_save",
+    "name": "反手救球",
+    "category": "羽毛球对战线",
+    "message": "反手救了一个看似没救的球，连自己都愣了一下。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_match",
+    "storyTitle": "羽毛球对战线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 7,
+    "healthDelta": 1,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_rain_court",
+    "name": "下雨改室内",
+    "category": "羽毛球补给线",
+    "message": "外面下雨，只能临时加钱换室内场，好在没白跑。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_supply",
+    "storyTitle": "羽毛球补给线",
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": -30,
+    "moodDelta": 2,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_shuttle_shared",
+    "name": "球友分了你一颗球",
+    "category": "羽毛球补给线",
+    "message": "球友看你球不够，顺手分了一颗，运动场上的小温暖。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_supply",
+    "storyTitle": "羽毛球补给线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_knee_warning",
+    "name": "膝盖有点顶",
+    "category": "羽毛球健康线",
+    "message": "急停急起之后膝盖有点顶，今天得收着点。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_health",
+    "storyTitle": "羽毛球健康线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -3,
+    "healthDelta": -4,
+    "followUps": [
+      {
+        "eventId": "act_badminton_rest_ice",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_badminton_warmup_paid",
+    "name": "热身救了你",
+    "category": "羽毛球健康线",
+    "message": "认真热身救了你一把，后面打起来身体顺多了。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_health",
+    "storyTitle": "羽毛球健康线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 4,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_no_warmup",
+    "name": "热身偷懒",
+    "category": "羽毛球健康线",
+    "message": "热身偷懒，第一局身体像没启动完全。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_health",
+    "storyTitle": "羽毛球健康线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": -2,
+    "followUps": []
+  },
+  {
+    "id": "act_badminton_after_meal",
+    "name": "打完想吃好的",
+    "category": "羽毛球健康线",
+    "message": "打完球以后特别想吃点好的，运动后的胃很有主见。",
+    "chance": 0.001,
+    "actionChance": 0.3,
+    "actionTriggers": [
+      "badminton"
+    ],
+    "storyId": "badminton_health",
+    "storyTitle": "羽毛球健康线",
+    "minMoneyDelta": -75,
+    "maxMoneyDelta": -25,
+    "moodDelta": 5,
+    "healthDelta": -1,
+    "followUps": []
+  },
+  {
+    "id": "act_buffet_overeat",
+    "name": "自助餐吃撑",
+    "category": "饮食小剧场",
+    "message": "自助餐最后一轮不该拿的，撑是真的撑，快乐也是真的快乐。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "buffet"
+    ],
+    "storyId": "food_fun",
+    "storyTitle": "饮食小剧场",
+    "minMoneyDelta": -20,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": -4,
+    "followUps": [
+      {
+        "eventId": "act_meal_light_next_day",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_meal_light_next_day",
+    "name": "第二天清淡点",
+    "category": "饮食小剧场",
+    "message": "昨天吃得太猛，今天主动吃清淡点，身体松了一口气。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "meal"
+    ],
+    "storyId": "food_fun",
+    "storyTitle": "饮食小剧场",
+    "minMoneyDelta": -45,
+    "maxMoneyDelta": -18,
+    "moodDelta": 2,
+    "healthDelta": 4,
+    "followUps": []
+  },
+  {
+    "id": "act_drink_sugar_high",
+    "name": "甜饮快乐",
+    "category": "饮食小剧场",
+    "message": "甜饮入口的那几分钟，心情真的很容易被哄好。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "drink"
+    ],
+    "storyId": "food_fun",
+    "storyTitle": "饮食小剧场",
+    "minMoneyDelta": -18,
+    "maxMoneyDelta": -8,
+    "moodDelta": 5,
+    "healthDelta": -1,
+    "followUps": []
+  },
+  {
+    "id": "act_drink_regret",
+    "name": "喝完有点后悔",
+    "category": "饮食小剧场",
+    "message": "喝完甜饮又开始想热量，快乐和自律互相瞪了一眼。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "drink"
+    ],
+    "storyId": "food_fun",
+    "storyTitle": "饮食小剧场",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -1,
+    "healthDelta": -1,
+    "followUps": []
+  },
+  {
+    "id": "act_meal_new_place",
+    "name": "发现一家新店",
+    "category": "饮食小剧场",
+    "message": "随便吃个饭，意外发现一家味道不错的新店。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "meal"
+    ],
+    "storyId": "food_fun",
+    "storyTitle": "饮食小剧场",
+    "minMoneyDelta": -58,
+    "maxMoneyDelta": -28,
+    "moodDelta": 6,
+    "healthDelta": 1,
+    "followUps": [
+      {
+        "eventId": "act_meal_revisit",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_meal_revisit",
+    "name": "想再去一次",
+    "category": "饮食小剧场",
+    "message": "那家新店还在脑子里，已经开始盘算下次点什么。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "meal"
+    ],
+    "storyId": "food_fun",
+    "storyTitle": "饮食小剧场",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 3,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_alcohol_too_much",
+    "name": "喝得有点多",
+    "category": "娱乐社交线",
+    "message": "气氛到了，多喝了两杯，回家路上开始反省。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "alcohol"
+    ],
+    "storyId": "social_fun",
+    "storyTitle": "娱乐社交线",
+    "minMoneyDelta": -80,
+    "maxMoneyDelta": -30,
+    "moodDelta": 3,
+    "healthDelta": -6,
+    "followUps": [
+      {
+        "eventId": "act_alcohol_recovery",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_alcohol_recovery",
+    "name": "第二天补水",
+    "category": "娱乐社交线",
+    "message": "第二天赶紧补水，身体在缓慢重启。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "alcohol"
+    ],
+    "storyId": "social_fun",
+    "storyTitle": "娱乐社交线",
+    "minMoneyDelta": -20,
+    "maxMoneyDelta": -8,
+    "moodDelta": 1,
+    "healthDelta": 3,
+    "followUps": []
+  },
+  {
+    "id": "act_exercise_new_record",
+    "name": "锻炼破纪录",
+    "category": "运动成长线",
+    "message": "今天比上次多坚持了一点点，小进步很实在。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "exercise"
+    ],
+    "storyId": "exercise_general",
+    "storyTitle": "运动成长线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 7,
+    "healthDelta": 5,
+    "followUps": [
+      {
+        "eventId": "act_exercise_confidence",
+        "chance": 0.45,
+        "delayDays": 1
+      }
+    ]
+  },
+  {
+    "id": "act_exercise_confidence",
+    "name": "运动自信增加",
+    "category": "运动成长线",
+    "message": "连续几次动起来之后，身体开始相信你不是说说而已。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "exercise"
+    ],
+    "storyId": "exercise_general",
+    "storyTitle": "运动成长线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 6,
+    "healthDelta": 4,
+    "followUps": []
+  },
+  {
+    "id": "act_exercise_skip_stretch",
+    "name": "忘记拉伸",
+    "category": "运动成长线",
+    "message": "锻炼完忘记拉伸，肌肉第二天开始小声抗议。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "exercise"
+    ],
+    "storyId": "exercise_general",
+    "storyTitle": "运动成长线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": -3,
+    "followUps": []
+  },
+  {
+    "id": "act_cycling_headwind",
+    "name": "逆风骑行",
+    "category": "骑车风景线",
+    "message": "骑车遇到逆风，感觉每一米都在和空气谈判。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "cycling"
+    ],
+    "storyId": "cycling_story",
+    "storyTitle": "骑车风景线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": 3,
+    "followUps": []
+  },
+  {
+    "id": "act_cycling_sunset",
+    "name": "夕阳很好看",
+    "category": "骑车风景线",
+    "message": "骑车路上看见很好看的夕阳，今天的风都温柔了一点。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "cycling"
+    ],
+    "storyId": "cycling_story",
+    "storyTitle": "骑车风景线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 8,
+    "healthDelta": 3,
+    "followUps": []
+  },
+  {
+    "id": "act_cycling_tire_soft",
+    "name": "轮胎有点软",
+    "category": "骑车风景线",
+    "message": "骑到半路发现轮胎有点软，补气花了点时间。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "cycling"
+    ],
+    "storyId": "cycling_story",
+    "storyTitle": "骑车风景线",
+    "minMoneyDelta": -15,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_work_small_win",
+    "name": "工作小胜利",
+    "category": "工作日小故事",
+    "message": "今天解决了一个卡住很久的小问题，心里亮了一下。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "work"
+    ],
+    "storyId": "workday_story",
+    "storyTitle": "工作日小故事",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 6,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_work_context_switch",
+    "name": "频繁切上下文",
+    "category": "工作日小故事",
+    "message": "工作时被各种事情打断，脑子像开了太多标签页。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "work"
+    ],
+    "storyId": "workday_story",
+    "storyTitle": "工作日小故事",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -5,
+    "healthDelta": -2,
+    "followUps": []
+  },
+  {
+    "id": "act_meeting_too_long",
+    "name": "会议超时",
+    "category": "工作日小故事",
+    "message": "会议比预计多开了半小时，灵魂已经提前下班。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "meeting"
+    ],
+    "storyId": "workday_story",
+    "storyTitle": "工作日小故事",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -6,
+    "healthDelta": -2,
+    "followUps": []
+  },
+  {
+    "id": "act_meeting_useful",
+    "name": "会议竟然有用",
+    "category": "工作日小故事",
+    "message": "难得一次会议真的推进了事情，甚至有点不习惯。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "meeting"
+    ],
+    "storyId": "workday_story",
+    "storyTitle": "工作日小故事",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 4,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_entertainment_relax",
+    "name": "放松成功",
+    "category": "娱乐社交线",
+    "message": "玩了一会儿之后，紧绷感终于松开一点。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "entertainment"
+    ],
+    "storyId": "social_fun",
+    "storyTitle": "娱乐社交线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 6,
+    "healthDelta": 1,
+    "followUps": []
+  },
+  {
+    "id": "act_entertainment_time_slip",
+    "name": "时间不见了",
+    "category": "娱乐社交线",
+    "message": "说好玩一会儿，结果时间像被偷走了。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "entertainment"
+    ],
+    "storyId": "social_fun",
+    "storyTitle": "娱乐社交线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 2,
+    "healthDelta": -2,
+    "followUps": []
+  },
+  {
+    "id": "act_buffet_coupon",
+    "name": "自助餐券省了一点",
+    "category": "饮食小剧场",
+    "message": "结账时发现券还能用，像从账单里捡回一小块快乐。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "buffet"
+    ],
+    "storyId": "food_fun",
+    "storyTitle": "饮食小剧场",
+    "minMoneyDelta": 20,
+    "maxMoneyDelta": 60,
+    "moodDelta": 4,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_meal_wrong_order",
+    "name": "点错菜",
+    "category": "饮食小剧场",
+    "message": "点错了一道菜，味道倒也不差，只是计划被菜单偷袭。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "meal"
+    ],
+    "storyId": "food_fun",
+    "storyTitle": "饮食小剧场",
+    "minMoneyDelta": -20,
+    "maxMoneyDelta": 0,
+    "moodDelta": 1,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_drink_shared",
+    "name": "朋友请了饮料",
+    "category": "娱乐社交线",
+    "message": "朋友顺手请了杯饮料，今天的小确幸很具体。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "drink"
+    ],
+    "storyId": "social_fun",
+    "storyTitle": "娱乐社交线",
+    "minMoneyDelta": 8,
+    "maxMoneyDelta": 22,
+    "moodDelta": 5,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_alcohol_good_chat",
+    "name": "酒桌聊开了",
+    "category": "娱乐社交线",
+    "message": "小酌时和朋友聊开了，一些压着的话终于有地方放。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "alcohol"
+    ],
+    "storyId": "social_fun",
+    "storyTitle": "娱乐社交线",
+    "minMoneyDelta": -60,
+    "maxMoneyDelta": -20,
+    "moodDelta": 7,
+    "healthDelta": -2,
+    "followUps": []
+  },
+  {
+    "id": "act_cycling_small_detour",
+    "name": "绕路看风景",
+    "category": "骑车风景线",
+    "message": "骑车时临时绕了点路，发现一段很安静的小路。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "cycling"
+    ],
+    "storyId": "cycling_story",
+    "storyTitle": "骑车风景线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 6,
+    "healthDelta": 2,
+    "followUps": []
+  },
+  {
+    "id": "act_exercise_sore_but_good",
+    "name": "酸但舒服",
+    "category": "运动成长线",
+    "message": "锻炼后肌肉酸，但那种酸让人觉得今天没有白过。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "exercise"
+    ],
+    "storyId": "exercise_general",
+    "storyTitle": "运动成长线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 2,
+    "followUps": []
+  },
+  {
+    "id": "act_work_coffee_save",
+    "name": "咖啡救场",
+    "category": "工作日小故事",
+    "message": "下午差点掉线，一杯咖啡把注意力拽了回来。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "work"
+    ],
+    "storyId": "workday_story",
+    "storyTitle": "工作日小故事",
+    "minMoneyDelta": -28,
+    "maxMoneyDelta": -12,
+    "moodDelta": 3,
+    "healthDelta": -1,
+    "followUps": []
+  },
+  {
+    "id": "act_meeting_action_items",
+    "name": "会议留下行动项",
+    "category": "工作日小故事",
+    "message": "会议结束后多了几个行动项，事情清楚了，人也更忙了。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "meeting"
+    ],
+    "storyId": "workday_story",
+    "storyTitle": "工作日小故事",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": -2,
+    "healthDelta": -1,
+    "followUps": []
+  },
+  {
+    "id": "act_entertainment_new_joke",
+    "name": "新梗出现",
+    "category": "娱乐社交线",
+    "message": "朋友群里冒出一个新梗，笑点来得很突然。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "entertainment"
+    ],
+    "storyId": "social_fun",
+    "storyTitle": "娱乐社交线",
+    "minMoneyDelta": 0,
+    "maxMoneyDelta": 0,
+    "moodDelta": 5,
+    "healthDelta": 0,
+    "followUps": []
+  },
+  {
+    "id": "act_entertainment_over_budget",
+    "name": "娱乐超预算",
+    "category": "娱乐社交线",
+    "message": "玩得开心，付款时才发现今晚预算被轻轻突破了。",
+    "chance": 0.001,
+    "actionChance": 0.22,
+    "actionTriggers": [
+      "entertainment"
+    ],
+    "storyId": "social_fun",
+    "storyTitle": "娱乐社交线",
+    "minMoneyDelta": -160,
+    "maxMoneyDelta": -40,
+    "moodDelta": 3,
+    "healthDelta": -1,
+    "followUps": []
+  }
 ]

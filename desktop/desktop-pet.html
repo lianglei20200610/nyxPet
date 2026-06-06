@@ -290,9 +290,34 @@
         white-space: normal;
       }
 
+      .story-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 2px;
+      }
+
+      .story-tab {
+        width: auto;
+        min-width: max-content;
+        height: 24px;
+        padding: 0 8px;
+        border-width: 1px;
+        border-radius: 999px;
+        box-shadow: none;
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .story-tab.is-active {
+        background: #f8d45a;
+      }
+
       .story-row {
         padding-bottom: 9px;
         border-bottom: 1px solid rgba(56, 43, 24, 0.12);
+        cursor: pointer;
       }
 
       .story-row:last-child {
@@ -309,12 +334,14 @@
       }
 
       .story-status {
+        flex: 0 0 auto;
         padding: 1px 6px;
         border-radius: 999px;
         background: rgba(108, 87, 148, 0.12);
         color: #604f7e;
         font-size: 10px;
         font-weight: 800;
+        white-space: nowrap;
       }
 
       .story-text {
@@ -323,11 +350,41 @@
         color: #5f4d3e;
       }
 
+      .story-meta {
+        display: block;
+        margin-top: 3px;
+        color: #8a7460;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
       .story-next {
         display: block;
         margin-top: 4px;
         color: #7c6754;
         font-size: 12px;
+      }
+
+      .story-detail {
+        display: grid;
+        gap: 6px;
+        margin-top: 8px;
+        padding-left: 8px;
+        border-left: 3px solid rgba(108, 87, 148, 0.28);
+      }
+
+      .story-detail-row {
+        display: grid;
+        gap: 2px;
+      }
+
+      .story-detail-title {
+        font-weight: 800;
+        color: #33261b;
+      }
+
+      .story-detail-text {
+        color: #5f4d3e;
       }
 
       .event-name {
@@ -709,6 +766,15 @@
         text-align: left;
       }
 
+      body.is-windows .story-tab {
+        width: auto;
+        min-width: max-content;
+        height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 11px;
+      }
+
       .menu-icon {
         font-size: 16px;
       }
@@ -745,6 +811,23 @@
       button:active {
         transform: translateY(3px);
         box-shadow: 0 2px 0 rgba(45, 38, 27, 0.16);
+      }
+
+      button.has-badge {
+        position: relative;
+      }
+
+      button.has-badge::after {
+        content: "";
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 9px;
+        height: 9px;
+        border: 2px solid var(--paper);
+        border-radius: 50%;
+        background: #e33b35;
+        box-shadow: 0 1px 0 rgba(45, 38, 27, 0.18);
       }
 
       @keyframes sprite-bob {
@@ -924,6 +1007,10 @@
       let messageQueue = [];
       let queuePlaying = false;
       let latestPetState = null;
+      let latestStories = [];
+      let storyGroups = ["全部"];
+      let activeStoryGroup = "全部";
+      let expandedStoryId = "";
       let currentEmotion = "neutral";
       let temporaryEmotionTimer;
 
@@ -951,7 +1038,7 @@
         settings: { label: "设置", icon: "⚙️" },
         developer: { label: "开发工具", icon: "🛠" }
       };
-      let petSettings = { alwaysOnTop: true };
+      let petSettings = { alwaysOnTop: true, unreadEvents: 0, unreadStories: 0 };
       let mousePassthrough = null;
       let petDrag = null;
       let suppressNextPetClick = false;
@@ -1363,19 +1450,38 @@
         hideTimer = window.setTimeout(() => bubble.classList.remove("show"), 52000);
       }
 
-      function showStories(stories) {
+      function showStories(stories, groups = ["全部"], activeGroup = "全部", expandedStoryId = "") {
         window.clearTimeout(hideTimer);
         resetBubbleContent();
         bubble.classList.add("scrollable");
         bubbleLabel.textContent = "故事";
         const list = document.createElement("span");
         list.className = "story-list";
-        if (!stories || stories.length === 0) {
+        const visibleStories = (stories || []).filter((story) => activeGroup === "全部" || story.group === activeGroup);
+
+        if (groups.length > 1) {
+          const tabs = document.createElement("span");
+          tabs.className = "story-tabs";
+          for (const group of groups) {
+            const tab = document.createElement("button");
+            tab.type = "button";
+            tab.className = `story-tab${group === activeGroup ? " is-active" : ""}`;
+            tab.textContent = group;
+            tab.dataset.action = "filterStory";
+            tab.dataset.group = group;
+            tabs.appendChild(tab);
+          }
+          list.appendChild(tabs);
+        }
+
+        if (!visibleStories || visibleStories.length === 0) {
           list.textContent = "暂无进行中的故事\n有连续事件发生后会整理在这里";
         } else {
-          for (const story of stories) {
+          for (const story of visibleStories) {
             const row = document.createElement("span");
             row.className = "story-row";
+            row.dataset.action = "toggleStory";
+            row.dataset.storyId = story.id;
             const title = document.createElement("span");
             title.className = "story-title";
             const name = document.createElement("span");
@@ -1391,11 +1497,33 @@
             text.className = "story-text";
             text.textContent = story.summary;
             row.append(title, text);
+            const meta = document.createElement("span");
+            meta.className = "story-meta";
+            meta.textContent = `${story.group || "其他"} · ${story.count || 0} 条 · 最近 ${story.latestDate || "-"}`;
+            row.appendChild(meta);
             if (story.next) {
               const next = document.createElement("span");
               next.className = "story-next";
               next.textContent = story.next;
               row.appendChild(next);
+            }
+            if (story.id === expandedStoryId) {
+              const detail = document.createElement("span");
+              detail.className = "story-detail";
+              const timeline = Array.isArray(story.timeline) ? story.timeline : [];
+              for (const entry of timeline) {
+                const item = document.createElement("span");
+                item.className = "story-detail-row";
+                const itemTitle = document.createElement("span");
+                itemTitle.className = "story-detail-title";
+                itemTitle.textContent = `${entry.date || ""} ${entry.name || ""}`;
+                const itemText = document.createElement("span");
+                itemText.className = "story-detail-text";
+                itemText.textContent = `${entry.message || ""} 钱${signed(entry.moneyDelta || 0)} 心${signed(entry.moodDelta || 0)} 康${signed(entry.healthDelta || 0)}`;
+                item.append(itemTitle, itemText);
+                detail.appendChild(item);
+              }
+              row.appendChild(detail);
             }
             list.appendChild(row);
           }
@@ -1557,7 +1685,12 @@
       };
 
       window.petStoryResult = (payload) => {
-        showStories(payload.stories || []);
+        latestStories = payload.stories || [];
+        storyGroups = payload.groups || ["全部"];
+        if (!storyGroups.includes(activeStoryGroup)) {
+          activeStoryGroup = "全部";
+        }
+        showStories(latestStories, storyGroups, activeStoryGroup, expandedStoryId);
       };
 
       window.petLedgerStatsResult = (payload) => {
@@ -1588,6 +1721,17 @@
         }
       };
 
+      window.petUnreadUpdated = (payload) => {
+        petSettings = {
+          ...petSettings,
+          unreadEvents: Number(payload?.events || 0),
+          unreadStories: Number(payload?.stories || 0)
+        };
+        if (menu.classList.contains("open") && menuMode === "root") {
+          renderRootMenu();
+        }
+      };
+
       window.petLoadActions = (actions) => {
         loadedActions = actions;
         renderRootMenu();
@@ -1607,10 +1751,14 @@
         menu.replaceChildren();
       }
 
-      function createMenuButton({ icon, title, dataset, label }) {
+      function createMenuButton({ icon, title, dataset, label, badge }) {
         const button = document.createElement("button");
         button.type = "button";
         button.title = title;
+        if (badge) {
+          button.classList.add("has-badge");
+          button.setAttribute("aria-label", `${title}，有新内容`);
+        }
         if (label) {
           const iconElement = document.createElement("span");
           iconElement.className = "menu-icon";
@@ -1644,12 +1792,14 @@
         menu.appendChild(createMenuButton({
           icon: categoryMeta.events.icon,
           title: categoryMeta.events.label,
-          dataset: { action: "showEvents" }
+          dataset: { action: "showEvents" },
+          badge: Number(petSettings.unreadEvents || 0) > 0
         }));
         menu.appendChild(createMenuButton({
           icon: categoryMeta.stories.icon,
           title: categoryMeta.stories.label,
-          dataset: { action: "showStories" }
+          dataset: { action: "showStories" },
+          badge: Number(petSettings.unreadStories || 0) > 0
         }));
 
         if (loadedActions.length > 0) {
@@ -2003,6 +2153,24 @@
         }
         menu.classList.remove("open");
         renderRootMenu();
+      });
+
+      bubble.addEventListener("click", (event) => {
+        const filter = event.target.closest("[data-action='filterStory']");
+        if (filter) {
+          event.stopPropagation();
+          activeStoryGroup = filter.dataset.group || "全部";
+          expandedStoryId = "";
+          showStories(latestStories, storyGroups, activeStoryGroup, expandedStoryId);
+          return;
+        }
+
+        const row = event.target.closest("[data-action='toggleStory']");
+        if (row) {
+          event.stopPropagation();
+          expandedStoryId = expandedStoryId === row.dataset.storyId ? "" : row.dataset.storyId;
+          showStories(latestStories, storyGroups, activeStoryGroup, expandedStoryId);
+        }
       });
 
       dragZone.addEventListener("pointerdown", () => {

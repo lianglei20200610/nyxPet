@@ -28,7 +28,9 @@ const initialSettings = {
   windowHeight: 620,
   alwaysOnTop: true,
   showStats: true,
-  skinId: "goku-forms"
+  skinId: "goku-forms",
+  unreadEvents: 0,
+  unreadStories: 0
 };
 
 const initialState = {
@@ -250,6 +252,13 @@ function sendSettings() {
   });
 }
 
+function sendUnreadStatus() {
+  sendCallback("petUnreadUpdated", {
+    events: Number(settings.unreadEvents || 0),
+    stories: Number(settings.unreadStories || 0)
+  });
+}
+
 function sendActivityStarted(action) {
   sendCallback("petActivityStarted", {
     id: action.id,
@@ -281,6 +290,7 @@ function bootstrapRenderer() {
   sendCallback("petLoadActions", publicActions);
   sendState();
   sendSettings();
+  sendUnreadStatus();
   if (dailySettlementMessage) {
     sendSkillResult(dailySettlementMessage, "今日收支");
   }
@@ -415,11 +425,16 @@ function eventSummary(limit = 24) {
       eventId: entry.eventId || "",
       storyLabel: eventStoryLabel(entry),
       reason: entry.reason || "",
+      createdAt: entry.createdAt || "",
       severity: entry.severity || eventSeverity(entry)
     }));
 }
 
 function compareEventEntriesDesc(left, right) {
+  const timeOrder = eventEntrySortTime(right) - eventEntrySortTime(left);
+  if (timeOrder !== 0) {
+    return timeOrder;
+  }
   const dateOrder = String(right.date || "").localeCompare(String(left.date || ""));
   if (dateOrder !== 0) {
     return dateOrder;
@@ -427,8 +442,22 @@ function compareEventEntriesDesc(left, right) {
   return String(right.id || "").localeCompare(String(left.id || ""));
 }
 
+function eventEntrySortTime(entry) {
+  const createdAt = Date.parse(entry.createdAt || "");
+  if (Number.isFinite(createdAt)) {
+    return createdAt;
+  }
+  const day = Date.parse(`${entry.date || "1970-01-01"}T00:00:00`);
+  const fallbackDay = Number.isFinite(day) ? day : 0;
+  const idParts = String(entry.id || "").split(":");
+  const suffix = Number(idParts[idParts.length - 1]);
+  return fallbackDay + (Number.isFinite(suffix) ? suffix : 0);
+}
+
 function eventStoryLabel(entry) {
   if (entry.source === "followUp") return "故事后续";
+  const event = (lifeEvents || []).find((item) => item.id === entry.eventId);
+  if (event?.storyTitle) return event.storyTitle;
   if (entry.source === "realtime") return "在线插曲";
   const category = entry.category || "";
   if (["财务", "工作", "健康", "家庭", "教育", "家庭维护", "交通"].includes(category)) {
@@ -448,7 +477,7 @@ function storySummary(limit = 7) {
   }
 
   const stories = [];
-  for (const story of storyDefinitions) {
+  for (const story of allStoryDefinitions()) {
     const ids = new Set(story.eventIds);
     const happened = eventLog
       .filter((entry) => ids.has(entry.eventId) || ids.has(String(entry.id || "").split(":")[2]))
@@ -463,6 +492,18 @@ function storySummary(limit = 7) {
 
     const recent = happened.slice(0, 4).reverse();
     const names = recent.map((entry) => entry.name).join(" -> ");
+    const timeline = happened.slice(0, 8).map((entry) => ({
+      date: entry.date,
+      name: entry.name,
+      message: entry.message,
+      moneyDelta: entry.moneyDelta,
+      moodDelta: entry.moodDelta,
+      healthDelta: entry.healthDelta,
+      source: entry.source || "",
+      reason: entry.reason || "",
+      createdAt: entry.createdAt || "",
+      sortTime: eventEntrySortTime(entry)
+    }));
     const hasPending = pending.length > 0;
     const status = hasPending ? "进行中" : "";
     const next = hasPending
@@ -472,16 +513,91 @@ function storySummary(limit = 7) {
     stories.push({
       id: story.id,
       title: story.title,
+      group: storyGroupFor(story, happened, pending),
       status,
+      count: happened.length,
       latestDate: happened[0]?.date || pending[0]?.dueDate || "",
+      latestSortTime: happened[0] ? eventEntrySortTime(happened[0]) : eventEntrySortTime({ date: pending[0]?.dueDate || "" }),
       summary: names ? `最近进展：${names}` : "这条故事线已经有后续在等待发生。",
-      next
+      next,
+      timeline
     });
   }
 
   return stories
-    .sort((left, right) => String(right.latestDate).localeCompare(String(left.latestDate)))
+    .sort((left, right) => {
+      const timeOrder = Number(right.latestSortTime || 0) - Number(left.latestSortTime || 0);
+      if (timeOrder !== 0) return timeOrder;
+      return String(right.latestDate).localeCompare(String(left.latestDate));
+    })
     .slice(0, limit);
+}
+
+function storyGroupFor(story, happened, pending) {
+  const title = story.title || "";
+  if (/掼蛋|阿杜/.test(title)) return "掼蛋";
+  if (/羽毛球/.test(title)) return "羽毛球";
+  if (/饮食|餐|吃|喝/.test(title)) return "饮食";
+  if (/工作|会议|职业/.test(title)) return "工作";
+  if (/运动|骑车|健康|睡眠/.test(title)) return "健康";
+  if (/家庭|教育|孩子|父母/.test(title)) return "家庭";
+  const category = happened[0]?.category || pending[0]?.category || "";
+  if (/掼蛋|阿杜/.test(category)) return "掼蛋";
+  if (/羽毛球/.test(category)) return "羽毛球";
+  if (/饮食|餐|吃|喝/.test(category)) return "饮食";
+  if (/工作|会议|职业/.test(category)) return "工作";
+  if (/运动|骑车|健康|睡眠/.test(category)) return "健康";
+  if (/家庭|教育|孩子|父母/.test(category)) return "家庭";
+  return "其他";
+}
+
+function storyPayload() {
+  const stories = storySummary(36);
+  const groups = ["全部", ...Array.from(new Set(stories.map((story) => story.group || "其他")))];
+  return { stories, groups };
+}
+
+function allStoryDefinitions() {
+  const byId = new Map(storyDefinitions.map((story) => [story.id, { ...story, eventIds: [...story.eventIds] }]));
+  for (const event of lifeEvents || []) {
+    if (!event.storyId) {
+      continue;
+    }
+    const existing = byId.get(event.storyId) || {
+      id: event.storyId,
+      title: event.storyTitle || event.storyId,
+      eventIds: []
+    };
+    if (!existing.eventIds.includes(event.id)) {
+      existing.eventIds.push(event.id);
+    }
+    if (event.storyTitle) {
+      existing.title = event.storyTitle;
+    }
+    byId.set(existing.id, existing);
+  }
+  return Array.from(byId.values());
+}
+
+function incrementUnreadForEvent(eventId) {
+  settings.unreadEvents = Number(settings.unreadEvents || 0) + 1;
+  const event = (lifeEvents || []).find((item) => item.id === eventId);
+  if (event?.storyId || (Array.isArray(event?.followUps) && event.followUps.length > 0)) {
+    settings.unreadStories = Number(settings.unreadStories || 0) + 1;
+  }
+  writeJson(settingsPath, settings);
+  sendUnreadStatus();
+}
+
+function markEventsRead(kind) {
+  if (kind === "events") {
+    settings.unreadEvents = 0;
+  }
+  if (kind === "stories") {
+    settings.unreadStories = 0;
+  }
+  writeJson(settingsPath, settings);
+  sendUnreadStatus();
 }
 
 function eventDebugSummary() {
@@ -509,9 +625,9 @@ function eventDebugSummary() {
 function recordEventEntry({ date, category, name, message, moneyDelta, moodDelta, healthDelta, source, refId, reason = "", index = 0 }) {
   const id = ledgerId(date, source, refId || name, index);
   if (eventLog.some((entry) => entry.id === id)) {
-    return;
+    return null;
   }
-  eventLog.push({
+  const entry = {
     id,
     date,
     category,
@@ -523,9 +639,13 @@ function recordEventEntry({ date, category, name, message, moneyDelta, moodDelta
     source,
     eventId: refId || "",
     reason,
+    createdAt: new Date().toISOString(),
     severity: eventSeverity({ moneyDelta, moodDelta, healthDelta })
-  });
+  };
+  eventLog.push(entry);
   writeJson(eventLogPath, eventLog);
+  incrementUnreadForEvent(refId || "");
+  return entry;
 }
 
 function eventAlreadyApplied(day, eventId) {
@@ -561,12 +681,19 @@ function eventBubbleMessage(entry) {
 }
 
 function eventMessageLabel(category, source, severity) {
+  if (source === "petActionStory") return `互动 · ${category}`;
   if (source === "realtime") return `插曲 · ${category}`;
   if (source === "followUp") return `后续 · ${category}`;
   return severity === "urgent" ? `紧急 · ${category}` : category;
 }
 
 function eventMessageTone(entry) {
+  if (entry.source === "petActionStory") {
+    const score = Number(entry.moodDelta || 0) + Number(entry.healthDelta || 0) + Math.sign(Number(entry.moneyDelta || 0)) * 2;
+    if (score > 2) return "good";
+    if (score < -2) return "bad";
+    return "story";
+  }
   if (entry.source === "realtime") return "soft";
   if (entry.source === "followUp") return "story";
   if ((entry.severity || eventSeverity(entry)) === "urgent") return "urgent";
@@ -896,6 +1023,52 @@ function applyLifeEvent(event, day, index, source = "lifeEvent", reason = "") {
   });
 
   scheduleFollowUps(event, day, index);
+}
+
+function actionStoryCandidates(action, day) {
+  return (lifeEvents || []).filter((event) => {
+    const triggers = Array.isArray(event.actionTriggers) ? event.actionTriggers : [];
+    if (!triggers.includes(action.id) && !triggers.includes(action.category)) {
+      return false;
+    }
+    if (eventAlreadyApplied(day, event.id)) {
+      return false;
+    }
+    return !event.triggers || eventTriggerMatch(event).matched;
+  });
+}
+
+function pickActionStoryEvent(action, day) {
+  const candidates = actionStoryCandidates(action, day);
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  const weighted = candidates.map((event) => ({
+    event,
+    chance: Math.max(0.001, Number(event.actionChance ?? event.chance ?? 0.18))
+  }));
+  const total = weighted.reduce((sum, item) => sum + item.chance, 0);
+  const roll = Math.random() * total;
+  let cursor = 0;
+  for (const item of weighted) {
+    cursor += item.chance;
+    if (roll <= cursor) {
+      return item.event;
+    }
+  }
+  return weighted[weighted.length - 1]?.event || null;
+}
+
+function applyActionStoryEvent(action, day) {
+  const event = pickActionStoryEvent(action, day);
+  if (!event) {
+    return [];
+  }
+
+  const beforeLength = dailyEventMessages.length;
+  applyLifeEvent(event, day, Date.now() % 100000, "petActionStory", `由「${action.name}」互动触发`);
+  return dailyEventMessages.slice(beforeLength);
 }
 
 function processPendingEvents(day, limit) {
@@ -1440,10 +1613,12 @@ function applyPetAction(actionId) {
     state.hair = clamp(state.hair + action.hairDelta);
     state.health = clamp(Number(state.health ?? 75) + Number(action.healthDelta || 0));
     applyDerivedStateEffects();
+    const actionDay = dayString(new Date());
+    const actionStoryMessages = applyActionStoryEvent(action, actionDay);
     state.currentActivity = "待机";
     writeJson(statePath, state);
     recordLedgerEntry({
-      date: dayString(new Date()),
+      date: actionDay,
       type: action.moneyDelta >= 0 ? "income" : "expense",
       category: action.category,
       name: action.name,
@@ -1452,6 +1627,9 @@ function applyPetAction(actionId) {
       refId: `${action.id}:${Date.now()}`
     });
     sendSkillResult(`${action.finishMessage}\n${effectSummary(action)}`, action.name);
+    if (actionStoryMessages.length > 0) {
+      sendCallback("petQueueEventMessages", paceEventMessages(actionStoryMessages));
+    }
     sendState();
     sendActivityEnded();
   }, Math.max(1, action.durationSeconds) * 1000);
@@ -1494,6 +1672,16 @@ function selectSkin(skinId) {
   writeJson(settingsPath, settings);
   sendSettings();
   sendSkillResult(`已切换皮肤\n${skin.displayName}`, "换皮肤");
+}
+
+function showEventLog() {
+  markEventsRead("events");
+  sendCallback("petEventLogResult", { entries: eventSummary(24) });
+}
+
+function showStories() {
+  markEventsRead("stories");
+  sendCallback("petStoryResult", storyPayload());
 }
 
 function showContextMenu() {
@@ -1598,8 +1786,8 @@ ipcMain.on("pet-message", (_event, body) => {
   if (action === "setMousePassthrough") setMousePassthrough(Boolean(body.enabled));
   if (action === "moveWindowBy") moveWindowBy(body.deltaX, body.deltaY);
   if (action === "showLedger") sendCallback("petLedgerResult", { entries: ledgerSummary(24) });
-  if (action === "showEvents") sendCallback("petEventLogResult", { entries: eventSummary(24) });
-  if (action === "showStories") sendCallback("petStoryResult", { stories: storySummary() });
+  if (action === "showEvents") showEventLog();
+  if (action === "showStories") showStories();
   if (action === "showLedgerStats") sendCallback("petLedgerStatsResult", { stats: ledgerMonthlyStats() });
   if (action === "showEventDebug") sendSkillResult(eventDebugSummary(), "事件调试");
   if (action === "debugAdvanceDay") sendSkillResult(debugAdvanceDay(), "推进一天");
