@@ -1,0 +1,6 @@
+﻿{
+    "id":  "carro-real",
+    "displayName":  "Carro Real",
+    "description":  "A plush carrot companion that walks, waves, jumps, waits, and reacts sadly.",
+    "spritesheetPath":  "spritesheet.webp"
+}

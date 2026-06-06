@@ -9,6 +9,7 @@ $packageDir = Join-Path $dist "NyxPet-Portable"
 $zipPath = Join-Path $dist "NyxPet-Portable.zip"
 $exePath = Join-Path $packageDir "Nyx Pet.exe"
 $skillsDir = Join-Path $root "skills"
+$petsDir = Join-Path $root "pets"
 $readmePath = Join-Path $root "README-PORTABLE.md"
 
 if (!(Test-Path $node)) {
@@ -48,6 +49,9 @@ if (Test-Path $zipPath) {
 New-Item -ItemType Directory -Path $packageDir | Out-Null
 Copy-Item -Path (Join-Path $winUnpacked "*") -Destination $packageDir -Recurse -Force
 Copy-Item -Path $skillsDir -Destination (Join-Path $packageDir "skills") -Recurse -Force
+if (Test-Path $petsDir) {
+  Copy-Item -Path $petsDir -Destination (Join-Path $packageDir "pets") -Recurse -Force
+}
 Copy-Item -Path $readmePath -Destination $packageDir -Force
 
 $runtimeData = @(

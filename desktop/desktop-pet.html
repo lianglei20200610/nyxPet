@@ -559,6 +559,17 @@
         grid-template-columns: repeat(4, 48px);
       }
 
+      .menu.skin-menu {
+        grid-template-columns: minmax(180px, 250px);
+        max-height: 270px;
+        padding: 6px;
+        overflow-y: auto;
+        border: 2px solid rgba(56, 43, 24, 0.28);
+        border-radius: 10px;
+        background: rgba(255, 251, 241, 0.94);
+        box-shadow: 0 8px 18px rgba(45, 38, 27, 0.16);
+      }
+
       body.is-windows .pet {
         left: 7%;
         bottom: 9%;
@@ -666,6 +677,13 @@
         grid-template-columns: repeat(4, 44px);
       }
 
+      body.is-windows .menu.skin-menu {
+        left: 41%;
+        bottom: 7%;
+        grid-template-columns: minmax(190px, 270px);
+        max-height: 300px;
+      }
+
       body.is-windows button {
         width: 44px;
         height: 44px;
@@ -673,6 +691,34 @@
         border-radius: 13px;
         box-shadow: 0 4px 0 rgba(45, 38, 27, 0.14);
         font-size: 20px;
+      }
+
+      .menu.skin-menu button,
+      body.is-windows .menu.skin-menu button {
+        width: 100%;
+        height: 36px;
+        display: grid;
+        grid-template-columns: 22px minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+        justify-items: start;
+        padding: 0 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        line-height: 1;
+        text-align: left;
+      }
+
+      .menu-icon {
+        font-size: 16px;
+      }
+
+      .menu-label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 800;
       }
 
       button {
@@ -726,6 +772,70 @@
         animation: sprite-bob 2s ease-in-out infinite;
       }
 
+      body.emotion-happy .sprite-pet {
+        animation: sprite-bob 1.55s ease-in-out infinite;
+        filter: saturate(1.12) brightness(1.04);
+      }
+
+      body.emotion-tired .pet {
+        transform: translateY(7px) scale(0.98);
+      }
+
+      body.emotion-tired .sprite-pet {
+        animation: sprite-bob 5.2s ease-in-out infinite;
+        filter: saturate(0.86) brightness(0.96);
+      }
+
+      body.emotion-sick .pet {
+        transform: translateY(9px) rotate(-1.5deg) scale(0.97);
+      }
+
+      body.emotion-sick .sprite-pet {
+        animation: sprite-bob 6s ease-in-out infinite;
+        filter: saturate(0.78) brightness(0.94);
+      }
+
+      body.emotion-debt .sprite-pet {
+        animation: sprite-bob 3.6s ease-in-out infinite;
+        filter: saturate(0.9) contrast(1.04);
+      }
+
+      body.emotion-focused .sprite-pet {
+        animation: sprite-bob 2.4s ease-in-out infinite;
+        filter: saturate(1.05) contrast(1.02);
+      }
+
+      body.emotion-happy .bubble:not(.tone-bad):not(.tone-urgent):not(.tone-story) {
+        background: #fff8df;
+        border-color: #bf7a1f;
+      }
+
+      body.emotion-tired .bubble:not(.tone-good):not(.tone-urgent):not(.tone-story) {
+        background: #f4f3ff;
+        border-color: #6a6596;
+      }
+
+      body.emotion-sick .bubble:not(.tone-good):not(.tone-story) {
+        background: #fff0ef;
+        border-color: #b94a3c;
+      }
+
+      body.emotion-debt .bubble:not(.tone-good):not(.tone-story) {
+        background: #fff7df;
+        border-color: #a95d1d;
+      }
+
+      body.emotion-sick .shadow,
+      body.emotion-tired .shadow {
+        opacity: 0.1;
+        animation-duration: 3.8s;
+      }
+
+      body.emotion-debt .stats {
+        border-color: #a95d1d;
+        background: rgba(255, 247, 223, 0.97);
+      }
+
       @keyframes shadow {
         0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.2; }
         50% { transform: translateX(-50%) scaleX(0.86); opacity: 0.12; }
@@ -777,6 +887,7 @@
 
       const pet = document.getElementById("pet");
       const spritePet = document.querySelector(".sprite-pet");
+      const spriteSheet = document.querySelector(".sprite-sheet");
       const menu = document.getElementById("menu");
       const bubble = document.getElementById("bubble");
       const bubbleLabel = document.getElementById("bubbleLabel");
@@ -802,6 +913,7 @@
       let busy = false;
       let loadedActions = [];
       let loadedSkills = [];
+      let loadedSkins = [];
       let menuMode = "root";
       let activePetClass = "";
       let spriteTimer;
@@ -811,6 +923,9 @@
       let currentSpriteState = "";
       let messageQueue = [];
       let queuePlaying = false;
+      let latestPetState = null;
+      let currentEmotion = "neutral";
+      let temporaryEmotionTimer;
 
       const spriteStates = {
         idle: { row: 0, frames: 6, intervalMs: 460 },
@@ -932,6 +1047,84 @@
         updateMousePassthrough(event);
       }
 
+      function emotionForState(state) {
+        if (!state) {
+          return "neutral";
+        }
+        const mood = Number(state.mood ?? 70);
+        const health = Number(state.health ?? 75);
+        const money = Number(state.money ?? 0);
+        if (health < 35) return "sick";
+        if (mood < 30) return "tired";
+        if (money < 0) return "debt";
+        if (mood >= 80 && health >= 60 && money >= 0) return "happy";
+        return "neutral";
+      }
+
+      function spriteForEmotion(emotion) {
+        return {
+          happy: "waving",
+          tired: "waiting",
+          sick: "failed",
+          debt: "review",
+          focused: "review",
+          neutral: "idle"
+        }[emotion] || "idle";
+      }
+
+      function emotionFromTone(tone, spriteState = "") {
+        if (spriteState === "failed") return "sick";
+        if (spriteState === "jumping" || spriteState === "waving") return "happy";
+        if (tone === "good") return "happy";
+        if (tone === "bad") return "tired";
+        if (tone === "urgent") return "debt";
+        return "";
+      }
+
+      function emotionFromText(text) {
+        const value = String(text || "");
+        if (/失败|错误|超时|退出码|找不到|缺少/.test(value)) return "tired";
+        if (/完成|成功|收益|收入|开心|恢复/.test(value)) return "happy";
+        if (/生病|发烧|健康|医疗|感冒/.test(value)) return "sick";
+        if (/负债|扣款|支出|花费/.test(value)) return "debt";
+        return "";
+      }
+
+      function setEmotion(emotion) {
+        const next = emotion || "neutral";
+        if (currentEmotion === next) {
+          return;
+        }
+        document.body.classList.remove("emotion-happy", "emotion-tired", "emotion-sick", "emotion-debt", "emotion-focused");
+        currentEmotion = next;
+        if (next !== "neutral") {
+          document.body.classList.add(`emotion-${next}`);
+        }
+      }
+
+      function applyBaseEmotion() {
+        if (busy || currentMode === "skill" || currentMode === "event") {
+          return;
+        }
+        const emotion = emotionForState(latestPetState);
+        setEmotion(emotion);
+        if (!currentMode) {
+          playSpriteState(spriteForEmotion(emotion));
+        }
+      }
+
+      function showTemporaryEmotion(emotion, durationMs = 1800) {
+        if (!emotion) {
+          return;
+        }
+        window.clearTimeout(temporaryEmotionTimer);
+        setEmotion(emotion);
+        if (!busy && !currentMode) {
+          playSpriteState(spriteForEmotion(emotion));
+        }
+        temporaryEmotionTimer = window.setTimeout(applyBaseEmotion, Math.max(900, durationMs));
+      }
+
       function collectSkillPromptValues(skill) {
         const prompts = Array.isArray(skill?.prompts) ? skill.prompts : [];
         if (prompts.length === 0) {
@@ -1037,6 +1230,8 @@
         const item = messageQueue.shift();
         if (item.spriteState) {
           showEventPetReaction(item.spriteState, item.durationMs);
+        } else if (item.emotion) {
+          showTemporaryEmotion(item.emotion, item.durationMs);
         }
         say(item.text, item.label, item.durationMs, item.tone || "");
         window.setTimeout(() => {
@@ -1281,7 +1476,7 @@
           exercise: "jumping",
           entertainment: "waiting",
           skill: "review"
-        }[modeClass] || "idle";
+        }[modeClass] || spriteForEmotion(currentEmotion);
         playSpriteState(stateName);
       }
 
@@ -1289,11 +1484,21 @@
         if (busy) return;
         const previousMode = currentMode;
         const previousSpriteState = currentSpriteState;
+        const previousEmotion = currentEmotion;
         window.clearTimeout(eventModeTimer);
         setPetMode("event", spriteState);
+        const reactionEmotion = emotionFromTone("", spriteState);
+        if (reactionEmotion) {
+          setEmotion(reactionEmotion);
+        }
         eventModeTimer = window.setTimeout(() => {
           if (!busy) {
             setPetMode(previousMode, previousSpriteState);
+            if (previousMode) {
+              setEmotion(previousEmotion);
+            } else {
+              applyBaseEmotion();
+            }
           }
         }, Math.max(1200, durationMs - 300));
       }
@@ -1312,10 +1517,12 @@
         if (activePetClass === "is-skill") {
           setPetMode("");
         }
+        showTemporaryEmotion(emotionFromText(result?.text), 2200);
         showSkillResult(result);
       };
 
       window.petStateUpdated = (state) => {
+        latestPetState = state;
         statEls.mood.textContent = state.mood;
         statEls.weight.textContent = state.weight;
         statEls.hair.textContent = state.hair;
@@ -1338,6 +1545,7 @@
           statEls.debt.textContent = "现金正常";
           statEls.debt.classList.remove("is-debt");
         }
+        applyBaseEmotion();
       };
 
       window.petLedgerResult = (payload) => {
@@ -1362,13 +1570,18 @@
           const duration = message.durationMs || (message.severity === "urgent" ? 7600 : 4200);
           enqueueBubble(message.text, message.label || "生活事件", duration, message.severity, {
             tone: message.tone || "",
-            spriteState: message.spriteState || ""
+            spriteState: message.spriteState || "",
+            emotion: emotionFromTone(message.tone || "", message.spriteState || "")
           });
         });
       };
 
       window.petSettingsUpdated = (settings) => {
         petSettings = settings;
+        if (settings.skinSpritesheetUrl) {
+          spriteSheet.src = settings.skinSpritesheetUrl;
+          spriteSheet.alt = settings.skinName || settings.skinId || "";
+        }
         document.getElementById("stats").classList.toggle("hidden", !settings.showStats);
         if (menu.classList.contains("open") && menuMode === "settings") {
           renderCategoryMenu("settings");
@@ -1385,15 +1598,30 @@
         renderRootMenu();
       };
 
+      window.petLoadSkins = (skins) => {
+        loadedSkins = Array.isArray(skins) ? skins : [];
+        renderRootMenu();
+      };
+
       function clearMenu() {
         menu.replaceChildren();
       }
 
-      function createMenuButton({ icon, title, dataset }) {
+      function createMenuButton({ icon, title, dataset, label }) {
         const button = document.createElement("button");
         button.type = "button";
         button.title = title;
-        button.textContent = icon;
+        if (label) {
+          const iconElement = document.createElement("span");
+          iconElement.className = "menu-icon";
+          iconElement.textContent = icon;
+          const labelElement = document.createElement("span");
+          labelElement.className = "menu-label";
+          labelElement.textContent = label;
+          button.append(iconElement, labelElement);
+        } else {
+          button.textContent = icon;
+        }
         for (const [key, value] of Object.entries(dataset)) {
           button.dataset[key] = value;
         }
@@ -1402,7 +1630,7 @@
 
       function renderRootMenu() {
         menuMode = "root";
-        menu.classList.remove("submenu");
+        menu.classList.remove("submenu", "skin-menu");
         clearMenu();
 
         if (loadedSkills.length > 0) {
@@ -1445,6 +1673,7 @@
       function renderCategoryMenu(category) {
         menuMode = category;
         menu.classList.add("submenu");
+        menu.classList.toggle("skin-menu", category === "skin");
         clearMenu();
 
         menu.appendChild(createMenuButton({
@@ -1494,6 +1723,13 @@
             title: petSettings.showStats ? "隐藏状态面板" : "显示状态面板",
             dataset: { action: "toggleStats" }
           }));
+          if (loadedSkins.length > 0) {
+            menu.appendChild(createMenuButton({
+              icon: "🎨",
+              title: "换皮肤",
+              dataset: { action: "openCategory", category: "skin" }
+            }));
+          }
           menu.appendChild(createMenuButton({
             icon: "账",
             title: "查看账本",
@@ -1514,6 +1750,23 @@
             title: "退出",
             dataset: { action: "quit" }
           }));
+          return;
+        }
+
+        if (category === "skin") {
+          for (const skin of loadedSkins) {
+            const isCurrent = skin.id === petSettings.skinId;
+            const skinName = skin.displayName || skin.id;
+            menu.appendChild(createMenuButton({
+              icon: isCurrent ? "✓" : "🎨",
+              title: `${skinName}${isCurrent ? " · 当前" : ""}`,
+              label: `${skinName}${isCurrent ? " · 当前" : ""}`,
+              dataset: {
+                action: "selectSkin",
+                skinId: skin.id
+              }
+            }));
+          }
           return;
         }
 
@@ -1547,6 +1800,8 @@
 
       window.petActivityStarted = (action) => {
         busy = true;
+        window.clearTimeout(temporaryEmotionTimer);
+        setEmotion("focused");
         window.clearInterval(activityTimer);
         const duration = Math.max(1, Number(action.durationSeconds) || 1);
         const startedAt = Date.now();
@@ -1567,6 +1822,7 @@
       window.petActivityEnded = () => {
         busy = false;
         setPetMode("");
+        applyBaseEmotion();
         window.clearInterval(activityTimer);
         activityFill.style.width = "100%";
         window.setTimeout(() => {
@@ -1646,6 +1902,15 @@
           });
           return;
         }
+        if (button.dataset.action === "selectSkin") {
+          window.webkit?.messageHandlers?.pet?.postMessage({
+            action: "selectSkin",
+            skinId: button.dataset.skinId
+          });
+          menu.classList.remove("open");
+          renderRootMenu();
+          return;
+        }
         if (button.dataset.action === "showEvents") {
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: "showEvents"
@@ -1713,6 +1978,7 @@
             return;
           }
           setPetMode("skill");
+          setEmotion("focused");
           say("正在运行脚本...", skillName);
           window.webkit?.messageHandlers?.pet?.postMessage({
             action: "runSkill",

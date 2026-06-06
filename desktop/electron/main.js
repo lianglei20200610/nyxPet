@@ -2,12 +2,16 @@ const { app, BrowserWindow, Menu, ipcMain } = require("electron");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const { pathToFileURL } = require("url");
 
 const root = path.resolve(__dirname, "..", "..");
 const appDir = app.isPackaged ? path.dirname(process.execPath) : root;
 const bundledSkillsDir = path.join(root, "skills");
 const externalSkillsDir = app.isPackaged ? path.join(appDir, "skills") : bundledSkillsDir;
 const skillsPath = path.join(externalSkillsDir, "skills.json");
+const bundledPetsDir = path.join(root, "assets", "codex-pets");
+const projectPetsDir = path.join(root, "pets");
+const externalPetsDir = app.isPackaged ? path.join(appDir, "pets") : projectPetsDir;
 const dataDir = app.isPackaged ? path.join(appDir, "data") : path.join(app.getPath("userData"), "data");
 const settingsPath = path.join(dataDir, "pet-settings.json");
 const statePath = path.join(dataDir, "pet-state.json");
@@ -23,7 +27,8 @@ const initialSettings = {
   windowWidth: 520,
   windowHeight: 620,
   alwaysOnTop: true,
-  showStats: true
+  showStats: true,
+  skinId: "goku-forms"
 };
 
 const initialState = {
@@ -39,6 +44,7 @@ const initialState = {
 
 let mainWindow;
 let skills = [];
+let skins = [];
 let actions = [];
 let economy = { dailyIncome: 500, fixedExpenses: [], randomExpenses: [] };
 let lifeEvents = [];
@@ -81,7 +87,7 @@ function publishState() {
 
 function readJson(filePath, fallback) {
   try {
-    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+    return JSON.parse(fs.readFileSync(filePath, "utf8").replace(/^\uFEFF/, ""));
   } catch {
     return fallback;
   }
@@ -92,12 +98,79 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
+function fileUrl(filePath) {
+  return pathToFileURL(filePath).href;
+}
+
+function discoverSkinsFromDirectory(directory, source) {
+  if (!fs.existsSync(directory)) {
+    return [];
+  }
+
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    if (!entry.isDirectory()) {
+      return [];
+    }
+    const dir = path.join(directory, entry.name);
+    const manifestPath = path.join(dir, "pet.json");
+    const manifest = readJson(manifestPath, null);
+    if (!manifest || !manifest.id) {
+      return [];
+    }
+    const spritesheetPath = path.resolve(dir, manifest.spritesheetPath || "spritesheet.webp");
+    if (!fs.existsSync(spritesheetPath)) {
+      return [];
+    }
+    return [{
+      id: String(manifest.id),
+      displayName: String(manifest.displayName || manifest.id),
+      description: String(manifest.description || ""),
+      source,
+      spritesheetPath,
+      spritesheetUrl: fileUrl(spritesheetPath)
+    }];
+  });
+}
+
+function discoverSkins() {
+  const byId = new Map();
+  for (const skin of [
+    ...discoverSkinsFromDirectory(bundledPetsDir, "built-in"),
+    ...discoverSkinsFromDirectory(externalPetsDir, "external")
+  ]) {
+    byId.set(skin.id, skin);
+  }
+  return Array.from(byId.values()).sort((a, b) => {
+    if (a.id === "goku-forms") return -1;
+    if (b.id === "goku-forms") return 1;
+    return a.displayName.localeCompare(b.displayName);
+  });
+}
+
+function currentSkin() {
+  return skins.find((skin) => skin.id === settings.skinId) || skins.find((skin) => skin.id === "goku-forms") || skins[0] || null;
+}
+
+function publicSkin(skin) {
+  return {
+    id: skin.id,
+    displayName: skin.displayName,
+    description: skin.description,
+    source: skin.source
+  };
+}
+
 function loadRuntimeData() {
+  skins = discoverSkins();
   skills = readJson(skillsPath, readJson(path.join(bundledSkillsDir, "skills.json"), []));
   actions = readJson(path.join(root, "actions", "actions.json"), []);
   economy = { ...economy, ...readJson(economyPath, {}) };
   lifeEvents = readJson(lifeEventsPath, []);
   settings = { ...initialSettings, ...readJson(settingsPath, {}) };
+  const skin = currentSkin();
+  if (skin && settings.skinId !== skin.id) {
+    settings.skinId = skin.id;
+  }
   state = { ...initialState, ...readJson(statePath, {}) };
   if (!Array.isArray(state.pendingEvents)) {
     state.pendingEvents = [];
@@ -168,7 +241,13 @@ function sendState() {
 }
 
 function sendSettings() {
-  sendCallback("petSettingsUpdated", settings);
+  const skin = currentSkin();
+  sendCallback("petSettingsUpdated", {
+    ...settings,
+    skinId: skin ? skin.id : settings.skinId,
+    skinName: skin ? skin.displayName : "",
+    skinSpritesheetUrl: skin ? skin.spritesheetUrl : ""
+  });
 }
 
 function sendActivityStarted(action) {
@@ -197,6 +276,7 @@ function bootstrapRenderer() {
     spriteState: action.spriteState
   }));
 
+  sendCallback("petLoadSkins", skins.map(publicSkin));
   sendCallback("petLoadSkills", publicSkills);
   sendCallback("petLoadActions", publicActions);
   sendState();
@@ -1404,6 +1484,18 @@ function toggleStats() {
   sendSkillResult(settings.showStats ? "已显示状态面板" : "已隐藏状态面板", "设置");
 }
 
+function selectSkin(skinId) {
+  const skin = skins.find((item) => item.id === skinId);
+  if (!skin) {
+    sendSkillResult(`找不到这个皮肤\n${skinId}`, "换皮肤");
+    return;
+  }
+  settings.skinId = skin.id;
+  writeJson(settingsPath, settings);
+  sendSettings();
+  sendSkillResult(`已切换皮肤\n${skin.displayName}`, "换皮肤");
+}
+
 function showContextMenu() {
   const menu = Menu.buildFromTemplate([
     {
@@ -1502,6 +1594,7 @@ ipcMain.on("pet-message", (_event, body) => {
   if (action === "petAction") applyPetAction(body.actionId);
   if (action === "toggleAlwaysOnTop") toggleAlwaysOnTop();
   if (action === "toggleStats") toggleStats();
+  if (action === "selectSkin") selectSkin(body.skinId);
   if (action === "setMousePassthrough") setMousePassthrough(Boolean(body.enabled));
   if (action === "moveWindowBy") moveWindowBy(body.deltaX, body.deltaY);
   if (action === "showLedger") sendCallback("petLedgerResult", { entries: ledgerSummary(24) });

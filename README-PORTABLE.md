@@ -76,6 +76,36 @@ data\skill-inputs.json
 
 注意：为了实现“输入一次后默认保存”，账号和密码会保存在本机解压目录的 `data\skill-inputs.json` 中。不要把这个文件发给别人。
 
+## 换皮肤
+
+点击宠物打开菜单，进入 `设置 -> 换皮肤`，可以在当前可用皮肤之间切换。
+
+便携版自带多个皮肤，皮肤目录在 exe 同级：
+
+```text
+pets\
+```
+
+每个皮肤是一个独立文件夹，至少包含：
+
+```text
+pets\my-pet\
+  pet.json
+  spritesheet.webp
+```
+
+`pet.json` 示例：
+
+```json
+{
+  "id": "my-pet",
+  "displayName": "我的宠物",
+  "spritesheetPath": "spritesheet.webp"
+}
+```
+
+新增皮肤时，把新的皮肤文件夹放进 `pets\`，重启 `Nyx Pet.exe` 后会自动出现在换肤菜单里。
+
 ## 技能扩展方式
 
 技能目录在 exe 同级：
@@ -215,6 +245,10 @@ NyxPet-Portable\
 NyxPet-Portable\
   Nyx Pet.exe
   resources\
+  pets\
+    academicasi\
+    acidling\
+    ...
   skills\
     skills.json
     overtime_calculator.py
